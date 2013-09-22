@@ -3,7 +3,7 @@
       xmlns:og="http://ogp.me/ns#"
       xmlns:fb="https://www.facebook.com/2008/fbml">
 <head>
-    <title>Debian系统添加全局根证书（CNNIC）</title>
+    <title>配置Bind使用MySQL dlz模式</title>
     <!-- Using the latest rendering mode for IE -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -12,9 +12,9 @@
     <!-- Open Graph tags -->
                 
                                 <meta property="og:type" content="article"/>
-            <meta property="og:title" content="Debian系统添加全局根证书（CNNIC）"/>
-            <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html"/>
-            <meta property="og:description" content="鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。本篇文章介绍了如何将CNNIC CA添加至Debian操作系统全局根证书。"/>
+            <meta property="og:title" content="配置Bind使用MySQL dlz模式"/>
+            <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html"/>
+            <meta property="og:description" content="安装MySQL/Bind with dlz 略过，bind dlz安装，只需在编译的时候增加 --with-dlz-mysql 选项即可。 创建 MySQL 数据库 根据自己的需求创建即可，如使用如下命令创建一个名为 dns 的数据库： CREATE DATABASE dns DEFAULT CHARSET UTF8; 使用 use dns 切换进 dns 数据库后，使用如下命令创建一张 dns_records 表： CREATE TABLE `dns_records` ( `zone` varchar(255) NOT NULL, `host` varchar(255) NOT NULL, `type` varchar(12) NOT NULL ..."/>
         
         <!-- <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/bootstrap.min.css" type="text/css"/> -->
     <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/css/bootstrap.min.css" type="text/css"/>
@@ -80,10 +80,10 @@
         <article>
             <header class="page-header">
                 <h1>
-                    <a href="http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html"
+                    <a href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html"
                        rel="bookmark"
-                       title="Permalink to Debian系统添加全局根证书（CNNIC）">
-                        Debian系统添加全局根证书（CNNIC）
+                       title="Permalink to 配置Bind使用MySQL dlz模式">
+                        配置Bind使用MySQL dlz模式
                     </a>
                 </h1>
             </header>
@@ -92,24 +92,85 @@
                     <div class="panel-body">
                         <footer class="post-info">
     <span class="published">
-      <i class="icon-calendar"></i>2013-09-08 12:25
+      <i class="icon-calendar"></i>2013-09-09 16:18
     </span>
                     
             
     
     <i class="icon-tags"></i>
-	<a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a>
+	<a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a>
         </footer><!-- /.post-info -->                    </div>
                 </div>
-                <p>鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。</p>
-<p>虽然我也不喜欢cnnic，但没办法，这是反抗不了的事情。</p>
-<p>过程如下（需要root权限）：</p>
-<blockquote>
-<p>apt-get install ca-certificates #一般情况下应该是已经有安装的了</p>
-<p>mkdir -p /usr/share/ca-certificates/local #建立local目录是为了方便区分这是自己填加的证书，可以自定义，但一定要在/usr/share/ca-certificates目录下</p>
-<p>将cnnic的证书复制至/usr/share/ca-certificates/local目录，请注意，证书的后缀必须修改为.crt</p>
-<p>dpkg-reconfigure ca-certificates #选中刚才添加的local/cnnic.crt证中，确定，即可</p>
-</blockquote>
+                <p><strong> 安装MySQL/Bind with dlz </strong></p>
+<p>略过，bind dlz安装，只需在编译的时候增加 <code>--with-dlz-mysql</code> 选项即可。</p>
+<p><strong> 创建 MySQL 数据库 </strong></p>
+<p>根据自己的需求创建即可，如使用如下命令创建一个名为 <code>dns</code> 的数据库：</p>
+<div class="highlight"><pre><span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">dns</span> <span class="n">DEFAULT</span> <span class="n">CHARSET</span> <span class="n">UTF8</span><span class="p">;</span>
+</pre></div>
+
+
+<p>使用 <code>use dns</code> 切换进 <code>dns</code> 数据库后，使用如下命令创建一张 <code>dns_records</code> 表：</p>
+<div class="highlight"><pre><span class="n">CREATE</span> <span class="n">TABLE</span> <span class="err">`</span><span class="n">dns_records</span><span class="err">`</span> <span class="p">(</span>
+<span class="err">`</span><span class="n">zone</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
+<span class="err">`</span><span class="n">host</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
+<span class="err">`</span><span class="n">type</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
+<span class="err">`</span><span class="n">data</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
+<span class="err">`</span><span class="n">ttl</span><span class="err">`</span> <span class="kt">int</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span> <span class="n">DEFAULT</span> <span class="err">&#39;</span><span class="mi">600</span><span class="err">&#39;</span><span class="p">,</span>
+<span class="err">`</span><span class="n">id</span><span class="err">`</span> <span class="kt">int</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">AUTO_INCREMENT</span><span class="p">,</span>
+<span class="n">PRIMARY</span> <span class="n">KEY</span> <span class="p">(</span><span class="err">`</span><span class="n">id</span><span class="err">`</span><span class="p">),</span>
+<span class="p">)</span> <span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span> <span class="n">DEFAULT</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">utf8</span><span class="p">;</span>
+</pre></div>
+
+
+<p>这里以域 <code>example.com</code> 为例，说明如上字段意义，假设我需要有一条 <code>www.example.com</code> 的记录指向 <code>1.1.1.1</code> 这个IP，应该增加哪些内容：</p>
+<p>zone:</p>
+<div class="highlight"><pre><span class="err">域，这里指</span> <span class="n">example</span><span class="p">.</span><span class="n">com</span>
+</pre></div>
+
+
+<p>host:</p>
+<div class="highlight"><pre><span class="err">主机名（名字），这里为</span> <span class="n">www</span>
+</pre></div>
+
+
+<p>type:</p>
+<div class="highlight"><pre><span class="err">记录类型，这里为</span><span class="n">A</span>
+</pre></div>
+
+
+<p>data:</p>
+<div class="highlight"><pre><span class="err">域名资源数据，这里为</span><span class="n">IP</span><span class="err">地址</span> <span class="mf">1.1.1.1</span>
+</pre></div>
+
+
+<p>ttl:</p>
+<div class="highlight"><pre><span class="err">域名</span><span class="n">TTL</span><span class="err">，为任意整数（建议不要低于</span><span class="mi">120</span><span class="err">，即</span><span class="mi">2</span><span class="err">分钟）</span>
+</pre></div>
+
+
+<p>将该数据库授权给某用户（后续bind-dlz配置需要用到）：</p>
+<div class="highlight"><pre><span class="n">grant</span> <span class="n">select</span> <span class="n">on</span> <span class="n">dns</span><span class="p">.</span><span class="o">*</span> <span class="n">to</span> <span class="n">dns</span><span class="err">@</span><span class="n">localhost</span> <span class="n">identified</span> <span class="n">by</span> <span class="err">&#39;</span><span class="n">dns</span><span class="err">&#39;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>用户名为 <code>dns</code> ，密码也为 <code>dns</code> ，只允许本地主机 <code>localhost</code> 访问，并只给予了 <code>select</code> 权限。</p>
+<p><strong> Bind-dlz配置 </strong></p>
+<p>这里只涉及dlz的配置，其它named.conf的配置不涉及</p>
+<div class="highlight"><pre><span class="n">dlz</span> <span class="s">&quot;your custom description&quot;</span> <span class="p">{</span>
+    <span class="n">database</span> <span class="s">&quot;mysql</span>
+        <span class="p">{</span><span class="n">host</span><span class="o">=</span><span class="n">localhost</span> <span class="n">dbname</span><span class="o">=</span><span class="n">dns</span> <span class="n">user</span><span class="o">=</span><span class="n">dns</span> <span class="n">pass</span><span class="o">=</span><span class="n">dns</span><span class="p">}</span>
+        <span class="p">{</span><span class="n">select</span> <span class="n">zone</span> <span class="n">from</span> <span class="n">dns_records</span> <span class="n">where</span> <span class="n">zone</span> <span class="o">=</span> <span class="err">&#39;$</span><span class="n">zone</span><span class="err">$&#39;</span><span class="p">}</span>
+        <span class="p">{</span><span class="n">select</span> <span class="n">ttl</span><span class="p">,</span> <span class="n">type</span><span class="p">,</span> <span class="n">data</span> <span class="n">from</span> <span class="n">dns_records</span> <span class="n">where</span> <span class="n">host</span> <span class="o">=</span> <span class="err">&#39;$</span><span class="n">record</span><span class="err">$&#39;</span> <span class="n">and</span> <span class="n">zone</span><span class="o">=</span><span class="err">&#39;$</span><span class="n">zone</span><span class="err">$&#39;</span><span class="p">}</span><span class="s">&quot;;</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<p>your custom description:</p>
+<div class="highlight"><pre><span class="err">管理员自行添加的描述</span>
+</pre></div>
+
+
+<p>配置完成。</p>
             </div>
             <!-- /.entry-content -->
                             <hr />
@@ -119,8 +180,8 @@
         <script type="text/javascript">
             /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
             var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
-            var disqus_identifier = 'http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html';
-            var disqus_url = 'http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html';
+            var disqus_identifier = 'http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html';
+            var disqus_url = 'http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html';
 
             /* * * DON'T EDIT BELOW THIS LINE * * */
             (function () {
@@ -177,15 +238,15 @@
             
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
                             <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -198,28 +259,8 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
-                        bind
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
-                        django
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -228,8 +269,28 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
                     </a>
                 </li>
                         -->
