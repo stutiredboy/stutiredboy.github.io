@@ -29,7 +29,7 @@ body {
     color: #638950;
 }
 
-.tag-2 {
+.tag-3 {
     font-size: 12pt;
     color: #7D3F20;
 }
@@ -105,4 +105,8 @@ a, a:hover {
 
 .navbar-nav>li>a {
     font-size: 18px;
+}
+
+.dsq-widget-user {
+    color: #7D3F20;
 }
