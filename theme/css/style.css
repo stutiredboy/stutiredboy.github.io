@@ -1,0 +1,108 @@
+body {
+    font: 14px/21px Microsoft YaHei,Helvetica,Tahoma,Arial;
+    padding-top: 70px;
+}
+
+#sidebar .list-group, #sidebar .list-group-item {
+    background-color: transparent;
+}
+
+.list-group-item {
+    border: none;
+}
+
+.span-group-item {
+    font-size: 16px;
+}
+
+.span-group-item a:hover {
+    text-decoration: none;
+}
+
+.tag-1 {
+    font-size: 16pt;
+    color: #266D03;
+}
+
+.tag-2 {
+    font-size: 14pt;
+    color: #638950;
+}
+
+.tag-2 {
+    font-size: 12pt;
+    color: #7D3F20;
+}
+
+.tag-4 {
+    font-size: 10pt;
+    color: #6F6B6A;
+}
+
+#sidebar {
+    padding-top: 0px;
+}
+
+#sidebar a {
+    color: inherit;
+}
+
+i {
+    margin-right: 10px;
+}
+
+a, a:hover {
+    color: inherit;
+}
+
+.entry-content a {
+    text-decoration: none;
+    border-bottom: 1px dotted;
+}
+
+.entry-content a:hover {
+    text-decoration: none;
+    border-bottom: 1px solid;
+}
+
+.entry-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.highlight pre {
+    background-color: #202020;
+    color: #777;
+}
+
+#categories ul, #tags ul {
+    list-style: none;
+    padding: 0;
+    margin-left: 0;
+}
+
+/* added by tiredboy below */
+
+.page-header {
+    margin: 20px 0 10px 0;
+}   
+.panel-body {
+    padding: 0px;
+}  
+
+.footer a {
+    color: #428bca;
+    text-decoration: none;
+}
+.footer a:hover {
+    color: #2a6496;
+    text-decoration: underline;
+}
+
+.navbar-brand {
+    font-size: 24px;
+}
+
+.navbar-nav>li>a {
+    font-size: 18px;
+}
