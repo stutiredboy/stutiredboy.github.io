@@ -21,7 +21,7 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;问题解决。&lt;/p&gt;</summary><category term="django"></category><category term="python"></category></entry><entry><title>pelican增加自定义jinja template filters</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"></link><updated>2013-09-11T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-11:posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
+&lt;p&gt;问题解决。使用&lt;code&gt;string&lt;/code&gt;是因为我们这些是一些老旧的系统，新项目必须果断的抛弃&lt;code&gt;string&lt;/code&gt;，拥抱&lt;code&gt;unicode&lt;/code&gt;吧！&lt;/p&gt;</summary><category term="django"></category><category term="python"></category></entry><entry><title>pelican增加自定义jinja template filters</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"></link><updated>2013-09-11T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-11:posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
 &lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
 &lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序&lt;/p&gt;
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
