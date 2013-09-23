@@ -78,17 +78,10 @@
         <div class="col-md-9 col-lg-9">
                                     <article>
                 <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html">Django Admin 使用 filter_horizontal 不生效</a></h2>
-                <div class="summary"><div class="highlight"><pre><span class="err">考虑到</span><span class="n">Django</span> <span class="mf">1.0.2</span> <span class="n">admin</span><span class="err">的功能实在太弱了，今天冒着大风险，将某系统的</span><span class="n">Django</span><span class="err">进行了升级（升级至</span><span class="n">Django</span> <span class="mf">1.2.7</span><span class="err">）。</span>
-
-<span class="n">Django</span> <span class="mf">1.2.7</span> <span class="n">admin</span><span class="err">在使用`</span><span class="n">ManyToManyField</span><span class="err">`的时候，默认使用垂直`</span><span class="n">filter_vertical</span><span class="err">`方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，如下图所示：</span>
-</pre></div>
-
-
+                <div class="summary"><p>考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。</p>
+<p>Django 1.2.7 admin在使用<code>ManyToManyField</code>的时候，默认使用垂直<code>filter_vertical</code>方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，如下图所示：</p>
 <p><img src="/static/django_filter_vertical.png"></p>
-<div class="highlight"><pre><span class="err">决定使用更直观的方式，`</span><span class="n">filter_horizontal</span><span class="err">`，设置比较简单，只要在`</span><span class="n">admin</span><span class="p">.</span><span class="n">py</span><span class="err">`里对应的模块下，添加类似如下内容即可：</span>
-</pre></div>
-
-
+<p>决定使用更直观的方式，<code>filter_horizontal</code>，设置比较简单，只要在<code>admin.py</code>里对应的模块下，添加类似如下内容即可：</p>
 <div class="highlight"><pre><span class="n">filter_horizontal</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;example&#39;</span><span class="p">]</span>
 </pre></div>
 
@@ -97,7 +90,7 @@
 <p><img src="/static/django_filter_horizontal.png"></p>
 <p>但是，当我设置了此选择后，发现出现了奇怪的问题，如下图：</p>
 <p><img src="/static/django_filter_nothing.png"></p>
-<p>没有报错，但也没有出现设想中的选择框。经过研究，发现 ...</p>
+<p>没有报错，但也没有出现设想中的选择框。经过研究，发现，原来是因为我对应的字段<code>ips</code>，在<code>models.py</code>里定义的时候 ...</p>
                                                             <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html">more ...</a>
                 </div>
             </article>
@@ -226,15 +219,15 @@
             
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
                             <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
                             <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -242,28 +235,13 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-2">
-                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
-                        django
-                    </a>
-                </li>
-                            <li class="list-group-item tag-2">
                     <a href="http://blog.chenxiaosheng.com/tag/debian.html">
                         debian
                     </a>
                 </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
-                        bind
+                            <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -277,8 +255,23 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
                         pelican
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
                     </a>
                 </li>
                         -->
