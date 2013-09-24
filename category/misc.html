@@ -77,6 +77,27 @@
     <div class="row">
         <div class="col-md-9 col-lg-9">
                                     <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html">sshd无法使用secureFX传输文件</a></h2>
+                <div class="summary"><p>某同学表示，某些机器无法使用<code>secureFX</code>进行文件传输。</p>
+<p>正常情况下：</p>
+<div class="highlight"><pre><span class="n">i</span> <span class="n">RECV</span> <span class="o">:</span> <span class="n">AUTH_SUCCESS</span>
+<span class="n">i</span> <span class="n">RECV</span> <span class="o">:</span> <span class="n">Server</span> <span class="n">Sftp</span> <span class="n">Version</span><span class="o">:</span> <span class="mi">3</span>
+<span class="n">i</span> <span class="n">SEND</span> <span class="o">:</span> <span class="n">RealPath</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="p">.</span>
+<span class="n">i</span> <span class="n">Resolved</span> <span class="n">RealPath</span><span class="o">:</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">demo</span>
+<span class="n">i</span> <span class="n">SEND</span> <span class="o">:</span> <span class="n">OpenDir</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">demo</span>
+</pre></div>
+
+
+<p>而无法传输文件的服务器则是如下日志：</p>
+<div class="highlight"><pre><span class="n">i</span> <span class="n">RECV</span> <span class="o">:</span> <span class="n">AUTH_SUCCESS</span>
+<span class="n">i</span> <span class="n">Changing</span> <span class="n">state</span> <span class="n">from</span> <span class="n">STATE_CONNECTION</span> <span class="n">to</span>   <span class="n">STATE_TRANSPORT_STOPPING</span><span class="p">.</span>
+<span class="n">i</span> <span class="n">Changing</span> <span class="n">state</span> <span class="n">from</span> <span class="n">STATE_TRANSPORT_STOPPING</span> <span class="n">to</span> <span class="n">STATE_CLOSING</span><span class="p">.</span>
+<span class="n">i</span> <span class="n">Changing</span> <span class="n">state</span> <span class="n">from ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+                    <article>
                 <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html">Django Admin 使用 filter_horizontal 不生效</a></h2>
                 <div class="summary"><p>Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直<code>filter_vertical</code>方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用<code>filter_horizontal</code>进行显示的时候，我们碰到了一些问题。</p>
                                                             <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html">more ...</a>
@@ -139,26 +160,6 @@
                 </div>
             </article>
             <hr/>
-                    <article>
-                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">install Facebook scribe on Debian Squeeze</a></h2>
-                <div class="summary"><p>系统: </p>
-<blockquote>
-<p>Debian Squeeze 6.0 amd64</p>
-<p>thrift: 0.8.0</p>
-<p>hadoop: 0.20.2 cdh3 hadoop-0.20_0.20.2+923.142</p>
-<p>scribe: git current version</p>
-</blockquote>
-<p>首先安装各种库，包括但不局限于:</p>
-<blockquote>
-<p>python-dev maven2 ant sun-java6-jre sun-java6-jdk bison flex gcc make autoconf libevent-dev libboost-all-dev git-core</p>
-</blockquote>
-<p>之后:</p>
-<blockquote>
-<p>sudo update-alternatives --set java /usr/lib/jvm/java-6-sun/jre ...</p></blockquote>
-                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
             
             <ul class="pagination">
                             <li class="prev disabled"><a href="#">&laquo;</a></li>
@@ -207,15 +208,18 @@
             
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
                             <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
                             <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -223,33 +227,13 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-2">
-                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
-                        django
-                    </a>
-                </li>
-                            <li class="list-group-item tag-2">
                     <a href="http://blog.chenxiaosheng.com/tag/debian.html">
                         debian
                     </a>
                 </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
-                        bind
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
+                            <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -260,6 +244,41 @@
                             <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
                         openvpn
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
                     </a>
                 </li>
                         -->

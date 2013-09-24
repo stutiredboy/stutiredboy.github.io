@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2013-09-23T15:25:00+08:00</updated><entry><title>Django Admin 使用 filter_horizontal 不生效</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html" rel="alternate"></link><updated>2013-09-23T15:25:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-23:posts/2013-09-23/django-filter_horizontal.html</id><summary type="html">&lt;p&gt;考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2013-09-24T15:58:00+08:00</updated><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><updated>2013-09-24T15:58:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
+&lt;p&gt;正常情况下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AUTH_SUCCESS&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Server&lt;/span&gt; &lt;span class="n"&gt;Sftp&lt;/span&gt; &lt;span class="n"&gt;Version&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;SEND&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;RealPath&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;raw&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Resolved&lt;/span&gt; &lt;span class="n"&gt;RealPath&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;demo&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;SEND&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;OpenDir&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;demo&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;而无法传输文件的服务器则是如下日志：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AUTH_SUCCESS&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_CONNECTION&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt;   &lt;span class="n"&gt;STATE_TRANSPORT_STOPPING&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_TRANSPORT_STOPPING&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;STATE_CLOSING&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_CLOSING&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;STATE_CLOSED&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;查看&lt;code&gt;/etc/ssh/sshd_config&lt;/code&gt;配置，发现缺少&lt;code&gt;sftp&lt;/code&gt;的相关配置，在该配置文件中增加：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;Subsystem&lt;/span&gt;   &lt;span class="n"&gt;sftp&lt;/span&gt;    &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;libexec&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;openssh&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sftp&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;然后重启sshd服务，问题解决。&lt;/p&gt;</summary><category term="sftp"></category><category term="secureFX"></category><category term="sshd"></category></entry><entry><title>Django Admin 使用 filter_horizontal 不生效</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html" rel="alternate"></link><updated>2013-09-23T15:25:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-23:posts/2013-09-23/django-filter_horizontal.html</id><summary type="html">&lt;p&gt;考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。&lt;/p&gt;
 &lt;p&gt;Django 1.2.7 admin在使用&lt;code&gt;ManyToManyField&lt;/code&gt;的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，如下图所示：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/django_filter_vertical.png"&gt;&lt;/p&gt;
 &lt;p&gt;决定使用更直观的方式，&lt;code&gt;filter_horizontal&lt;/code&gt;，设置比较简单，只要在&lt;code&gt;admin.py&lt;/code&gt;里对应的模块下，添加类似如下内容即可：&lt;/p&gt;
