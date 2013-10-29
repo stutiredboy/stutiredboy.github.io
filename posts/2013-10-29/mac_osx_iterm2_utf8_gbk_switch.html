@@ -3,7 +3,7 @@
       xmlns:og="http://ogp.me/ns#"
       xmlns:fb="https://www.facebook.com/2008/fbml">
 <head>
-    <title>Django Admin 使用 filter_horizontal 不生效</title>
+    <title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title>
     <!-- Using the latest rendering mode for IE -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -12,9 +12,9 @@
     <!-- Open Graph tags -->
                 
                                 <meta property="og:type" content="article"/>
-            <meta property="og:title" content="Django Admin 使用 filter_horizontal 不生效"/>
-            <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html"/>
-            <meta property="og:description" content="Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直filter_vertical方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用filter_horizontal进行显示的时候，我们碰到了一些问题。"/>
+            <meta property="og:title" content="Mac OSX iTerm2 终端UTF-8和GBK编码自由切换"/>
+            <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html"/>
+            <meta property="og:description" content="老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。 考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。 好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码： 我另外建立了一个Profile，叫GBK： 并编写了一个非常简单的切换脚本： #!/bin/bash # 使用GBK Profile echo -e "\033]50;SetProfile=GBK\a" # 环境编码切换为GBK export LANG=zh_CN.GBK export LC_ALL=zh_CN.GBK # 更改当前 iTerm2 tab title echo -ne "\033]0;"$@"\007" $@ echo ..."/>
         
         <!-- <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/bootstrap.min.css" type="text/css"/> -->
     <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/css/bootstrap.min.css" type="text/css"/>
@@ -80,10 +80,10 @@
         <article>
             <header class="page-header">
                 <h1>
-                    <a href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html"
+                    <a href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html"
                        rel="bookmark"
-                       title="Permalink to Django Admin 使用 filter_horizontal 不生效">
-                        Django Admin 使用 filter_horizontal 不生效
+                       title="Permalink to Mac OSX iTerm2 终端UTF-8和GBK编码自由切换">
+                        Mac OSX iTerm2 终端UTF-8和GBK编码自由切换
                     </a>
                 </h1>
             </header>
@@ -92,40 +92,45 @@
                     <div class="panel-body">
                         <footer class="post-info">
     <span class="published">
-      <i class="icon-calendar"></i>2013-09-23 15:25
+      <i class="icon-calendar"></i>2013-10-29 16:43
     </span>
                     
             
     
     <i class="icon-tags"></i>
-	<a href="http://blog.chenxiaosheng.com/tag/django.html">django</a>
+	<a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a>
             /
-    	<a href="http://blog.chenxiaosheng.com/tag/python.html">python</a>
+    	<a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a>
+            /
+    	<a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a>
         </footer><!-- /.post-info -->                    </div>
                 </div>
-                <p>考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。</p>
-<p>Django 1.2.7 admin在使用<code>ManyToManyField</code>的时候，默认使用垂直<code>filter_vertical</code>方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，如下图所示：</p>
-<p><img src="/static/django_filter_vertical.png"></p>
-<p>决定使用更直观的方式，<code>filter_horizontal</code>，设置比较简单，只要在<code>admin.py</code>里对应的模块下，添加类似如下内容即可：</p>
-<div class="highlight"><pre><span class="n">filter_horizontal</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;example&#39;</span><span class="p">]</span>
+                <p>老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。</p>
+<p>考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。</p>
+<p>好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：</p>
+<p><img src="/static/iterm2_default_profile.png" /></p>
+<p>我另外建立了一个Profile，叫GBK：</p>
+<p><img src="/static/iterm2_gbk_profile.png" /></p>
+<p>并编写了一个非常简单的切换脚本：</p>
+<div class="highlight"><pre><span class="c">#!/bin/bash</span>
+<span class="c"># 使用GBK Profile</span>
+<span class="nb">echo</span> -e <span class="s2">&quot;\033]50;SetProfile=GBK\a&quot;</span>
+<span class="c"># 环境编码切换为GBK</span>
+<span class="nb">export </span><span class="nv">LANG</span><span class="o">=</span>zh_CN.GBK
+<span class="nb">export </span><span class="nv">LC_ALL</span><span class="o">=</span>zh_CN.GBK
+<span class="c"># 更改当前 iTerm2 tab title</span>
+<span class="nb">echo</span> -ne <span class="s2">&quot;\033]0;&quot;</span><span class="nv">$@</span><span class="s2">&quot;\007&quot;</span>
+<span class="nv">$@</span>
+<span class="nb">echo</span> -ne <span class="s2">&quot;\033]0;&quot;</span><span class="k">${</span><span class="nv">PWD</span><span class="p">/#</span><span class="nv">$HOME</span><span class="p">/~</span><span class="k">}</span><span class="s2">&quot;\007&quot;</span>
+<span class="c"># GBK任务完成后，自动切换回默认编码（UTF-8）</span>
+<span class="nb">echo</span> -e <span class="s2">&quot;\033]50;SetProfile=Default\a&quot;</span>
+<span class="nb">export </span><span class="nv">LANG</span><span class="o">=</span>zh_CN.UTF-8
+<span class="nb">export </span><span class="nv">LC_ALL</span><span class="o">=</span>zh_CN.UTF-8
 </pre></div>
 
 
-<p><code>filter_horizontal</code>显示方式如下图所示：</p>
-<p><img src="/static/django_filter_horizontal.png"></p>
-<p>但是，当我设置了此选择后，发现出现了奇怪的问题，如下图：</p>
-<p><img src="/static/django_filter_nothing.png"></p>
-<p>没有报错，但也没有出现设想中的选择框。经过研究，发现，原来是因为我对应的字段<code>ips</code>，在<code>models.py</code>里定义的时候，<code>verbose_name</code>使用了字符串，而不是<code>unicode</code>，如下：</p>
-<div class="highlight"><pre><span class="n">ips</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span> <span class="n">IPData</span><span class="p">,</span> <span class="n">verbose_name</span> <span class="o">=</span> <span class="s">&quot;使用IP&quot;</span> <span class="p">)</span>
-</pre></div>
-
-
-<p>调整为</p>
-<div class="highlight"><pre><span class="n">ips</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span> <span class="n">IPData</span><span class="p">,</span> <span class="n">verbose_name</span> <span class="o">=</span> <span class="s">u&quot;使用IP&quot;</span> <span class="p">)</span>
-</pre></div>
-
-
-<p>问题解决。使用<code>string</code>是因为我们这些是一些老旧的系统，新项目必须果断的抛弃<code>string</code>，拥抱<code>unicode</code>吧！</p>
+<p>将以上内容保存为一个叫grun的文件，并赋予可执行权限，同时加到系统可执行目录（PATH）</p>
+<p>当我需要登录一台GBK编码的服务器时，只需要 grun ssh ${hostname} 即可</p>
             </div>
             <!-- /.entry-content -->
                             <hr />
@@ -135,8 +140,8 @@
         <script type="text/javascript">
             /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
             var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
-            var disqus_identifier = 'http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html';
-            var disqus_url = 'http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html';
+            var disqus_identifier = 'http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html';
+            var disqus_url = 'http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html';
 
             /* * * DON'T EDIT BELOW THIS LINE * * */
             (function () {
@@ -195,20 +200,20 @@
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
                             <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
                             <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -231,6 +236,21 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
                         iterm2
                     </a>
@@ -241,18 +261,13 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -266,23 +281,13 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
                         sshd
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
                     </a>
                 </li>
                         -->

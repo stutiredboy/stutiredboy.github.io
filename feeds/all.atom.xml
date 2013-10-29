@@ -1,5 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2013-09-24T15:58:00+08:00</updated><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><updated>2013-09-24T15:58:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2013-10-29T16:43:00+08:00</updated><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+&lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。&lt;/p&gt;
+&lt;p&gt;好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/iterm2_default_profile.png" /&gt;&lt;/p&gt;
+&lt;p&gt;我另外建立了一个Profile，叫GBK：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/iterm2_gbk_profile.png" /&gt;&lt;/p&gt;
+&lt;p&gt;并编写了一个非常简单的切换脚本：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="c"&gt;#!/bin/bash&lt;/span&gt;
+&lt;span class="c"&gt;# 使用GBK Profile&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; -e &lt;span class="s2"&gt;&amp;quot;\033]50;SetProfile=GBK\a&amp;quot;&lt;/span&gt;
+&lt;span class="c"&gt;# 环境编码切换为GBK&lt;/span&gt;
+&lt;span class="nb"&gt;export &lt;/span&gt;&lt;span class="nv"&gt;LANG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
+&lt;span class="nb"&gt;export &lt;/span&gt;&lt;span class="nv"&gt;LC_ALL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
+&lt;span class="c"&gt;# 更改当前 iTerm2 tab title&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; -ne &lt;span class="s2"&gt;&amp;quot;\033]0;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;$@&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\007&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;$@&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; -ne &lt;span class="s2"&gt;&amp;quot;\033]0;&amp;quot;&lt;/span&gt;&lt;span class="k"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="p"&gt;/#&lt;/span&gt;&lt;span class="nv"&gt;$HOME&lt;/span&gt;&lt;span class="p"&gt;/~&lt;/span&gt;&lt;span class="k"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\007&amp;quot;&lt;/span&gt;
+&lt;span class="c"&gt;# GBK任务完成后，自动切换回默认编码（UTF-8）&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; -e &lt;span class="s2"&gt;&amp;quot;\033]50;SetProfile=Default\a&amp;quot;&lt;/span&gt;
+&lt;span class="nb"&gt;export &lt;/span&gt;&lt;span class="nv"&gt;LANG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.UTF-8
+&lt;span class="nb"&gt;export &lt;/span&gt;&lt;span class="nv"&gt;LC_ALL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.UTF-8
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;将以上内容保存为一个叫grun的文件，并赋予可执行权限，同时加到系统可执行目录（PATH）&lt;/p&gt;
+&lt;p&gt;当我需要登录一台GBK编码的服务器时，只需要 grun ssh ${hostname} 即可&lt;/p&gt;</summary><category term="mac"></category><category term="osx"></category><category term="iterm2"></category></entry><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><updated>2013-09-24T15:58:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AUTH_SUCCESS&lt;/span&gt;
 &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Server&lt;/span&gt; &lt;span class="n"&gt;Sftp&lt;/span&gt; &lt;span class="n"&gt;Version&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;

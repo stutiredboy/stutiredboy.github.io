@@ -77,6 +77,22 @@
     <div class="row">
         <div class="col-md-9 col-lg-9">
                                     <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">Django multiple select option with title</a></h2>
+                <div class="summary"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">forms</span>
+<span class="kn">from</span> <span class="nn">django.utils.encoding</span> <span class="kn">import</span> <span class="n">force_unicode</span>
+<span class="kn">from</span> <span class="nn">django.utils.html</span> <span class="kn">import</span> <span class="n">escape</span><span class="p">,</span> <span class="n">conditional_escape</span>
+
+<span class="k">class</span> <span class="nc">SelectMultipleWithTitle</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">SelectMultiple</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; multiple select optihon with title &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">render_option</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selected_choices</span><span class="p">,</span> <span class="n">option_value</span><span class="p">,</span> <span class="n">option_label</span><span class="p">):</span>
+        <span class="n">option_value</span> <span class="o">=</span> <span class="n">force_unicode</span><span class="p">(</span><span class="n">option_value</span><span class="p">)</span>
+        <span class="n">selected_html</span> <span class="o">=</span> <span class="p">(</span><span class="n">option_value</span> <span class="ow">in</span> <span class="n">selected_choices</span><span class="p">)</span> <span class="ow">and</span> <span class="s">u&#39; selected=&quot;selected&quot;&#39;</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+        <span class="k">return</span> <span class="s">u&#39;&lt;option value=&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="si">%s ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+                    <article>
                 <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">install Facebook scribe on Debian Squeeze</a></h2>
                 <div class="summary"><p>系统: </p>
 <blockquote>
@@ -159,18 +175,21 @@
             
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
                             <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -178,18 +197,18 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-2">
-                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
-                        django
-                    </a>
-                </li>
-                            <li class="list-group-item tag-2">
                     <a href="http://blog.chenxiaosheng.com/tag/debian.html">
                         debian
                     </a>
                 </li>
+                            <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
+                    </a>
+                </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -198,18 +217,8 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
+                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -218,8 +227,18 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
                         secureFX
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -228,8 +247,23 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/windows.html">
                         windows
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
                     </a>
                 </li>
                         -->
