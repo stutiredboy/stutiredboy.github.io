@@ -25,10 +25,9 @@
 
 &lt;p&gt;将以上内容保存为一个叫grun的文件，并赋予可执行权限，同时加到系统可执行目录（PATH）&lt;/p&gt;
 &lt;p&gt;当我需要登录一台GBK编码的服务器时，只需要&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;grun ssh &lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;hostname&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;blockquote&gt;
+&lt;p&gt;grun ssh ${hostname}&lt;/p&gt;
+&lt;/blockquote&gt;
 &lt;p&gt;即可&lt;/p&gt;</summary><category term="mac"></category><category term="osx"></category><category term="iterm2"></category></entry><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><updated>2013-09-24T15:58:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AUTH_SUCCESS&lt;/span&gt;
