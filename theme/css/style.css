@@ -39,6 +39,11 @@ body {
     color: #6F6B6A;
 }
 
+.tag-large {
+    font-size: 24pt;
+    color: #7D3F20;
+}
+
 #sidebar {
     padding-top: 0px;
 }
