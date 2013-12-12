@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/misc.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2013-10-29T16:43:00+08:00</updated><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/misc.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2013-12-20T12:20:00+08:00</updated><entry><title>ssh client 通过 socks5 proxy 登录远程服务器</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html" rel="alternate"></link><updated>2013-12-20T12:20:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-20:posts/2013-12-20/ssh-through-socks-proxy.html</id><summary type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
+发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
+因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;ssh -o ProxyCommand=&amp;#39;nc -x &lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;:&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server_port&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; %h %p&amp;#39; xxx.xxx.xxx.xxx
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;ssh&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;o&lt;/span&gt; &lt;span class="n"&gt;ProxyCommand&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt;&lt;span class="n"&gt;nc&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="mf"&gt;127.0.0.1&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;7070&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;h&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="err"&gt;&amp;#39;&lt;/span&gt; &lt;span class="mf"&gt;8.8.8.8&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;需要注意的是，nc需要使用 OpenBSD 版本，非 Linux 默认版本（该版本不支持）
+通常，类 Debian 的衍生版本，都可以通过如下命令直接安装：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;netcat&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;openbsd&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;非OpenBSD 可能报如下错误：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nc&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;invalid&lt;/span&gt; &lt;span class="n"&gt;option&lt;/span&gt; &lt;span class="o"&gt;--&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;x&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</summary><category term="ssh"></category><category term="proxy"></category></entry><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
 &lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。&lt;/p&gt;
 &lt;p&gt;好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/iterm2_default_profile.png" /&gt;&lt;/p&gt;

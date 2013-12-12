@@ -3,7 +3,7 @@
       xmlns:og="http://ogp.me/ns#"
       xmlns:fb="https://www.facebook.com/2008/fbml">
 <head>
-    <title>老树的碎叶 - misc</title>
+    <title>老树的碎叶 - ssh</title>
     <!-- Using the latest rendering mode for IE -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -77,84 +77,25 @@
     <div class="row">
         <div class="col-md-9 col-lg-9">
                                     <article>
-                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html">配置Bind使用MySQL dlz模式</a></h2>
-                <div class="summary"><p><strong> 安装MySQL/Bind with dlz </strong></p>
-<p>略过，bind dlz安装，只需在编译的时候增加 <code>--with-dlz-mysql</code> 选项即可。</p>
-<p><strong> 创建 MySQL 数据库 </strong></p>
-<p>根据自己的需求创建即可，如使用如下命令创建一个名为 <code>dns</code> 的数据库：</p>
-<div class="highlight"><pre><span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">dns</span> <span class="n">DEFAULT</span> <span class="n">CHARSET</span> <span class="n">UTF8</span><span class="p">;</span>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html">ssh client 通过 socks5 proxy 登录远程服务器</a></h2>
+                <div class="summary"><p>今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
+发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
+因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器</p>
+<div class="highlight"><pre>ssh -o ProxyCommand=&#39;nc -x <span class="cp">${</span><span class="n">proxy_server</span><span class="cp">}</span>:<span class="cp">${</span><span class="n">proxy_server_port</span><span class="cp">}</span> %h %p&#39; xxx.xxx.xxx.xxx
 </pre></div>
 
 
-<p>使用 <code>use dns</code> 切换进 <code>dns</code> 数据库后，使用如下命令创建一张 <code>dns_records</code> 表：</p>
-<div class="highlight"><pre><span class="n">CREATE</span> <span class="n">TABLE</span> <span class="err">`</span><span class="n">dns_records</span><span class="err">`</span> <span class="p">(</span>
-<span class="err">`</span><span class="n">zone</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
-<span class="err">`</span><span class="n">host</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
-<span class="err">`</span><span class="n">type</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL ...</span></pre></div>
-                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-                    <article>
-                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">Django multiple select option with title</a></h2>
-                <div class="summary"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">forms</span>
-<span class="kn">from</span> <span class="nn">django.utils.encoding</span> <span class="kn">import</span> <span class="n">force_unicode</span>
-<span class="kn">from</span> <span class="nn">django.utils.html</span> <span class="kn">import</span> <span class="n">escape</span><span class="p">,</span> <span class="n">conditional_escape</span>
+<p>如：</p>
+<div class="highlight"><pre><span class="n">ssh</span> <span class="o">-</span><span class="n">o</span> <span class="n">ProxyCommand</span><span class="o">=</span><span class="err">&#39;</span><span class="n">nc</span> <span class="o">-</span><span class="n">x</span> <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">7070</span> <span class="o">%</span><span class="n">h</span> <span class="o">%</span><span class="n">p</span><span class="err">&#39;</span> <span class="mf">8.8.8.8</span>
+</pre></div>
 
-<span class="k">class</span> <span class="nc">SelectMultipleWithTitle</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">SelectMultiple</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; multiple select optihon with title &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">render_option</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selected_choices</span><span class="p">,</span> <span class="n">option_value</span><span class="p">,</span> <span class="n">option_label</span><span class="p">):</span>
-        <span class="n">option_value</span> <span class="o">=</span> <span class="n">force_unicode</span><span class="p">(</span><span class="n">option_value</span><span class="p">)</span>
-        <span class="n">selected_html</span> <span class="o">=</span> <span class="p">(</span><span class="n">option_value</span> <span class="ow">in</span> <span class="n">selected_choices</span><span class="p">)</span> <span class="ow">and</span> <span class="s">u&#39; selected=&quot;selected&quot;&#39;</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
-        <span class="k">return</span> <span class="s">u&#39;&lt;option value=&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="si">%s ...</span></pre></div>
-                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-                    <article>
-                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">install Facebook scribe on Debian Squeeze</a></h2>
-                <div class="summary"><p>系统: </p>
-<blockquote>
-<p>Debian Squeeze 6.0 amd64</p>
-<p>thrift: 0.8.0</p>
-<p>hadoop: 0.20.2 cdh3 hadoop-0.20_0.20.2+923.142</p>
-<p>scribe: git current version</p>
-</blockquote>
-<p>首先安装各种库，包括但不局限于:</p>
-<blockquote>
-<p>python-dev maven2 ant sun-java6-jre sun-java6-jdk bison flex gcc make autoconf libevent-dev libboost-all-dev git-core</p>
-</blockquote>
-<p>之后:</p>
-<blockquote>
-<p>sudo update-alternatives --set java /usr/lib/jvm/java-6-sun/jre ...</p></blockquote>
-                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-                    <article>
-                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html">Windows OpenVPN GUI记住用户名和密码</a></h2>
-                <div class="summary"><p>日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。 如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦</p>
-                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
-                    <article>
-                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html">Debian系统添加全局根证书（CNNIC）</a></h2>
-                <div class="summary"><p>鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。本篇文章介绍了如何将CNNIC CA添加至Debian操作系统全局根证书。</p>
-                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html">more ...</a>
+
+<p>需要注意的是，nc需要使用 OpenBSD 版本 ...</p>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html">more ...</a>
                 </div>
             </article>
             <hr/>
             
-            <ul class="pagination">
-                                            <li class="prev"><a href="http://blog.chenxiaosheng.com/category/misc.html">&laquo;</a>
-                </li>
-                                        <li class=""><a
-                        href="http://blog.chenxiaosheng.com/category/misc.html">1</a></li>
-                            <li class="active"><a
-                        href="http://blog.chenxiaosheng.com/category/misc2.html">2</a></li>
-                                        <li class="next disabled"><a href="#">&laquo;</a></li>
-                    </ul>
             </div>
         <div class="col-md-3 col-lg-3 hidden-xs hidden-sm well well-sm" id="sidebar">
             <aside>
@@ -194,23 +135,23 @@
             
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
                             <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -218,28 +159,13 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-2">
-                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
-                        django
-                    </a>
-                </li>
-                            <li class="list-group-item tag-2">
                     <a href="http://blog.chenxiaosheng.com/tag/debian.html">
                         debian
                     </a>
                 </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
-                        sftp
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
-                        bind
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
+                            <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -248,23 +174,28 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
                         secureFX
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
-                        ssh
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -273,8 +204,23 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -288,13 +234,8 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
                     </a>
                 </li>
                         -->
