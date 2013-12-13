@@ -112,8 +112,14 @@ a, a:hover {
     font-size: 18px;
 }
 
+img {
+    vertical-align:middle;
+    width: 120px;
+    height: 120px;
+}
+
 .panel-about{
-    margin-top:10px;
+    margin-top:20px;
     margin-bottom:10px;
     background-color:#F2F7FC;
     border-top:4px solid #999999;
