@@ -115,11 +115,10 @@ a, a:hover {
 .panel-about{
     margin-bottom:20px;
     background-color:#fff;
-    border-top:10px solid transparent;
+    border-top:100px solid transparent;
     border-radius:4px;
     -webkit-box-shadow:0 1px 1px rgba(0,0,0,0.05);
     box-shadow:0 1px 1px rgba(0,0,0,0.05)
 }
 .panel-about-body{
-    padding:15px
  }
