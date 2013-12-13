@@ -112,7 +112,7 @@ a, a:hover {
     font-size: 18px;
 }
 
-img {
+.panel-author-avatar>img {
     vertical-align:middle;
     width: 100px;
     height: 100px;
