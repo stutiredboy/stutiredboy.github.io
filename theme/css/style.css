@@ -116,7 +116,7 @@ a, a:hover {
     margin-top:10px;
     margin-bottom:10px;
     background-color:#F2F7FC;
-    border-top:4px dashed #999999;
+    border-top:4px solid #999999;
     /*
     border-radius:4px;
     -webkit-box-shadow:0 1px 1px rgba(0,0,0,0.05);
