@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:og="http://ogp.me/ns#"
-      xmlns:fb="https://www.facebook.com/2008/fbml">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Django Admin 使用 filter_horizontal 不生效</title>
     <!-- Using the latest rendering mode for IE -->
@@ -16,14 +14,10 @@
             <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html"/>
             <meta property="og:description" content="Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直filter_vertical方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用filter_horizontal进行显示的时候，我们碰到了一些问题。"/>
         
-        <!-- <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/bootstrap.min.css" type="text/css"/> -->
-    <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/css/bootstrap.min.css" type="text/css"/>
-    <!-- <link href="http://blog.chenxiaosheng.com/theme/css/font-awesome.min.css" rel="stylesheet"> -->
+        <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/css/bootstrap.min.css" type="text/css"/>
     <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
     <link href="http://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
     <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/style.css" type="text/css"/>
-    <!-- JavaScript plugins (requires jQuery) -->
-    <!-- <script src="http://code.jquery.com/jquery.js"></script> -->
     <script src="http://cdn.staticfile.org/jquery/2.0.3/jquery.js"></script>
 
             <link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
@@ -202,23 +196,23 @@
             
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -246,33 +240,8 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
-                        mac
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -286,23 +255,48 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
                         sftp
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
                         iterm2
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
                     </a>
                 </li>
                         -->
