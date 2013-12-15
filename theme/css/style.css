@@ -120,6 +120,8 @@ a, a:hover {
 
 .panel-about {
     margin-top:20px;
+    margin-left: 10px;
+    margin-right: 10px;
     margin-bottom:10px;
     background-color:#F2F7FC;
     border-top:4px solid #999999;
