@@ -65,6 +65,20 @@
     <div class="row">
         <div class="col-md-9 col-lg-9">
                                     <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html">Java 使用自签证书访问https站点</a></h2>
+                <div class="summary"><p>最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
+我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
+都不知道他们怎么胜任日常的编码工作的=,=
+同时做为一个 Java 黑，我觉得，好吧，更黑了。。</p>
+<p>anyway，经过各种折腾，至少总结出了以下两种使用自签证书访问 https 站点的办法。</p>
+<h3>方法一</h3>
+<p>拿到相应的 https 站点证书后（好吧，我这里是cnnic.crt，顺便吐槽一下万恶的 cnnic 证书，各种不信任）：</p>
+<div class="highlight"><pre>keytool -import -alias <span class="cp">${</span><span class="n">alias</span><span class="cp">}</span> -keystore <span class="cp">${</span><span class="n">JAVA_HOME</span><span class="cp">}</span>/jre/lib/security/cacerts -file <span class="cp">${</span><span class="n">path</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">certificate ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+                    <article>
                 <h2><a href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></h2>
                 <div class="summary"><p>使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：</p>
 <div class="highlight"><pre><span class="n">manager</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConsumerManager</span><span class="o">();</span>
@@ -148,13 +162,6 @@
                 </div>
             </article>
             <hr/>
-                    <article>
-                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html">Django Admin 使用 filter_horizontal 不生效</a></h2>
-                <div class="summary"><p>Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直<code>filter_vertical</code>方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用<code>filter_horizontal</code>进行显示的时候，我们碰到了一些问题。</p>
-                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
             
             <ul class="pagination">
                             <li class="prev disabled"><a href="#">&laquo;</a></li>
@@ -205,25 +212,26 @@
             
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
                             <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
                             <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
                             <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
                             <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                            <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -240,9 +248,19 @@
                         django
                     </a>
                 </li>
+                            <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
+                        java
+                    </a>
+                </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -251,18 +269,18 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
-                        openid
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
+                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
+                        ssl
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -276,8 +294,13 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
-                        sftp
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
+                        openid
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
@@ -286,38 +309,28 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
-                        java
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
-                        proxy
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
-                        mac
-                    </a>
-                </li>
-                            <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
                     </a>
                 </li>
                             <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
                         secureFX
+                    </a>
+                </li>
+                            <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
                     </a>
                 </li>
                         -->
