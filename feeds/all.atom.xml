@@ -22,7 +22,7 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;如果 keytool 要求你输入密码，在你没有变更过的情况下，该值默认为英文 "changeit" 。&lt;/p&gt;
+&lt;p&gt;如果 keytool 要求你输入密码，在你没有变更过的情况下，该值默认为英文 &lt;code&gt;changeit&lt;/code&gt; 。&lt;/p&gt;
 &lt;h3&gt;方法二&lt;/h3&gt;
 &lt;p&gt;有些同学表示，他们的服务器不允许导入证书，或者他们是一个很大的集群，不适合每台都导入，那怎么办呢？
 方法就是在每次访问的时候，程序自己加载相应的证书，但是在加载证书之前，你还是需要使用 keytool 工具将原ca转换成
