@@ -20,23 +20,43 @@ body {
 }
 
 .tag-1 {
-    font-size: 16pt;
-    color: #266D03;
+    font-size: 28pt;
+    color: #609E27;
 }
 
 .tag-2 {
-    font-size: 14pt;
-    color: #638950;
+    font-size: 24pt;
+    color: #AA5DA8;
 }
 
 .tag-3 {
-    font-size: 12pt;
-    color: #7D3F20;
+    font-size: 20pt;
+    color: #638950;
 }
 
 .tag-4 {
-    font-size: 10pt;
+    font-size: 18pt;
+    color: #7D3F20;
+}
+
+.tag-5 {
+    font-size: 16px;
     color: #6F6B6A;
+}
+
+.tag-6 {
+    font-size: 14px;
+    color: #84E3FA;
+}
+
+.tag-7 {
+    font-size: 12px;
+    color: #122DCD;
+}
+
+.tag-8 {
+    font-size: 10px;
+    color: #666666;
 }
 
 .tag-large {
