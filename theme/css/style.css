@@ -148,8 +148,15 @@ a, a:hover {
     box-shadow:0 1px 1px rgba(0,0,0,0.05)
     */
 }
+
 .panel-author-avatar {
     padding: 5px;
 }
-.panel-about-body{
- }
+
+.panel-about-body {
+}
+
+.center-img {
+    margin: 0 auto;
+    padding-top: 10px;
+}
