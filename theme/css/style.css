@@ -156,6 +156,7 @@ a, a:hover {
 .panel-about-body {
 }
 
-.center-img {
+.img-center {
     margin: 0 auto;
+    padding-top: 10px;
 }
