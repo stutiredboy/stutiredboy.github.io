@@ -1,7 +1,11 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:og="http://ogp.me/ns#"
       xmlns:fb="https://www.facebook.com/2008/fbml">
+=======
+<html xmlns="http://www.w3.org/1999/xhtml">
+>>>>>>> master
 <head>
     <title>老树的碎叶</title>
     <!-- Using the latest rendering mode for IE -->
@@ -13,6 +17,7 @@
                 
                                 <meta property="og:type" content="website"/>
             <meta property="og:title" content="老树的碎叶"/>
+<<<<<<< HEAD
             <meta property="og:url" content="http://stutiredboy.bitbucket.org"/>
             <meta property="og:description" content="老树的碎叶"/>
                     
@@ -27,6 +32,25 @@
     <script src="http://cdn.staticfile.org/jquery/2.0.3/jquery.js"></script>
 
             <link href="http://stutiredboy.bitbucket.org/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+=======
+            <meta property="og:url" content="http://blog.chenxiaosheng.com"/>
+            <meta property="og:description" content="老树的碎叶"/>
+                    
+        <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/css/bootstrap.min.css">
+    <link href="http://blog.chenxiaosheng.com/theme/css/doc.min.css" rel="stylesheet">
+    <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+    <link href="http://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/style.css">
+    <!--<script src="http://cdn.staticfile.org/jquery/2.0.3/jquery.min.js"></script>-->
+    <!--[if lt IE 9]>
+        <script src="http://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <![endif]-->
+    <!--[if gte IE 9]><!-->
+        <script src="http://cdn.staticfile.org/jquery/2.0.3/jquery.min.js"></script>
+    <!--<![endif]-->
+
+            <link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+>>>>>>> master
               title="老树的碎叶 ATOM Feed"/>
         
         <script type="text/javascript">
@@ -50,11 +74,16 @@
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container">
         <div class="navbar-header">
+<<<<<<< HEAD
+=======
+            <!-- I don't need this //by tiredboy
+>>>>>>> master
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
+<<<<<<< HEAD
             </button>
             <a href="/" class="navbar-brand">老树的碎叶</a>
         </div>
@@ -68,6 +97,14 @@
                 <li><a href="http://stutiredboy.bitbucket.org/archives.html"><i class="icon-th-list"></i>Archives</a></li>
               </ul>
               -->
+=======
+              </button>-->
+            <a href="http://blog.chenxiaosheng.com" class="navbar-brand">老树的碎叶</a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                                                            </ul>
+>>>>>>> master
         </div>
         <!-- /.navbar-collapse -->
     </div>
@@ -77,14 +114,105 @@
     <div class="row">
         <div class="col-md-9 col-lg-9">
                                     <article>
+<<<<<<< HEAD
                 <h2><a href="http://stutiredboy.bitbucket.org/posts/2013-09-08/debian-add-cnnic-ca.html">Debian系统添加全局根证书（CNNIC）</a></h2>
                 <div class="summary"><p>鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。本篇文章介绍了如何将CNNIC CA添加至Debian操作系统全局根证书。</p>
                                                             <a class="btn btn-default btn-xs" href="http://stutiredboy.bitbucket.org/posts/2013-09-08/debian-add-cnnic-ca.html">more ...</a>
+=======
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html">Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</a></h2>
+                <div class="summary"><p>老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。</p>
+<p>考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。</p>
+<p>好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：</p>
+<p><img src="/static/iterm2_default_profile.png" /></p>
+<p>我另外建立了一个Profile，叫GBK：</p>
+<p><img src="/static/iterm2_gbk_profile.png" /></p>
+<p>并编写了一个非常简单的切换脚本：</p>
+<div class="highlight"><pre><span class="c">#!/bin/bash</span>
+<span class="c"># 使用GBK Profile</span>
+<span class="nb">echo</span> -e <span class="s2">&quot;\033]50;SetProfile=GBK\a&quot;</span>
+<span class="c"># 环境编码切换为GBK</span>
+<span class="nb">export </span><span class="nv">LANG</span><span class="o">=</span>zh_CN.GBK
+<span class="nb">export </span><span class="nv">LC_ALL</span><span class="o">=</span>zh_CN.GBK
+<span class="c"># 更改当前 iTerm2 tab title</span>
+<span class="nb">echo</span> -ne <span class="s2">&quot;\033]0;&quot;</span><span class="nv">$@</span><span class="s2">&quot;\007&quot;</span>
+<span class="nv">$@</span>
+<span class="nb">echo ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+                    <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html">sshd无法使用secureFX传输文件</a></h2>
+                <div class="summary"><p>某同学表示，某些机器无法使用<code>secureFX</code>进行文件传输。</p>
+<p>正常情况下：</p>
+<div class="highlight"><pre><span class="n">i</span> <span class="n">RECV</span> <span class="o">:</span> <span class="n">AUTH_SUCCESS</span>
+<span class="n">i</span> <span class="n">RECV</span> <span class="o">:</span> <span class="n">Server</span> <span class="n">Sftp</span> <span class="n">Version</span><span class="o">:</span> <span class="mi">3</span>
+<span class="n">i</span> <span class="n">SEND</span> <span class="o">:</span> <span class="n">RealPath</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="p">.</span>
+<span class="n">i</span> <span class="n">Resolved</span> <span class="n">RealPath</span><span class="o">:</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">demo</span>
+<span class="n">i</span> <span class="n">SEND</span> <span class="o">:</span> <span class="n">OpenDir</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">demo</span>
+</pre></div>
+
+
+<p>而无法传输文件的服务器则是如下日志：</p>
+<div class="highlight"><pre><span class="n">i</span> <span class="n">RECV</span> <span class="o">:</span> <span class="n">AUTH_SUCCESS</span>
+<span class="n">i</span> <span class="n">Changing</span> <span class="n">state</span> <span class="n">from</span> <span class="n">STATE_CONNECTION</span> <span class="n">to</span>   <span class="n">STATE_TRANSPORT_STOPPING</span><span class="p">.</span>
+<span class="n">i</span> <span class="n">Changing</span> <span class="n">state</span> <span class="n">from</span> <span class="n">STATE_TRANSPORT_STOPPING</span> <span class="n">to</span> <span class="n">STATE_CLOSING</span><span class="p">.</span>
+<span class="n">i</span> <span class="n">Changing</span> <span class="n">state</span> <span class="n">from ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+                    <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html">Django Admin 使用 filter_horizontal 不生效</a></h2>
+                <div class="summary"><p>Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直<code>filter_vertical</code>方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用<code>filter_horizontal</code>进行显示的时候，我们碰到了一些问题。</p>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+                    <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html">pelican增加自定义jinja template filters</a></h2>
+                <div class="summary"><p>pelican官方文档没有显式的指明应该如何自定义jinja template filters.</p>
+<p>在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云</p>
+<p>pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序</p>
+<p>查了Jinja的文档，没有随机排序的filter。由于我使用了<code>virtualenv</code>，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能</p>
+<p>不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch</p>
+<p>当然，更幸运的是在<code>github</code>找到了此commit:</p>
+<div class="highlight"><pre><span class="nl">https:</span><span class="c1">//github.com/getpelican/pelican/pull/96</span>
+</pre></div>
+
+
+<p>原来有个<code>JINJA_FILTERS</code>的设置，那一切就好办了, 增加自定义模块<code>jinja_filters.py</code></p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">random</span>
+
+<span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span> <span class="n">value</span> <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Jinja template ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+                    <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html">配置Bind使用MySQL dlz模式</a></h2>
+                <div class="summary"><p><strong> 安装MySQL/Bind with dlz </strong></p>
+<p>略过，bind dlz安装，只需在编译的时候增加 <code>--with-dlz-mysql</code> 选项即可。</p>
+<p><strong> 创建 MySQL 数据库 </strong></p>
+<p>根据自己的需求创建即可，如使用如下命令创建一个名为 <code>dns</code> 的数据库：</p>
+<div class="highlight"><pre><span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">dns</span> <span class="n">DEFAULT</span> <span class="n">CHARSET</span> <span class="n">UTF8</span><span class="p">;</span>
+</pre></div>
+
+
+<p>使用 <code>use dns</code> 切换进 <code>dns</code> 数据库后，使用如下命令创建一张 <code>dns_records</code> 表：</p>
+<div class="highlight"><pre><span class="n">CREATE</span> <span class="n">TABLE</span> <span class="err">`</span><span class="n">dns_records</span><span class="err">`</span> <span class="p">(</span>
+<span class="err">`</span><span class="n">zone</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
+<span class="err">`</span><span class="n">host</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
+<span class="err">`</span><span class="n">type</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html">more ...</a>
+>>>>>>> master
                 </div>
             </article>
             <hr/>
             
             <ul class="pagination">
+<<<<<<< HEAD
                                             <li class="prev"><a href="http://stutiredboy.bitbucket.org/index.html">&laquo;</a>
                 </li>
                                         <li class=""><a
@@ -92,21 +220,52 @@
                             <li class="active"><a
                         href="http://stutiredboy.bitbucket.org/index2.html">2</a></li>
                                         <li class="next disabled"><a href="#">&laquo;</a></li>
+=======
+                                            <li class="prev"><a href="http://blog.chenxiaosheng.com/index.html">&laquo;</a>
+                </li>
+                                        <li class=""><a
+                        href="http://blog.chenxiaosheng.com/index.html">1</a></li>
+                            <li class="active"><a
+                        href="http://blog.chenxiaosheng.com/index2.html">2</a></li>
+                            <li class=""><a
+                        href="http://blog.chenxiaosheng.com/index3.html">3</a></li>
+                                        <li class="next"><a
+                        href="http://blog.chenxiaosheng.com/index3.html">&raquo;</a></li>
+>>>>>>> master
                     </ul>
             </div>
         <div class="col-md-3 col-lg-3 hidden-xs hidden-sm well well-sm" id="sidebar">
             <aside>
     <section>
         <ul class="list-group list-group-flush">
+<<<<<<< HEAD
             <!-- SOCIAL -->
+=======
+            <!-- NOTIFICATION START -->
+            <div class="bs-callout bs-callout-warning">
+              <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@知乎</p>
+            </div>
+            <!-- NOTIFICATION END -->
+            <!-- SOCIAL START -->
+            <!--
+>>>>>>> master
                             <li class="list-group-item">
                                 <span class="span-group-item"><a href="http://weibo.com/stutiredboy"><i class="icon-weibo icon-large"></i></a></span>
                                 <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
                                 <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
                                 <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
+<<<<<<< HEAD
                                 <span class="span-group-item"><a href="http://stutiredboy.bitbucket.org/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
                                 </li>
                         <p>A <em class="tag-2">programmer</em> gets famous when he does something <u>good</u> and an <em class="tag-1">administrator</em> if he does something <u class="tag-3">bad</u>.</p>
+=======
+                                <span class="span-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
+                                </li>
+            -->
+                        <!-- SOCIAL END -->
+            <li class="list-group-item"><h4><i class="icon-envelope icon-large"></i>联系老树</h4></li>
+            <div class="text-center"><img src="/static/vCard.jpg" alt="联系我" class="img-rounded"></div>
+>>>>>>> master
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=15&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
             <!-- Uncomment if you want to show Social
@@ -123,13 +282,18 @@
                                     <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
                             class="icon-github-sign icon-large"></i>github
                     </a></li>
+<<<<<<< HEAD
                                     <li class="list-group-item"><a href="http://stutiredboy.bitbucket.org/feeds/all.atom.xml"><i
+=======
+                                    <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
+>>>>>>> master
                             class="icon-rss-sign icon-large"></i>rss
                     </a></li>
                                         -->
 
             
                                                                                                 
+<<<<<<< HEAD
             <li class="list-group-item"><a href="http://stutiredboy.bitbucket.org/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
                             <span class="tag-4"><a href="http://stutiredboy.bitbucket.org/tag/jinja.html">jinja</a></span>
                             <span class="tag-4"><a href="http://stutiredboy.bitbucket.org/tag/scribe.html">scribe</a></span>
@@ -184,6 +348,152 @@
                             <li class="list-group-item tag-4">
                     <a href="http://stutiredboy.bitbucket.org/tag/django.html">
                         django
+=======
+            <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                            <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                            <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                            <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                        <!-- 使用上面的标签云，这里不需要了
+                            <li class="list-group-item tag-1">
+                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
+                        java
+                    </a>
+                </li>
+                            <li class="list-group-item tag-1">
+                    <a href="http://blog.chenxiaosheng.com/tag/python.html">
+                        python
+                    </a>
+                </li>
+                            <li class="list-group-item tag-3">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
+                        ssl
+                    </a>
+                </li>
+                            <li class="list-group-item tag-3">
+                    <a href="http://blog.chenxiaosheng.com/tag/debian.html">
+                        debian
+                    </a>
+                </li>
+                            <li class="list-group-item tag-3">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
+                        post
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
+                        http
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
+                        openid
+>>>>>>> master
                     </a>
                 </li>
                         -->
@@ -194,6 +504,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <!-- <script src="http://stutiredboy.bitbucket.org/theme/js/bootstrap.min.js"></script> -->
 <script src="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/js/bootstrap.min.js"></script>
@@ -213,11 +524,21 @@
             (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
         }());
     </script>
+=======
+<script src="http://cdn.staticfile.org/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://blog.chenxiaosheng.com/theme/js/respond.min.js"></script>
+>>>>>>> master
 <!-- Footer Start -->
 <footer class="footer">
   <div class="container">
     <p class="text-right visible-xs">&copy; 2013 ChenXiaosheng</p>
+<<<<<<< HEAD
     <p class="text-right hidden-xs">&copy; 2013 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://bitbucket.org">Bitbucket</a> - MarkDown 构建</p>
+=======
+    <p class="text-right hidden-xs">&copy; 2013 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://github.com">Github</a> - MarkDown 构建</p>
+>>>>>>> master
     <p class="text-right hidden-xs">除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh">自由转载-非商用-非衍生-保持署名| Creative Commons BY-NC-ND 3.0许可协议</a>授权</p>
   </div>
 </footer>

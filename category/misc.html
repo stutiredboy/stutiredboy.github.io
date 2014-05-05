@@ -1,7 +1,11 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:og="http://ogp.me/ns#"
       xmlns:fb="https://www.facebook.com/2008/fbml">
+=======
+<html xmlns="http://www.w3.org/1999/xhtml">
+>>>>>>> master
 <head>
     <title>老树的碎叶 - misc</title>
     <!-- Using the latest rendering mode for IE -->
@@ -13,6 +17,7 @@
                 
                                 <meta property="og:type" content="website"/>
             <meta property="og:title" content="老树的碎叶"/>
+<<<<<<< HEAD
             <meta property="og:url" content="http://stutiredboy.bitbucket.org"/>
             <meta property="og:description" content="老树的碎叶"/>
                     
@@ -27,6 +32,25 @@
     <script src="http://cdn.staticfile.org/jquery/2.0.3/jquery.js"></script>
 
             <link href="http://stutiredboy.bitbucket.org/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+=======
+            <meta property="og:url" content="http://blog.chenxiaosheng.com"/>
+            <meta property="og:description" content="老树的碎叶"/>
+                    
+        <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/css/bootstrap.min.css">
+    <link href="http://blog.chenxiaosheng.com/theme/css/doc.min.css" rel="stylesheet">
+    <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+    <link href="http://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/style.css">
+    <!--<script src="http://cdn.staticfile.org/jquery/2.0.3/jquery.min.js"></script>-->
+    <!--[if lt IE 9]>
+        <script src="http://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <![endif]-->
+    <!--[if gte IE 9]><!-->
+        <script src="http://cdn.staticfile.org/jquery/2.0.3/jquery.min.js"></script>
+    <!--<![endif]-->
+
+            <link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+>>>>>>> master
               title="老树的碎叶 ATOM Feed"/>
         
         <script type="text/javascript">
@@ -50,11 +74,16 @@
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container">
         <div class="navbar-header">
+<<<<<<< HEAD
+=======
+            <!-- I don't need this //by tiredboy
+>>>>>>> master
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
+<<<<<<< HEAD
             </button>
             <a href="/" class="navbar-brand">老树的碎叶</a>
         </div>
@@ -68,6 +97,14 @@
                 <li><a href="http://stutiredboy.bitbucket.org/archives.html"><i class="icon-th-list"></i>Archives</a></li>
               </ul>
               -->
+=======
+              </button>-->
+            <a href="http://blog.chenxiaosheng.com" class="navbar-brand">老树的碎叶</a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                                                            </ul>
+>>>>>>> master
         </div>
         <!-- /.navbar-collapse -->
     </div>
@@ -77,6 +114,7 @@
     <div class="row">
         <div class="col-md-9 col-lg-9">
                                     <article>
+<<<<<<< HEAD
                 <h2><a href="http://stutiredboy.bitbucket.org/posts/2013-09-10/pelican-custom-jinja-filters.html">pelican增加自定义jinja template filters</a></h2>
                 <div class="summary"><p>pelican官方文档没有显式的指明应该如何自定义jinja template filters.</p>
 <p>在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云</p>
@@ -94,10 +132,28 @@
 <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span> <span class="n">value</span> <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Jinja template ...</span></pre></div>
                                                             <a class="btn btn-default btn-xs" href="http://stutiredboy.bitbucket.org/posts/2013-09-10/pelican-custom-jinja-filters.html">more ...</a>
+=======
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html">Linux系统上通知网关更新arp</a></h2>
+                <div class="summary"><p>经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。</p>
+<p>因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。</p>
+<p>首先清除本地ARP缓存:</p>
+<div class="highlight"><pre><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">ip</span> <span class="n">neigh</span> <span class="n">flush</span> <span class="n">dev</span> <span class="n">eth0</span>
+</pre></div>
+
+
+<p>其次向网关发信本机的ip/mac地址</p>
+<div class="highlight"><pre><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">sbin</span><span class="o">/</span><span class="n">arping</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">c</span> <span class="mi">2</span> <span class="o">-</span><span class="n">S</span> <span class="mf">1.1.1.144</span> <span class="o">-</span><span class="n">s</span> <span class="mo">00</span><span class="o">:</span><span class="mi">17</span><span class="o">:</span><span class="n">a4</span><span class="o">:</span><span class="mi">8</span><span class="n">d</span><span class="o">:</span><span class="mi">0</span><span class="n">e</span><span class="o">:</span><span class="mi">98</span> <span class="o">-</span><span class="n">p</span> <span class="mf">1.1.1.1</span>
+</pre></div>
+
+
+<p>1.1.1..144 为本机IP ...</p>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html">more ...</a>
+>>>>>>> master
                 </div>
             </article>
             <hr/>
                     <article>
+<<<<<<< HEAD
                 <h2><a href="http://stutiredboy.bitbucket.org/posts/2013-09-10/install-bind-mysql-dlz.html">配置Bind使用MySQL dlz模式</a></h2>
                 <div class="summary"><p><strong> 安装MySQL/Bind with dlz </strong></p>
 <p>略过，bind dlz安装，只需在编译的时候增加 <code>--with-dlz-mysql</code> 选项即可。</p>
@@ -113,10 +169,28 @@
 <span class="err">`</span><span class="n">host</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
 <span class="err">`</span><span class="n">type</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL ...</span></pre></div>
                                                             <a class="btn btn-default btn-xs" href="http://stutiredboy.bitbucket.org/posts/2013-09-10/install-bind-mysql-dlz.html">more ...</a>
+=======
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html">Java 发起Http Post请求</a></h2>
+                <div class="summary"><p>对于一个 Java 小白，每完成一个新的功能，都表示相当不益，就连 Apache HttpClient 偶都表示没搞明白，
+看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。</p>
+<p>功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）</p>
+<div class="highlight"><pre><span class="cm">/*</span>
+<span class="cm"> * Java POST Example</span>
+<span class="cm"> */</span>
+
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.MalformedURLException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.ProtocolException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URL</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URLEncoder</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html">more ...</a>
+>>>>>>> master
                 </div>
             </article>
             <hr/>
                     <article>
+<<<<<<< HEAD
                 <h2><a href="http://stutiredboy.bitbucket.org/posts/2013-09-08/django-multiple-select-option-with-title.html">Django multiple select option with title</a></h2>
                 <div class="summary"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django</span> <span class="kn">import</span> <span class="n">forms</span>
 <span class="kn">from</span> <span class="nn">django.utils.encoding</span> <span class="kn">import</span> <span class="n">force_unicode</span>
@@ -129,10 +203,23 @@
         <span class="n">selected_html</span> <span class="o">=</span> <span class="p">(</span><span class="n">option_value</span> <span class="ow">in</span> <span class="n">selected_choices</span><span class="p">)</span> <span class="ow">and</span> <span class="s">u&#39; selected=&quot;selected&quot;&#39;</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
         <span class="k">return</span> <span class="s">u&#39;&lt;option value=&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="si">%s ...</span></pre></div>
                                                             <a class="btn btn-default btn-xs" href="http://stutiredboy.bitbucket.org/posts/2013-09-08/django-multiple-select-option-with-title.html">more ...</a>
+=======
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html">Java 使用自签证书访问https站点</a></h2>
+                <div class="summary"><p>最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
+我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
+都不知道他们怎么胜任日常的编码工作的=,=
+同时做为一个 Java 黑，我觉得，好吧，更黑了。。</p>
+<p>anyway，经过各种折腾，至少总结出了以下两种使用自签证书访问 https 站点的办法。</p>
+<h3>方法一</h3>
+<p>拿到相应的 https 站点证书后（好吧，我这里是cnnic.crt，顺便吐槽一下万恶的 cnnic 证书，各种不信任）：</p>
+<div class="highlight"><pre>keytool -import -alias <span class="cp">${</span><span class="n">alias</span><span class="cp">}</span> -keystore <span class="cp">${</span><span class="n">JAVA_HOME</span><span class="cp">}</span>/jre/lib/security/cacerts -file <span class="cp">${</span><span class="n">path</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">certificate ...</span></pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html">more ...</a>
+>>>>>>> master
                 </div>
             </article>
             <hr/>
                     <article>
+<<<<<<< HEAD
                 <h2><a href="http://stutiredboy.bitbucket.org/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">install Facebook scribe on Debian Squeeze</a></h2>
                 <div class="summary"><p>系统: </p>
 <blockquote>
@@ -149,13 +236,50 @@
 <blockquote>
 <p>sudo update-alternatives --set java /usr/lib/jvm/java-6-sun/jre ...</p></blockquote>
                                                             <a class="btn btn-default btn-xs" href="http://stutiredboy.bitbucket.org/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">more ...</a>
+=======
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></h2>
+                <div class="summary"><p>使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：</p>
+<div class="highlight"><pre><span class="n">manager</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConsumerManager</span><span class="o">();</span>
+<span class="n">manager</span><span class="o">.</span><span class="na">getRealmVerifier</span><span class="o">().</span><span class="na">setEnforceRpId</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+<span class="c1">// 强制manager使用无状态模式</span>
+<span class="n">manager</span><span class="o">.</span><span class="na">setMaxAssocAttempts</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+</pre></div>
+
+
+<p>禁用 discovery</p>
+<div class="highlight"><pre><span class="c1">// 不要使用manager.discover构造discoveries</span>
+<span class="c1">// List discoveries = manager.discover(userSuppliedString);</span>
+<span class="c1">// 使用人肉构造discoveries</span>
+<span class="n">List</span> <span class="n">discoveries</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">();</span>
+<span class="n">discoveries</span><span class="o">.</span><span class="na">add</span><span class="o">(</span> <span class="k">new</span> <span class="n">DiscoveryInformation</span><span class="o">(</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">&quot;http//real.openid.server.url&quot;</span><span class="o">)</span> <span class="o">)</span> <span class="o">);</span>
+</pre></div>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">more ...</a>
+>>>>>>> master
                 </div>
             </article>
             <hr/>
                     <article>
+<<<<<<< HEAD
                 <h2><a href="http://stutiredboy.bitbucket.org/posts/2013-09-08/windows-openvpn-remember-password.html">Windows OpenVPN GUI记住用户名和密码</a></h2>
                 <div class="summary"><p>日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。 如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦</p>
                                                             <a class="btn btn-default btn-xs" href="http://stutiredboy.bitbucket.org/posts/2013-09-08/windows-openvpn-remember-password.html">more ...</a>
+=======
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html">ssh client 通过 socks5 proxy 登录远程服务器</a></h2>
+                <div class="summary"><p>今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
+发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
+因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器</p>
+<div class="highlight"><pre>ssh -o ProxyCommand=&#39;nc -x <span class="cp">${</span><span class="n">proxy_server</span><span class="cp">}</span>:<span class="cp">${</span><span class="n">proxy_server_port</span><span class="cp">}</span> %h %p&#39; xxx.xxx.xxx.xxx
+</pre></div>
+
+
+<p>如：</p>
+<div class="highlight"><pre><span class="n">ssh</span> <span class="o">-</span><span class="n">o</span> <span class="n">ProxyCommand</span><span class="o">=</span><span class="err">&#39;</span><span class="n">nc</span> <span class="o">-</span><span class="n">x</span> <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">7070</span> <span class="o">%</span><span class="n">h</span> <span class="o">%</span><span class="n">p</span><span class="err">&#39;</span> <span class="mf">8.8.8.8</span>
+</pre></div>
+
+
+<p>需要注意的是，nc需要使用 OpenBSD 版本 ...</p>
+                                                            <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html">more ...</a>
+>>>>>>> master
                 </div>
             </article>
             <hr/>
@@ -163,26 +287,55 @@
             <ul class="pagination">
                             <li class="prev disabled"><a href="#">&laquo;</a></li>
                                         <li class="active"><a
+<<<<<<< HEAD
                         href="http://stutiredboy.bitbucket.org/category/misc.html">1</a></li>
                             <li class=""><a
                         href="http://stutiredboy.bitbucket.org/category/misc2.html">2</a></li>
                                         <li class="next"><a
                         href="http://stutiredboy.bitbucket.org/category/misc2.html">&raquo;</a></li>
+=======
+                        href="http://blog.chenxiaosheng.com/category/misc.html">1</a></li>
+                            <li class=""><a
+                        href="http://blog.chenxiaosheng.com/category/misc2.html">2</a></li>
+                            <li class=""><a
+                        href="http://blog.chenxiaosheng.com/category/misc3.html">3</a></li>
+                                        <li class="next"><a
+                        href="http://blog.chenxiaosheng.com/category/misc2.html">&raquo;</a></li>
+>>>>>>> master
                     </ul>
             </div>
         <div class="col-md-3 col-lg-3 hidden-xs hidden-sm well well-sm" id="sidebar">
             <aside>
     <section>
         <ul class="list-group list-group-flush">
+<<<<<<< HEAD
             <!-- SOCIAL -->
+=======
+            <!-- NOTIFICATION START -->
+            <div class="bs-callout bs-callout-warning">
+              <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@知乎</p>
+            </div>
+            <!-- NOTIFICATION END -->
+            <!-- SOCIAL START -->
+            <!--
+>>>>>>> master
                             <li class="list-group-item">
                                 <span class="span-group-item"><a href="http://weibo.com/stutiredboy"><i class="icon-weibo icon-large"></i></a></span>
                                 <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
                                 <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
                                 <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
+<<<<<<< HEAD
                                 <span class="span-group-item"><a href="http://stutiredboy.bitbucket.org/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
                                 </li>
                         <p>A <em class="tag-2">programmer</em> gets famous when he does something <u>good</u> and an <em class="tag-1">administrator</em> if he does something <u class="tag-3">bad</u>.</p>
+=======
+                                <span class="span-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
+                                </li>
+            -->
+                        <!-- SOCIAL END -->
+            <li class="list-group-item"><h4><i class="icon-envelope icon-large"></i>联系老树</h4></li>
+            <div class="text-center"><img src="/static/vCard.jpg" alt="联系我" class="img-rounded"></div>
+>>>>>>> master
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=15&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
             <!-- Uncomment if you want to show Social
@@ -199,13 +352,18 @@
                                     <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
                             class="icon-github-sign icon-large"></i>github
                     </a></li>
+<<<<<<< HEAD
                                     <li class="list-group-item"><a href="http://stutiredboy.bitbucket.org/feeds/all.atom.xml"><i
+=======
+                                    <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
+>>>>>>> master
                             class="icon-rss-sign icon-large"></i>rss
                     </a></li>
                                         -->
 
             
                                                                                                 
+<<<<<<< HEAD
             <li class="list-group-item"><a href="http://stutiredboy.bitbucket.org/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
                             <span class="tag-4"><a href="http://stutiredboy.bitbucket.org/tag/jinja.html">jinja</a></span>
                             <span class="tag-4"><a href="http://stutiredboy.bitbucket.org/tag/openvpn.html">openvpn</a></span>
@@ -260,6 +418,152 @@
                             <li class="list-group-item tag-4">
                     <a href="http://stutiredboy.bitbucket.org/tag/bind.html">
                         bind
+=======
+            <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                            <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                        <!-- 使用上面的标签云，这里不需要了
+                            <li class="list-group-item tag-1">
+                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
+                        java
+                    </a>
+                </li>
+                            <li class="list-group-item tag-1">
+                    <a href="http://blog.chenxiaosheng.com/tag/python.html">
+                        python
+                    </a>
+                </li>
+                            <li class="list-group-item tag-3">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
+                    </a>
+                </li>
+                            <li class="list-group-item tag-3">
+                    <a href="http://blog.chenxiaosheng.com/tag/debian.html">
+                        debian
+                    </a>
+                </li>
+                            <li class="list-group-item tag-3">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
+                        ssl
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
+                        post
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
+                        http
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
+                        openid
+>>>>>>> master
                     </a>
                 </li>
                         -->
@@ -270,6 +574,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <!-- <script src="http://stutiredboy.bitbucket.org/theme/js/bootstrap.min.js"></script> -->
 <script src="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/js/bootstrap.min.js"></script>
@@ -289,11 +594,21 @@
             (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
         }());
     </script>
+=======
+<script src="http://cdn.staticfile.org/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://blog.chenxiaosheng.com/theme/js/respond.min.js"></script>
+>>>>>>> master
 <!-- Footer Start -->
 <footer class="footer">
   <div class="container">
     <p class="text-right visible-xs">&copy; 2013 ChenXiaosheng</p>
+<<<<<<< HEAD
     <p class="text-right hidden-xs">&copy; 2013 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://bitbucket.org">Bitbucket</a> - MarkDown 构建</p>
+=======
+    <p class="text-right hidden-xs">&copy; 2013 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://github.com">Github</a> - MarkDown 构建</p>
+>>>>>>> master
     <p class="text-right hidden-xs">除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh">自由转载-非商用-非衍生-保持署名| Creative Commons BY-NC-ND 3.0许可协议</a>授权</p>
   </div>
 </footer>
