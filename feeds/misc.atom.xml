@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<<<<<<< HEAD
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://stutiredboy.bitbucket.org/" rel="alternate"></link><link href="http://stutiredboy.bitbucket.org/feeds/misc.atom.xml" rel="self"></link><id>http://stutiredboy.bitbucket.org/</id><updated>2013-09-10T19:46:00+08:00</updated><entry><title>pelican增加自定义jinja template filters</title><link href="http://stutiredboy.bitbucket.org/posts/2013-09-10/pelican-custom-jinja-filters.html" rel="alternate"></link><updated>2013-09-10T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:stutiredboy.bitbucket.org,2013-09-10:posts/2013-09-10/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
-=======
 <feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/misc.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2014-03-19T16:02:00+08:00</updated><entry><title>Linux系统上通知网关更新arp</title><link href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
@@ -359,7 +356,6 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 
 
 &lt;p&gt;问题解决。使用&lt;code&gt;string&lt;/code&gt;是因为我们这些是一些老旧的系统，新项目必须果断的抛弃&lt;code&gt;string&lt;/code&gt;，拥抱&lt;code&gt;unicode&lt;/code&gt;吧！&lt;/p&gt;</summary><category term="django"></category><category term="python"></category></entry><entry><title>pelican增加自定义jinja template filters</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"></link><updated>2013-09-11T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-11:posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
->>>>>>> master
 &lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
 &lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序&lt;/p&gt;
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
@@ -389,11 +385,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 &lt;/pre&gt;&lt;/div&gt;
 
 
-<<<<<<< HEAD
-&lt;p&gt;尝试重新编译生成html文件，顺利完成。&lt;/p&gt;</summary><category term="python"></category><category term="pelican"></category><category term="jinja"></category></entry><entry><title>配置Bind使用MySQL dlz模式</title><link href="http://stutiredboy.bitbucket.org/posts/2013-09-10/install-bind-mysql-dlz.html" rel="alternate"></link><updated>2013-09-10T16:18:00+08:00</updated><author><name>老树</name></author><id>tag:stutiredboy.bitbucket.org,2013-09-10:posts/2013-09-10/install-bind-mysql-dlz.html</id><summary type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
-=======
 &lt;p&gt;尝试重新编译生成html文件，顺利完成。&lt;/p&gt;</summary><category term="python"></category><category term="pelican"></category><category term="jinja"></category></entry><entry><title>配置Bind使用MySQL dlz模式</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html" rel="alternate"></link><updated>2013-09-09T16:18:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:posts/2013-09-09/install-bind-mysql-dlz.html</id><summary type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
->>>>>>> master
 &lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
@@ -462,11 +454,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 &lt;/pre&gt;&lt;/div&gt;
 
 
-<<<<<<< HEAD
-&lt;p&gt;配置完成。&lt;/p&gt;</summary><category term="bind"></category></entry><entry><title>Django multiple select option with title</title><link href="http://stutiredboy.bitbucket.org/posts/2013-09-08/django-multiple-select-option-with-title.html" rel="alternate"></link><updated>2013-09-08T15:02:00+08:00</updated><author><name>老树</name></author><id>tag:stutiredboy.bitbucket.org,2013-09-08:posts/2013-09-08/django-multiple-select-option-with-title.html</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
-=======
 &lt;p&gt;配置完成。&lt;/p&gt;</summary><category term="bind"></category></entry><entry><title>Django multiple select option with title</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html" rel="alternate"></link><updated>2013-09-09T15:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:posts/2013-09-09/django-multiple-select-option-with-title.html</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
->>>>>>> master
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.encoding&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;conditional_escape&lt;/span&gt;
 
@@ -479,11 +467,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
             &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;selected_html&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
             &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
             &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
-<<<<<<< HEAD
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="python"></category><category term="django"></category></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="http://stutiredboy.bitbucket.org/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"></link><updated>2013-09-08T13:03:00+08:00</updated><author><name>老树</name></author><id>tag:stutiredboy.bitbucket.org,2013-09-08:posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
-=======
 &lt;/pre&gt;&lt;/div&gt;</summary><category term="python"></category><category term="django"></category></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"></link><updated>2013-09-08T13:03:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
->>>>>>> master
 &lt;blockquote&gt;
 &lt;p&gt;Debian Squeeze 6.0 amd64&lt;/p&gt;
 &lt;p&gt;thrift: 0.8.0&lt;/p&gt;
@@ -552,22 +536,14 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 &lt;p&gt;保存退出后&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;sudo ldconfig&lt;/p&gt;
-<<<<<<< HEAD
-&lt;/blockquote&gt;</summary><category term="debian"></category><category term="scribe"></category></entry><entry><title>Windows OpenVPN GUI记住用户名和密码</title><link href="http://stutiredboy.bitbucket.org/posts/2013-09-08/windows-openvpn-remember-password.html" rel="alternate"></link><updated>2013-09-08T12:51:00+08:00</updated><author><name>老树</name></author><id>tag:stutiredboy.bitbucket.org,2013-09-08:posts/2013-09-08/windows-openvpn-remember-password.html</id><summary type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。&lt;/p&gt;
-=======
 &lt;/blockquote&gt;</summary><category term="debian"></category><category term="scribe"></category></entry><entry><title>Windows OpenVPN GUI记住用户名和密码</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html" rel="alternate"></link><updated>2013-09-08T12:51:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:posts/2013-09-08/windows-openvpn-remember-password.html</id><summary type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。&lt;/p&gt;
->>>>>>> master
 &lt;p&gt;如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦&lt;/p&gt;
 &lt;p&gt;我使用的版本（2.3.1），实际上已经支持保存密码的功能（旧版本可能需要重新编译），在ovpn配置文件里增加:&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;auth-user-pass pass.txt&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;之后在ovpn配置文件所在目录建立一个pass.txt的文件，第一行为用户名，第二行为密码即可。&lt;/p&gt;
-<<<<<<< HEAD
-&lt;p&gt;PS：这样对自己电脑的安全性要有足够的保证，否则密码泄露就得不偿失了。&lt;/p&gt;</summary><category term="windows"></category><category term="openvpn"></category></entry><entry><title>Debian系统添加全局根证书（CNNIC）</title><link href="http://stutiredboy.bitbucket.org/posts/2013-09-08/debian-add-cnnic-ca.html" rel="alternate"></link><updated>2013-09-08T12:25:00+08:00</updated><author><name>老树</name></author><id>tag:stutiredboy.bitbucket.org,2013-09-08:posts/2013-09-08/debian-add-cnnic-ca.html</id><summary type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。&lt;/p&gt;
-=======
 &lt;p&gt;PS：这样对自己电脑的安全性要有足够的保证，否则密码泄露就得不偿失了。&lt;/p&gt;</summary><category term="windows"></category><category term="openvpn"></category></entry><entry><title>Debian系统添加全局根证书（CNNIC）</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html" rel="alternate"></link><updated>2013-09-08T12:25:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:posts/2013-09-08/debian-add-cnnic-ca.html</id><summary type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。&lt;/p&gt;
->>>>>>> master
 &lt;p&gt;虽然我也不喜欢cnnic，但没办法，这是反抗不了的事情。&lt;/p&gt;
 &lt;p&gt;过程如下（需要root权限）：&lt;/p&gt;
 &lt;blockquote&gt;
