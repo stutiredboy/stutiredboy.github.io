@@ -15,7 +15,6 @@
             <meta property="og:description" content="老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。 考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。 好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码： 我另外建立了一个Profile，叫GBK： 并编写了一个非常简单的切换脚本： #!/bin/bash # 使用GBK Profile echo -e "\033]50;SetProfile=GBK\a" # 环境编码切换为GBK export LANG=zh_CN.GBK export LC_ALL=zh_CN.GBK # 更改当前 iTerm2 tab title echo -ne "\033]0;"$@"\007" $@ echo ..."/>
         
         <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.0.0/css/bootstrap.min.css">
-    <link href="http://blog.chenxiaosheng.com/theme/css/docs.min.css" rel="stylesheet">
     <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
     <link href="http://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
     <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/style.css">
@@ -216,30 +215,30 @@
             
                                                                                                 
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
                             <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
                             <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
                             <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
                             <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
                             <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
                             <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
                             <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                            <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
                             <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                            <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
                             <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                            <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                            <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
                         <!-- 使用上面的标签云，这里不需要了
                             <li class="list-group-item tag-1">
                     <a href="http://blog.chenxiaosheng.com/tag/python.html">
@@ -267,33 +266,8 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
                     <a href="http://blog.chenxiaosheng.com/tag/post.html">
                         post
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
-                        arp
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
-                        mac
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
@@ -302,23 +276,8 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
-                        proxy
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
@@ -327,18 +286,18 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
-                        http
+                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
-                        ssh
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
-                        linux
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
@@ -347,18 +306,58 @@
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
-                        iterm2
+                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
+                        http
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                            <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
                     </a>
                 </li>
                             <li class="list-group-item tag-8">
                     <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
                         openvpn
-                    </a>
-                </li>
-                            <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
                     </a>
                 </li>
                         -->
