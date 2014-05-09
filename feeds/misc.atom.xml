@@ -10,6 +10,13 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day of week.
+If both fields are restricted (ie, are not *), the command will be
+run when either field matches the current time.
+For example, ''30 4 1,15 * 5'' would cause a command to be run
+at 4:30 am on the 1st and 15th of each month, plus every Fri-day.&lt;/p&gt;
+&lt;/blockquote&gt;
 &lt;p&gt;来自wikipedia的说明（&lt;a href="http://en.wikipedia.org/wiki/Crontab"&gt;http://en.wikipedia.org/wiki/Crontab&lt;/a&gt;）：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;While&lt;/span&gt; &lt;span class="n"&gt;normally&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;job&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;executed&lt;/span&gt; &lt;span class="n"&gt;when&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt; &lt;span class="n"&gt;specification&lt;/span&gt; &lt;span class="n"&gt;fields&lt;/span&gt; &lt;span class="n"&gt;all&lt;/span&gt; &lt;span class="n"&gt;match&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;current&lt;/span&gt; &lt;span class="n"&gt;time&lt;/span&gt; &lt;span class="n"&gt;and&lt;/span&gt; &lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
 &lt;span class="n"&gt;there&lt;/span&gt; &lt;span class="n"&gt;is&lt;/span&gt; &lt;span class="n"&gt;one&lt;/span&gt; &lt;span class="n"&gt;exception&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;both&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;day of month&amp;quot;&lt;/span&gt; &lt;span class="n"&gt;and&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;day of week&amp;quot;&lt;/span&gt; &lt;span class="n"&gt;are&lt;/span&gt; &lt;span class="k"&gt;restricted&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;not&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;*&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
