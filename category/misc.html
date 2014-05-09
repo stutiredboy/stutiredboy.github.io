@@ -70,6 +70,25 @@
     <div class="row">
         <div class="col-md-9 col-lg-9">
             <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html">crontab 同时显示指定day of month和day of week的特殊说明</a></h2>
+                <div class="summary"><p>man 5 crontab:</p>
+<div class="highlight"><pre>           <span class="n">field</span>         <span class="n">allowed</span> <span class="n">values</span>
+           <span class="o">-----</span>         <span class="o">--------------</span>
+           <span class="n">minute</span>        <span class="mi">0</span><span class="o">-</span><span class="mi">59</span>
+           <span class="n">hour</span>          <span class="mi">0</span><span class="o">-</span><span class="mi">23</span>
+           <span class="n">day</span> <span class="n">of</span> <span class="n">month</span>  <span class="mi">1</span><span class="o">-</span><span class="mi">31</span>
+           <span class="n">month</span>         <span class="mi">1</span><span class="o">-</span><span class="mi">12</span> <span class="p">(</span><span class="n">or</span> <span class="n">names</span><span class="p">,</span> <span class="n">see</span> <span class="n">below</span><span class="p">)</span>
+           <span class="n">day</span> <span class="n">of</span> <span class="n">week</span>   <span class="mi">0</span><span class="o">-</span><span class="mi">7</span> <span class="p">(</span><span class="mi">0</span> <span class="n">or</span> <span class="mi">7</span> <span class="n">is</span> <span class="n">Sun</span><span class="p">,</span> <span class="n">or</span> <span class="n">use</span> <span class="n">names</span><span class="p">)</span>
+</pre></div>
+
+
+<p>来自wikipedia的说明（http://en.wikipedia.org/wiki/Crontab）：</p>
+<div class="highlight"><pre><span class="n">While</span> <span class="n">normally</span> <span class="n">the</span> <span class="n">job</span> <span class="n">is</span> <span class="n">executed ...</span></pre></div>
+                    <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+            <article>
                 <h2><a href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html">Linux系统上通知网关更新arp</a></h2>
                 <div class="summary"><p>经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。</p>
 <p>因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。</p>
@@ -142,25 +161,6 @@
                 </div>
             </article>
             <hr/>
-            <article>
-                <h2><a href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html">ssh client 通过 socks5 proxy 登录远程服务器</a></h2>
-                <div class="summary"><p>今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
-发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
-因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器</p>
-<div class="highlight"><pre>ssh -o ProxyCommand=&#39;nc -x <span class="cp">${</span><span class="n">proxy_server</span><span class="cp">}</span>:<span class="cp">${</span><span class="n">proxy_server_port</span><span class="cp">}</span> %h %p&#39; xxx.xxx.xxx.xxx
-</pre></div>
-
-
-<p>如：</p>
-<div class="highlight"><pre><span class="n">ssh</span> <span class="o">-</span><span class="n">o</span> <span class="n">ProxyCommand</span><span class="o">=</span><span class="err">&#39;</span><span class="n">nc</span> <span class="o">-</span><span class="n">x</span> <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">7070</span> <span class="o">%</span><span class="n">h</span> <span class="o">%</span><span class="n">p</span><span class="err">&#39;</span> <span class="mf">8.8.8.8</span>
-</pre></div>
-
-
-<p>需要注意的是，nc需要使用 OpenBSD 版本 ...</p>
-                    <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html">more ...</a>
-                </div>
-            </article>
-            <hr/>
 
         <ul class="pagination">
                 <li class="prev disabled"><a href="#">&laquo;</a></li>
@@ -202,30 +202,31 @@
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
                 <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
             <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=15&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
@@ -277,38 +278,8 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
-                        openid
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
-                        arp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
-                        linux
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
-                        proxy
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
-                        post
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -317,13 +288,18 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
+                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -332,23 +308,13 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
                     <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
                         openvpn
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
-                        ssh
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
-                        sftp
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -357,8 +323,33 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -367,8 +358,23 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
+                        openid
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
+                        crontab
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
+                        post
                     </a>
                 </li>
             -->
