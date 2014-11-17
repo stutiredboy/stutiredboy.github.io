@@ -1,5 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/lao-shu.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2014-07-07T20:21:00+08:00</updated><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><updated>2014-07-07T20:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/lao-shu.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2014-11-17T14:35:00+08:00</updated><entry><title>Mac OSX Yosemite 10.10 掉线修复</title><link href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
+&lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
+并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
+却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
+&lt;p&gt;重启电脑无效，网上搜到这么一编文章：http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault&lt;/p&gt;
+&lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Library&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Preferences&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;SystemConfiguration&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：&lt;/p&gt;
+&lt;p&gt;···
+$ ls
+NetworkInterfaces.plist             com.apple.smb.server.plist
+com.apple.airport.preferences.plist com.apple.wifi.message-tracer.plist
+com.apple.captive.probe.plist       preferences.plist
+···&lt;/p&gt;
+&lt;p&gt;把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
+注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
+&lt;p&gt;后来在网上看到 http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/
+这编文章，其实只要删除：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;airport&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;preferences&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
+&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;identification&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
+&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;wifi&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;message&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;tracer&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;&lt;span class="err"&gt; &lt;/span&gt;
+&lt;span class="n"&gt;NetworkInterfaces&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;&lt;span class="err"&gt; &lt;/span&gt;
+&lt;span class="n"&gt;preferences&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;</summary><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><updated>2014-07-07T20:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
 &lt;/pre&gt;&lt;/div&gt;
 
