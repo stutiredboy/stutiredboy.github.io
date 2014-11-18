@@ -4,7 +4,7 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 &lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
 并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
 却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
-&lt;p&gt;重启电脑无效，网上搜到这么一编文章：http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault&lt;/p&gt;
+&lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Library&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Preferences&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;SystemConfiguration&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -20,7 +20,7 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 
 &lt;p&gt;把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
 注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
-&lt;p&gt;后来在网上看到 http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/
+&lt;p&gt;后来在网上看到 &lt;a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/"&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;/a&gt;
 这编文章，其实只要删除：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;airport&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;preferences&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
 &lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;identification&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
@@ -30,7 +30,9 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Mon, 17 Nov 2014 14:35:00 +0800</pubDate><guid>tag:blog.chenxiaosheng.com,2014-11-17:posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</guid><category>mac</category><category>osx</category><category>yosemite</category><category>wifi</category></item><item><title>查询 dns server 使用的bind版本</title><link>http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html</link><description>&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+&lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="mi"&gt;2014&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;18&lt;/span&gt; &lt;span class="err"&gt;昨天折腾完，今天收到&lt;/span&gt;&lt;span class="n"&gt;Apple&lt;/span&gt; &lt;span class="n"&gt;Store&lt;/span&gt;&lt;span class="err"&gt;的更新提醒，&lt;/span&gt;&lt;span class="mf"&gt;10.10.1&lt;/span&gt; &lt;span class="n"&gt;fix&lt;/span&gt;&lt;span class="err"&gt;了&lt;/span&gt;&lt;span class="n"&gt;wifi&lt;/span&gt;&lt;span class="err"&gt;这个问题了&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Mon, 17 Nov 2014 14:35:00 +0800</pubDate><guid>tag:blog.chenxiaosheng.com,2014-11-17:posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</guid><category>mac</category><category>osx</category><category>yosemite</category><category>wifi</category></item><item><title>查询 dns server 使用的bind版本</title><link>http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html</link><description>&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
 &lt;/pre&gt;&lt;/div&gt;
 
