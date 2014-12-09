@@ -93,7 +93,7 @@ at 4:30 am on the 1st and 15th of each month, plus every Fri-day.&lt;/p&gt;
 
 &lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
 &lt;p&gt;00:17:a4:8d:0e:98 为本机MAC地址&lt;/p&gt;
-&lt;p&gt;1.1.1.1 为网关&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Wed, 19 Mar 2014 16:02:00 +0800</pubDate><guid>tag:blog.chenxiaosheng.com,2014-03-19:posts/2014-03-19/linux-arp-flush.html</guid><category>linux</category><category>arp</category></item><item><title>Java 发起Http Post请求</title><link>http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html</link><description>&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不益，就连 Apache HttpClient 偶都表示没搞明白，
+&lt;p&gt;1.1.1.1 为网关&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Wed, 19 Mar 2014 16:02:00 +0800</pubDate><guid>tag:blog.chenxiaosheng.com,2014-03-19:posts/2014-03-19/linux-arp-flush.html</guid><category>linux</category><category>arp</category></item><item><title>Java 发起Http Post请求</title><link>http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html</link><description>&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
 &lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
