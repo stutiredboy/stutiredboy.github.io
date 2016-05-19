@@ -1,1 +1,1 @@
-Pelican: http://docs.getpelican.com/en/3.2/
+Pelican: http://docs.getpelican.com
