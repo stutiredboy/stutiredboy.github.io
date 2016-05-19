@@ -12,7 +12,7 @@
             <meta property="og:type" content="article"/>
             <meta property="og:title" content="crontab 同时显式指定day of month和day of week的特殊说明"/>
             <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html"/>
-            <meta property="og:description" content="man 5 crontab: field allowed values ----- -------------- minute 0-59 hour 0-23 day of month 1-31 month 1-12 (or names, see below) day of week 0-7 (0 or 7 is Sun, or use names) Note: The day of a command's execution can be specified by two ..."/>
+            <meta property="og:description" content="man 5 crontab: field allowed values ----- -------------- minute 0-59 hour 0-23 day of month 1-31 month 1-12 (or names, see below) day of week 0-7 (0 or 7 is Sun, or use names) Note: The day of a command's execution can be specified by two fields -- day of month, and ..."/>
 
     <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
     <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
@@ -95,13 +95,13 @@
 </footer><!-- /.post-info -->                    </div>
                 </div>
                 <p>man 5 crontab:</p>
-<div class="highlight"><pre>           <span class="n">field</span>         <span class="n">allowed</span> <span class="n">values</span>
-           <span class="o">-----</span>         <span class="o">--------------</span>
-           <span class="n">minute</span>        <span class="mi">0</span><span class="o">-</span><span class="mi">59</span>
-           <span class="n">hour</span>          <span class="mi">0</span><span class="o">-</span><span class="mi">23</span>
-           <span class="n">day</span> <span class="n">of</span> <span class="n">month</span>  <span class="mi">1</span><span class="o">-</span><span class="mi">31</span>
-           <span class="n">month</span>         <span class="mi">1</span><span class="o">-</span><span class="mi">12</span> <span class="p">(</span><span class="n">or</span> <span class="n">names</span><span class="p">,</span> <span class="n">see</span> <span class="n">below</span><span class="p">)</span>
-           <span class="n">day</span> <span class="n">of</span> <span class="n">week</span>   <span class="mi">0</span><span class="o">-</span><span class="mi">7</span> <span class="p">(</span><span class="mi">0</span> <span class="n">or</span> <span class="mi">7</span> <span class="n">is</span> <span class="n">Sun</span><span class="p">,</span> <span class="n">or</span> <span class="n">use</span> <span class="n">names</span><span class="p">)</span>
+<div class="highlight"><pre><span></span>           field         allowed values
+           -----         --------------
+           minute        0-59
+           hour          0-23
+           day of month  1-31
+           month         1-12 (or names, see below)
+           day of week   0-7 (0 or 7 is Sun, or use names)
 </pre></div>
 
 
@@ -113,9 +113,9 @@ For example, ''30 4 1,15 * 5'' would cause a command to be run
 at 4:30 am on the 1st and 15th of each month, plus every Fri-day.</p>
 </blockquote>
 <p>来自wikipedia的说明（<a href="http://en.wikipedia.org/wiki/Crontab">http://en.wikipedia.org/wiki/Crontab</a>）：</p>
-<div class="highlight"><pre><span class="n">While</span> <span class="n">normally</span> <span class="n">the</span> <span class="n">job</span> <span class="n">is</span> <span class="n">executed</span> <span class="n">when</span> <span class="n">the</span> <span class="n">time</span><span class="o">/</span><span class="n">date</span> <span class="n">specification</span> <span class="n">fields</span> <span class="n">all</span> <span class="n">match</span> <span class="n">the</span> <span class="n">current</span> <span class="n">time</span> <span class="n">and</span> <span class="n">date</span><span class="p">,</span>
-<span class="n">there</span> <span class="n">is</span> <span class="n">one</span> <span class="n">exception</span><span class="o">:</span> <span class="k">if</span> <span class="n">both</span> <span class="s">&quot;day of month&quot;</span> <span class="n">and</span> <span class="s">&quot;day of week&quot;</span> <span class="n">are</span> <span class="k">restricted</span> <span class="p">(</span><span class="n">not</span> <span class="s">&quot;*&quot;</span><span class="p">),</span>
-<span class="n">then</span> <span class="n">either</span> <span class="n">the</span> <span class="s">&quot;day of month&quot;</span> <span class="n">field</span> <span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="n">or</span> <span class="n">the</span> <span class="s">&quot;day of week&quot;</span> <span class="n">field</span> <span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="n">must</span> <span class="n">match</span> <span class="n">the</span> <span class="n">current</span> <span class="n">day</span><span class="p">.</span>
+<div class="highlight"><pre><span></span>While normally the job is executed when the time/date specification fields all match the current time and date,
+there is one exception: if both &quot;day of month&quot; and &quot;day of week&quot; are restricted (not &quot;*&quot;),
+then either the &quot;day of month&quot; field (3) or the &quot;day of week&quot; field (5) must match the current day.
 </pre></div>
 
 
@@ -126,11 +126,11 @@ at 4:30 am on the 1st and 15th of each month, plus every Fri-day.</p>
 </ol>
                 <h4>您可能还喜欢以下文章</h4>
                 <ul>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html">Java 使用自签证书访问https站点</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">Django multiple select option with title</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html">Mac OSX Yosemite 10.10 WIFI 掉线修复</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html">pelican增加自定义jinja template filters</a></li>
                   <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">install Facebook scribe on Debian Squeeze</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html">配置Bind使用MySQL dlz模式</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html">查询 dns server 使用的bind版本</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html">Java 使用自签证书访问https站点</a></li>
                 </ul>
                 <div class="panel-about row">
                   <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
@@ -200,36 +200,6 @@ at 4:30 am on the 1st and 15th of each month, plus every Fri-day.</p>
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/named.html">named</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
             <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=15&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
@@ -255,156 +225,6 @@ at 4:30 am on the 1st and 15th of each month, plus every Fri-day.</p>
 
 
             <!-- 使用上面的标签云，这里不需要了
-                <li class="list-group-item tag-1">
-                    <a href="http://blog.chenxiaosheng.com/tag/python.html">
-                        python
-                    </a>
-                </li>
-                <li class="list-group-item tag-1">
-                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
-                        java
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
-                        ssl
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/debian.html">
-                        debian
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
-                        django
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
-                        mac
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
-                        bind
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
-                        sftp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/dig.html">
-                        dig
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/yosemite.html">
-                        yosemite
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
-                        post
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/named.html">
-                        named
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
-                        http
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
-                        openid
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
-                        linux
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
-                        arp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
-                        proxy
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/wifi.html">
-                        wifi
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
-                        crontab
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
-                        ssh
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/dns.html">
-                        dns
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
-                        iterm2
-                    </a>
-                </li>
             -->
         </ul>
     </section>

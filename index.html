@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Open Graph tags -->
-                
-                                <meta property="og:type" content="website"/>
+
+            <meta property="og:type" content="website"/>
             <meta property="og:title" content="老树的碎叶"/>
             <meta property="og:url" content="http://blog.chenxiaosheng.com"/>
             <meta property="og:description" content="老树的碎叶"/>
-                    
-        <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
+
+    <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
     <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
     <link href="http://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
     <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/style.css">
@@ -25,10 +25,10 @@
         <script src="http://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
     <!--<![endif]-->
 
-            <link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+        <link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="老树的碎叶 ATOM Feed"/>
-        
-        <script type="text/javascript">
+
+    <script type="text/javascript">
 
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', 'UA-30723232-1']);
@@ -60,7 +60,7 @@
         </div>
         <div class="collapse navbar-collapse navbar-ex1-collapse">
             <ul class="nav navbar-nav">
-                                                            </ul>
+            </ul>
         </div>
         <!-- /.navbar-collapse -->
     </div>
@@ -69,10 +69,139 @@
 <div class="container">
     <div class="row">
         <div class="col-md-9 col-lg-9">
-                
-            </div>
+            <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html">pip 升级 pip 失败</a></h2>
+                <div class="summary"><p>今天在使用 python pip 安装一个 python 包的时候，一直提示：</p>
+<div class="highlight"><pre><span></span># pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+You are using pip version 8.1.1, however version 8.1.2 is available.
+You should consider upgrading via the &#39;pip install --upgrade pip&#39; command.
+</pre></div>
+
+
+<p>尝试按说明执行 <code>pip ...</code></p>
+                    <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+            <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html">Mac OSX Yosemite 10.10 WIFI 掉线修复</a></h2>
+                <div class="summary"><p>原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。</p>
+<p>而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
+并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
+却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。</p>
+<p>重启电脑无效，网上搜到这么一编文章：<a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault">别忙升级，苹果 Yosemite 频现 WiFi 断线综合症</a></p>
+<p>虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：</p>
+<div class="highlight"><pre><span></span>/Library/Preferences/SystemConfiguration
+</pre></div>
+
+
+<p>这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：</p>
+<div class="highlight"><pre><span></span>$ ls
+NetworkInterfaces.plist ...</pre></div>
+                    <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+            <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html">查询 dns server 使用的bind版本</a></h2>
+                <div class="summary"><p>其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）</p>
+<div class="highlight"><pre><span></span> dig @<span class="cp">${</span><span class="n">server</span><span class="cp">}</span> TXT CHAOS version.bind
+</pre></div>
+
+
+<p>${server}换成你想查询的dns服务器IP地址即可，如：</p>
+<div class="highlight"><pre><span></span><span class="n">dig</span> <span class="mf">@8.8.8.8</span> <span class="n">CHAOS</span> <span class="n">TXT</span> <span class="n">version</span><span class="p">.</span><span class="n">bind</span>
+</pre></div>
+
+
+<p>其实通常情况下出于安全考虑，大多数我们是查询不到版本信息的（系统管理员禁用了）</p>
+<p>bind 可以通过如下设置禁用版本号查询：</p>
+<div class="highlight"><pre><span></span>options {
+    version none;
+}
+</pre></div>
+
+
+<p>或者你可以将此值设置为某个固定字符串，如 "someone like you"</p>
+                    <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+            <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html">crontab 同时显式指定day of month和day of week的特殊说明</a></h2>
+                <div class="summary"><p>man 5 crontab:</p>
+<div class="highlight"><pre><span></span>           field         allowed values
+           -----         --------------
+           minute        0-59
+           hour          0-23
+           day of month  1-31
+           month         1-12 (or names, see below)
+           day of week   0-7 (0 or 7 is Sun, or use names)
+</pre></div>
+
+
+<blockquote>
+<p>Note: The day of a command's execution can be specified by two fields -- day of month, and ...</p></blockquote>
+                    <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+            <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html">Linux系统上通知网关更新arp</a></h2>
+                <div class="summary"><p>经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。</p>
+<p>因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。</p>
+<p>首先清除本地ARP缓存:</p>
+<div class="highlight"><pre><span></span>/bin/ip neigh flush dev eth0
+</pre></div>
+
+
+<p>其次向网关发送本机的ip/mac地址</p>
+<div class="highlight"><pre><span></span>/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
+</pre></div>
+
+
+<p>1.1.1.144 为本机IP</p>
+<p>00:17 ...</p>
+                    <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+            <article>
+                <h2><a href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html">Java 发起Http Post请求</a></h2>
+                <div class="summary"><p>对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
+看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。</p>
+<p>功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）</p>
+<div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm"> * Java POST Example</span>
+<span class="cm"> */</span>
+
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.MalformedURLException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.ProtocolException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URL</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URLEncoder</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java ...</span></pre></div>
+                    <a class="btn btn-default btn-xs" href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html">more ...</a>
+                </div>
+            </article>
+            <hr/>
+
+        <ul class="pagination">
+                <li class="prev disabled"><a href="#">&laquo;</a></li>
+                <li class="active"><a
+                        href="http://blog.chenxiaosheng.com/index.html">1</a></li>
+                <li class=""><a
+                        href="http://blog.chenxiaosheng.com/index2.html">2</a></li>
+                <li class=""><a
+                        href="http://blog.chenxiaosheng.com/index3.html">3</a></li>
+                <li class="next"><a
+                        href="http://blog.chenxiaosheng.com/index2.html">&raquo;</a></li>
+        </ul>
+        </div>
         <div class="col-md-3 col-lg-3 hidden-xs hidden-sm well well-sm" id="sidebar">
-            <aside>
+<aside>
     <section>
         <ul class="list-group list-group-flush">
             <!-- NOTIFICATION START -->
@@ -82,15 +211,15 @@
             <!-- NOTIFICATION END -->
             <!-- SOCIAL START -->
             <!--
-                            <li class="list-group-item">
-                                <span class="span-group-item"><a href="http://weibo.com/stutiredboy"><i class="icon-weibo icon-large"></i></a></span>
-                                <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
-                                <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
-                                <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
-                                <span class="span-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
-                                </li>
+                <li class="list-group-item">
+                <span class="span-group-item"><a href="http://weibo.com/stutiredboy"><i class="icon-weibo icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
+                <span class="span-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
+                </li>
             -->
-                        <!-- SOCIAL END -->
+            <!-- SOCIAL END -->
             <!-- CONTACT START -->
             <!--
             <li class="list-group-item"><h4><i class="icon-envelope icon-large"></i>联系老树</h4></li>
@@ -99,32 +228,32 @@
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                        <!-- TAGS CLOUD END -->
+            <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=15&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
             <!-- Uncomment if you want to show Social
-                            <li class="list-group-item"><h4><i class="icon-home icon-large"></i>Social</h4></li>
-                                    <li class="list-group-item"><a href="http://weibo.com/stutiredboy"><i
+                <li class="list-group-item"><h4><i class="icon-home icon-large"></i>Social</h4></li>
+                    <li class="list-group-item"><a href="http://weibo.com/stutiredboy"><i
                             class="icon-weibo-sign icon-large"></i>weibo
                     </a></li>
-                                    <li class="list-group-item"><a href="https://www.facebook.com/stutiredboy"><i
+                    <li class="list-group-item"><a href="https://www.facebook.com/stutiredboy"><i
                             class="icon-facebook-sign icon-large"></i>facebook
                     </a></li>
-                                    <li class="list-group-item"><a href="https://twitter.com/stutiredboy"><i
+                    <li class="list-group-item"><a href="https://twitter.com/stutiredboy"><i
                             class="icon-twitter-sign icon-large"></i>twitter
                     </a></li>
-                                    <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
+                    <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
                             class="icon-github-sign icon-large"></i>github
                     </a></li>
-                                    <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
+                    <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
                             class="icon-rss-sign icon-large"></i>rss
                     </a></li>
-                                        -->
+            -->
 
-            
-                                                                                                
+
+
             <!-- 使用上面的标签云，这里不需要了
-                        -->
+            -->
         </ul>
     </section>
 </aside>

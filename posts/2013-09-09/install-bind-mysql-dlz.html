@@ -98,79 +98,79 @@
 <p>略过，bind dlz安装，只需在编译的时候增加 <code>--with-dlz-mysql</code> 选项即可。</p>
 <p><strong> 创建 MySQL 数据库 </strong></p>
 <p>根据自己的需求创建即可，如使用如下命令创建一个名为 <code>dns</code> 的数据库：</p>
-<div class="highlight"><pre><span class="n">CREATE</span> <span class="n">DATABASE</span> <span class="n">dns</span> <span class="n">DEFAULT</span> <span class="n">CHARSET</span> <span class="n">UTF8</span><span class="p">;</span>
+<div class="highlight"><pre><span></span>CREATE DATABASE dns DEFAULT CHARSET UTF8;
 </pre></div>
 
 
 <p>使用 <code>use dns</code> 切换进 <code>dns</code> 数据库后，使用如下命令创建一张 <code>dns_records</code> 表：</p>
-<div class="highlight"><pre><span class="n">CREATE</span> <span class="n">TABLE</span> <span class="err">`</span><span class="n">dns_records</span><span class="err">`</span> <span class="p">(</span>
-<span class="err">`</span><span class="n">zone</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
-<span class="err">`</span><span class="n">host</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
-<span class="err">`</span><span class="n">type</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
-<span class="err">`</span><span class="n">data</span><span class="err">`</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span><span class="p">,</span>
-<span class="err">`</span><span class="n">ttl</span><span class="err">`</span> <span class="kt">int</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span> <span class="n">DEFAULT</span> <span class="err">&#39;</span><span class="mi">600</span><span class="err">&#39;</span><span class="p">,</span>
-<span class="err">`</span><span class="n">id</span><span class="err">`</span> <span class="kt">int</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span> <span class="n">NOT</span> <span class="nb">NULL</span> <span class="n">AUTO_INCREMENT</span><span class="p">,</span>
-<span class="n">PRIMARY</span> <span class="n">KEY</span> <span class="p">(</span><span class="err">`</span><span class="n">id</span><span class="err">`</span><span class="p">),</span>
-<span class="p">)</span> <span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span> <span class="n">DEFAULT</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">utf8</span><span class="p">;</span>
+<div class="highlight"><pre><span></span>CREATE TABLE `dns_records` (
+`zone` varchar(255) NOT NULL,
+`host` varchar(255) NOT NULL,
+`type` varchar(12) NOT NULL,
+`data` varchar(255) NOT NULL,
+`ttl` int(11) DEFAULT &#39;600&#39;,
+`id` int(11) NOT NULL AUTO_INCREMENT,
+PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 </pre></div>
 
 
 <p>这里以域 <code>example.com</code> 为例，说明如上字段意义，假设我需要有一条 <code>www.example.com</code> 的记录指向 <code>1.1.1.1</code> 这个IP，应该增加哪些内容：</p>
 <p>zone:</p>
-<div class="highlight"><pre><span class="err">域，这里指</span> <span class="n">example</span><span class="p">.</span><span class="n">com</span>
+<div class="highlight"><pre><span></span>域，这里指 example.com
 </pre></div>
 
 
 <p>host:</p>
-<div class="highlight"><pre><span class="err">主机名（名字），这里为</span> <span class="n">www</span>
+<div class="highlight"><pre><span></span>主机名（名字），这里为 www
 </pre></div>
 
 
 <p>type:</p>
-<div class="highlight"><pre><span class="err">记录类型，这里为</span><span class="n">A</span>
+<div class="highlight"><pre><span></span>记录类型，这里为A
 </pre></div>
 
 
 <p>data:</p>
-<div class="highlight"><pre><span class="err">域名资源数据，这里为</span><span class="n">IP</span><span class="err">地址</span> <span class="mf">1.1.1.1</span>
+<div class="highlight"><pre><span></span>域名资源数据，这里为IP地址 1.1.1.1
 </pre></div>
 
 
 <p>ttl:</p>
-<div class="highlight"><pre><span class="err">域名</span><span class="n">TTL</span><span class="err">，为任意整数（建议不要低于</span><span class="mi">120</span><span class="err">，即</span><span class="mi">2</span><span class="err">分钟）</span>
+<div class="highlight"><pre><span></span>域名TTL，为任意整数（建议不要低于120，即2分钟）
 </pre></div>
 
 
 <p>将该数据库授权给某用户（后续bind-dlz配置需要用到）：</p>
-<div class="highlight"><pre><span class="n">grant</span> <span class="n">select</span> <span class="n">on</span> <span class="n">dns</span><span class="p">.</span><span class="o">*</span> <span class="n">to</span> <span class="n">dns</span><span class="err">@</span><span class="n">localhost</span> <span class="n">identified</span> <span class="n">by</span> <span class="err">&#39;</span><span class="n">dns</span><span class="err">&#39;</span><span class="p">;</span>
+<div class="highlight"><pre><span></span>grant select on dns.* to dns@localhost identified by &#39;dns&#39;;
 </pre></div>
 
 
 <p>用户名为 <code>dns</code> ，密码也为 <code>dns</code> ，只允许本地主机 <code>localhost</code> 访问，并只给予了 <code>select</code> 权限。</p>
 <p><strong> Bind-dlz配置 </strong></p>
 <p>这里只涉及dlz的配置，其它named.conf的配置不涉及</p>
-<div class="highlight"><pre><span class="n">dlz</span> <span class="s">&quot;your custom description&quot;</span> <span class="p">{</span>
-    <span class="n">database</span> <span class="s">&quot;mysql</span>
-        <span class="p">{</span><span class="n">host</span><span class="o">=</span><span class="n">localhost</span> <span class="n">dbname</span><span class="o">=</span><span class="n">dns</span> <span class="n">user</span><span class="o">=</span><span class="n">dns</span> <span class="n">pass</span><span class="o">=</span><span class="n">dns</span><span class="p">}</span>
-        <span class="p">{</span><span class="n">select</span> <span class="n">zone</span> <span class="n">from</span> <span class="n">dns_records</span> <span class="n">where</span> <span class="n">zone</span> <span class="o">=</span> <span class="err">&#39;$</span><span class="n">zone</span><span class="err">$&#39;</span><span class="p">}</span>
-        <span class="p">{</span><span class="n">select</span> <span class="n">ttl</span><span class="p">,</span> <span class="n">type</span><span class="p">,</span> <span class="n">data</span> <span class="n">from</span> <span class="n">dns_records</span> <span class="n">where</span> <span class="n">host</span> <span class="o">=</span> <span class="err">&#39;$</span><span class="n">record</span><span class="err">$&#39;</span> <span class="n">and</span> <span class="n">zone</span><span class="o">=</span><span class="err">&#39;$</span><span class="n">zone</span><span class="err">$&#39;</span><span class="p">}</span><span class="s">&quot;;</span>
-<span class="p">};</span>
+<div class="highlight"><pre><span></span><span class="x">dlz &quot;your custom description&quot; </span><span class="err">{</span><span class="x"></span>
+<span class="x">    database &quot;mysql</span>
+<span class="x">        </span><span class="err">{</span><span class="x">host=localhost dbname=dns user=dns pass=dns}</span>
+<span class="x">        </span><span class="err">{</span><span class="x">select zone from dns_records where zone = &#39;</span><span class="p">$</span><span class="nv">zone</span><span class="p">$</span><span class="x">&#39;}</span>
+<span class="x">        </span><span class="err">{</span><span class="x">select ttl, type, data from dns_records where host = &#39;</span><span class="p">$</span><span class="nv">record</span><span class="p">$</span><span class="x">&#39; and zone=&#39;</span><span class="p">$</span><span class="nv">zone</span><span class="p">$</span><span class="x">&#39;}&quot;;</span>
+<span class="x">};</span>
 </pre></div>
 
 
 <p>your custom description:</p>
-<div class="highlight"><pre><span class="err">管理员自行添加的描述</span>
+<div class="highlight"><pre><span></span>管理员自行添加的描述
 </pre></div>
 
 
 <p>配置完成。</p>
                 <h4>您可能还喜欢以下文章</h4>
                 <ul>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">Django multiple select option with title</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">install Facebook scribe on Debian Squeeze</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></li>
                   <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html">Java 使用自签证书访问https站点</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html">Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html">Mac OSX Yosemite 10.10 WIFI 掉线修复</a></li>
                   <li><a href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html">查询 dns server 使用的bind版本</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></li>
                 </ul>
                 <div class="panel-about row">
                   <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
@@ -240,36 +240,6 @@
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-3"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/named.html">named</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
             <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=15&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
@@ -295,156 +265,6 @@
 
 
             <!-- 使用上面的标签云，这里不需要了
-                <li class="list-group-item tag-1">
-                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
-                        java
-                    </a>
-                </li>
-                <li class="list-group-item tag-1">
-                    <a href="http://blog.chenxiaosheng.com/tag/python.html">
-                        python
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
-                        django
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
-                        bind
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
-                        ssl
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
-                        mac
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/debian.html">
-                        debian
-                    </a>
-                </li>
-                <li class="list-group-item tag-3">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
-                        proxy
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
-                        post
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
-                        sftp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/wifi.html">
-                        wifi
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
-                        ssh
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/dns.html">
-                        dns
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
-                        crontab
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/dig.html">
-                        dig
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
-                        iterm2
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
-                        openid
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
-                        linux
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/yosemite.html">
-                        yosemite
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
-                        pelican
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
-                        arp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
-                        http
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/named.html">
-                        named
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
-                    </a>
-                </li>
             -->
         </ul>
     </section>
