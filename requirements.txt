@@ -1,2 +1,3 @@
 pelican==3.6.3
 pelican-related==0.1
+markdown==2.6.6
