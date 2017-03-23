@@ -23,7 +23,7 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;我们原来的值设置为 75，怀疑是因为这个值设得太小了，尝试将此值调整至与 &lt;code&gt;MaxClients&lt;/code&gt; 相等，重启 apache ，发现负载开始持续下降，服务正常，qps没有明显下降（未导致服务不可用）。新的配置如：&lt;/p&gt;
+&lt;p&gt;我们原来的值设置为 75，怀疑是因为这个值设得太小了，尝试将此值调整至与 &lt;code&gt;MaxClients&lt;/code&gt; 相等，重启 apache ，发现负载开始持续下降，&lt;code&gt;top 中 apache 进程 pid 几乎没有产生变化&lt;/code&gt;，服务正常，qps没有明显下降（未导致服务不可用）。新的配置如：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;IfModule&lt;/span&gt; &lt;span class="err"&gt;mpm_worker_module&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
     StartServers          2
     ServerLimit          12
