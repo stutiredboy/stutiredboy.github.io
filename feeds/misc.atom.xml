@@ -1,5 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/misc.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2016-05-19T12:11:00+08:00</updated><entry><title>pip 升级 pip 失败</title><link href="http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html" rel="alternate"></link><published>2016-05-19T12:11:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2016-05-19:posts/2016-05-19/pip_upgrade_pip_failure.html</id><summary type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶 - misc</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/misc.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2017-03-23T09:44:00+08:00</updated><entry><title>记一次 Apache 性能调优</title><link href="http://blog.chenxiaosheng.com/posts/2017-03-23/apache-performance-tuning.html" rel="alternate"></link><published>2017-03-23T09:44:00+08:00</published><updated>2017-03-23T09:44:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2017-03-23:/posts/2017-03-23/apache-performance-tuning.html</id><summary type="html">&lt;p&gt;每一次神优化背后都有一个很烧饼的设置（bug），刷一次负载下降 70%+ 的小目标。&lt;/p&gt;</summary><content type="html">&lt;p&gt;手上有一组 web 服务，使用 apache 对外提供服务，其中apache 使用 worker 模式，这堆 web 服务器有以下一堆毛病：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;apache 长期占用大量 CPU，负载长期居高不下。&lt;/li&gt;
+&lt;li&gt;每天 rotate log 的指令不能被 apache 处理，通过 lsof 可以看到被删除的日志文件没有正确关闭。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;通过监控、日志统计，发现 qps 并不高，单台机器 qps 为600 左右（机器为 16 核、32G 内存），一开始以为是我代码性能问题，各种查找高消耗节点，无果。再次对服务器的整体情况及 apache 文档进行审视。&lt;/p&gt;
+&lt;p&gt;通过阅读 &lt;a href="https://httpd.apache.org/docs/2.2/mod/mpm_common.html"&gt;apache 官方文档&lt;/a&gt; 在 worker 这里最重要的三个设置参数有 &lt;code&gt;ServerLimit * ThreadsPerChild &amp;gt;= MaxClients&lt;/code&gt; ，但我们服务器上的配置远大于 qps（理论上，实际并发数会小于 qps）。尝试调小以上参数以接近 qps 数值，服务器负载没有发生明显变化。&lt;/p&gt;
+&lt;p&gt;再次观察系统负载（top）发现，apache 进程的 pid 一直在产生变化，产生了新的怀疑，是不是因为「频繁的销毁、创建 apache 进程」导致的开销过大，造成 cpu 负载居高不下？&lt;/p&gt;
+&lt;p&gt;再次阅读文档，其中两个会导致进程销毁的设置分别为：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;MaxRequestsPerChild&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;The MaxRequestsPerChild directive sets the limit on the number of requests that an individual child server process will handle. After MaxRequestsPerChild requests, the child process will die. If MaxRequestsPerChild is 0, then the process will never expire.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个值，我们的设置是 0，所以不会是因为这个设置导致的。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;MaxSpareThreads&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们原来的值设置为 75，怀疑是因为这个值设得太小了，尝试将此值调整至与 &lt;code&gt;MaxClients&lt;/code&gt; 相等，重启 apache ，发现负载开始持续下降，服务正常，qps没有明显下降（未导致服务不可用）。新的配置如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;IfModule&lt;/span&gt; &lt;span class="err"&gt;mpm_worker_module&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    StartServers          2
+    ServerLimit          12
+    MinSpareThreads      25
+    MaxSpareThreads     768
+    ThreadLimit         128
+    ThreadsPerChild      64
+    MaxClients          768
+    MaxRequestsPerChild   0
+&lt;span class="nt"&gt;&amp;lt;/IfModule&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;至此问题解决，附优化前后的负载对比图：&lt;/p&gt;
+&lt;p&gt;优化前：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/apache_before_tuning.png"&gt;&lt;/p&gt;
+&lt;p&gt;优化后：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/apache_after_tuning.png"&gt;&lt;/p&gt;</content><category term="apache"></category></entry><entry><title>pip 升级 pip 失败</title><link href="http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html" rel="alternate"></link><published>2016-05-19T12:11:00+08:00</published><updated>2016-05-19T12:11:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</id><summary type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+You are using pip version 8.1.1, however version 8.1.2 is available.
+You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
@@ -28,7 +78,20 @@ Cleaning up...
 
 
 &lt;p&gt;这时才发现，原来在我的 &lt;code&gt;~/.pip/pip.conf&lt;/code&gt; 配置文件里，&lt;code&gt;index-url&lt;/code&gt; 使用了一个已经废弃的地址，删除文件后重新升级，一切恢复正常。&lt;/p&gt;
-&lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</summary><category term="python"></category><category term="pip"></category></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><published>2014-11-17T14:35:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+&lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</content><category term="python"></category><category term="pip"></category></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><published>2014-11-17T14:35:00+08:00</published><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
+&lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
+并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
+却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
+&lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/Library/Preferences/SystemConfiguration
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ls
+NetworkInterfaces.plist …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
 &lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
 并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
@@ -61,7 +124,7 @@ preferences.plist
 
 &lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><updated>2014-07-07T20:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -79,7 +142,37 @@ preferences.plist
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</summary><category term="bind"></category><category term="dns"></category><category term="dig"></category><category term="named"></category></entry><entry><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html" rel="alternate"></link><published>2014-05-09T13:31:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-05-09:posts/2014-05-09/cron-day-weekday-restricted.html</id><summary type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
+&lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</summary><content type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;${server}换成你想查询的dns服务器IP地址即可，如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;dig&lt;/span&gt; &lt;span class="mf"&gt;@8.8.8.8&lt;/span&gt; &lt;span class="n"&gt;CHAOS&lt;/span&gt; &lt;span class="n"&gt;TXT&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其实通常情况下出于安全考虑，大多数我们是查询不到版本信息的（系统管理员禁用了）&lt;/p&gt;
+&lt;p&gt;bind 可以通过如下设置禁用版本号查询：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;options {
+    version none;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</content><category term="bind"></category><category term="dns"></category><category term="dig"></category><category term="named"></category></entry><entry><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html" rel="alternate"></link><published>2014-05-09T13:31:00+08:00</published><updated>2014-05-09T13:31:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</id><summary type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
+           -----         --------------
+           minute        0-59
+           hour          0-23
+           day of month  1-31
+           month         1-12 (or names, see below)
+           day of week   0-7 (0 or 7 is Sun, or use names)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
            -----         --------------
            minute        0-59
@@ -108,7 +201,20 @@ then either the &amp;quot;day of month&amp;quot; field (3) or the &amp;quot;day 
 &lt;ol&gt;
 &lt;li&gt;3月里的每一个周三&lt;/li&gt;
 &lt;li&gt;3月27日&lt;/li&gt;
-&lt;/ol&gt;</summary><category term="crontab"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+&lt;/ol&gt;</content><category term="crontab"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+&lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
+&lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其次向网关发送本机的ip/mac地址&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
+&lt;p&gt;00:17 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
@@ -122,7 +228,19 @@ then either the &amp;quot;day of month&amp;quot; field (3) or the &amp;quot;day 
 
 &lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
 &lt;p&gt;00:17:a4:8d:0e:98 为本机MAC地址&lt;/p&gt;
-&lt;p&gt;1.1.1.1 为网关&lt;/p&gt;</summary><category term="linux"></category><category term="arp"></category></entry><entry><title>Java 发起Http Post请求</title><link href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html" rel="alternate"></link><published>2014-02-19T17:16:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-02-19:posts/2014-02-19/java-ssl-and-http_post.html</id><summary type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
+&lt;p&gt;1.1.1.1 为网关&lt;/p&gt;</content><category term="linux"></category><category term="arp"></category></entry><entry><title>Java 发起Http Post请求</title><link href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html" rel="alternate"></link><published>2014-02-19T17:16:00+08:00</published><updated>2014-02-19T17:16:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-02-19:/posts/2014-02-19/java-ssl-and-http_post.html</id><summary type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
+看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
+&lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
+&lt;span class="cm"&gt; * Java POST Example&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.IOException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.MalformedURLException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.ProtocolException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URL&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URLEncoder&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
 &lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
@@ -270,7 +388,14 @@ then either the &amp;quot;day of month&amp;quot; field (3) or the &amp;quot;day 
         &lt;span class="o"&gt;}&lt;/span&gt;
     &lt;span class="o"&gt;}&lt;/span&gt;
 &lt;span class="o"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="java"></category><category term="ssl"></category><category term="http"></category><category term="post"></category></entry><entry><title>Java 使用自签证书访问https站点</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html" rel="alternate"></link><published>2013-12-26T10:18:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-26:posts/2013-12-26/java-use-self_signed_certificate.html</id><summary type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
+&lt;/pre&gt;&lt;/div&gt;</content><category term="java"></category><category term="ssl"></category><category term="http"></category><category term="post"></category></entry><entry><title>Java 使用自签证书访问https站点</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html" rel="alternate"></link><published>2013-12-26T10:18:00+08:00</published><updated>2013-12-26T10:18:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-26:/posts/2013-12-26/java-use-self_signed_certificate.html</id><summary type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
+我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
+都不知道他们怎么胜任日常的编码工作的=,=
+同时做为一个 Java 黑，我觉得，好吧，更黑了。。&lt;/p&gt;
+&lt;p&gt;anyway，经过各种折腾，至少总结出了以下两种使用自签证书访问 https 站点的办法。&lt;/p&gt;
+&lt;h3&gt;方法一&lt;/h3&gt;
+&lt;p&gt;拿到相应的 https 站点证书后（好吧，我这里是cnnic.crt，顺便吐槽一下万恶的 cnnic 证书，各种不信任）：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;keytool&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;keystore&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;JAVA_HOME&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jre&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;security&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;cacerts&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;certificate …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
 我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
 都不知道他们怎么胜任日常的编码工作的=,=
 同时做为一个 Java 黑，我觉得，好吧，更黑了。。&lt;/p&gt;
@@ -355,7 +480,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
         &lt;span class="o"&gt;}&lt;/span&gt;
     &lt;span class="o"&gt;}&lt;/span&gt;
 &lt;span class="o"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="java"></category><category term="ssl"></category></entry><entry><title>OpenID4Java 使用dumb模式（stateless）并禁用 discovery</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html" rel="alternate"></link><published>2013-12-25T12:20:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-25:posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html</id><summary type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="java"></category><category term="ssl"></category></entry><entry><title>OpenID4Java 使用dumb模式（stateless）并禁用 discovery</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html" rel="alternate"></link><published>2013-12-25T12:20:00+08:00</published><updated>2013-12-25T12:20:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-25:/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html</id><summary type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;manager&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ConsumerManager&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
 &lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getRealmVerifier&lt;/span&gt;&lt;span class="o"&gt;().&lt;/span&gt;&lt;span class="na"&gt;setEnforceRpId&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
 &lt;span class="c1"&gt;// 强制manager使用无状态模式&lt;/span&gt;
@@ -369,7 +494,33 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 &lt;span class="c1"&gt;// 使用人肉构造discoveries&lt;/span&gt;
 &lt;span class="n"&gt;List&lt;/span&gt; &lt;span class="n"&gt;discoveries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ArrayList&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
 &lt;span class="n"&gt;discoveries&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;DiscoveryInformation&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http//real.openid.server.url&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;);&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="openid"></category><category term="java"></category></entry><entry><title>ssh client 通过 socks5 proxy 登录远程服务器</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html" rel="alternate"></link><published>2013-12-20T12:20:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-20:posts/2013-12-20/ssh-through-socks-proxy.html</id><summary type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
+&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;manager&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ConsumerManager&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getRealmVerifier&lt;/span&gt;&lt;span class="o"&gt;().&lt;/span&gt;&lt;span class="na"&gt;setEnforceRpId&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;// 强制manager使用无状态模式&lt;/span&gt;
+&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setMaxAssocAttempts&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;禁用 discovery&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;// 不要使用manager.discover构造discoveries&lt;/span&gt;
+&lt;span class="c1"&gt;// List discoveries = manager.discover(userSuppliedString);&lt;/span&gt;
+&lt;span class="c1"&gt;// 使用人肉构造discoveries&lt;/span&gt;
+&lt;span class="n"&gt;List&lt;/span&gt; &lt;span class="n"&gt;discoveries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ArrayList&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;discoveries&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;DiscoveryInformation&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http//real.openid.server.url&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="openid"></category><category term="java"></category></entry><entry><title>ssh client 通过 socks5 proxy 登录远程服务器</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html" rel="alternate"></link><published>2013-12-20T12:20:00+08:00</published><updated>2013-12-20T12:20:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-20:/posts/2013-12-20/ssh-through-socks-proxy.html</id><summary type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
+发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
+因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x &lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;:&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server_port&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; %h %p&amp;#39; xxx.xxx.xxx.xxx
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39; 8.8.8.8
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;需要注意的是，nc需要使用 OpenBSD 版本 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
 发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
 因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x &lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;:&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server_port&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; %h %p&amp;#39; xxx.xxx.xxx.xxx
@@ -389,7 +540,23 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 
 &lt;p&gt;非OpenBSD 可能报如下错误：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/nc: invalid option -- &amp;#39;x&amp;#39;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="ssh"></category><category term="proxy"></category></entry><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><published>2013-10-29T16:43:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="ssh"></category><category term="proxy"></category></entry><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><published>2013-10-29T16:43:00+08:00</published><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+&lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。&lt;/p&gt;
+&lt;p&gt;好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/iterm2_default_profile.png" /&gt;&lt;/p&gt;
+&lt;p&gt;我另外建立了一个Profile，叫GBK：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/iterm2_gbk_profile.png" /&gt;&lt;/p&gt;
+&lt;p&gt;并编写了一个非常简单的切换脚本：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+&lt;span class="c1"&gt;# 使用GBK Profile&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; -e &lt;span class="s2"&gt;&amp;quot;\033]50;SetProfile=GBK\a&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# 环境编码切换为GBK&lt;/span&gt;
+&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;LANG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
+&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;LC_ALL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
+&lt;span class="c1"&gt;# 更改当前 iTerm2 tab title&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt; -ne &lt;span class="s2"&gt;&amp;quot;\033]0;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;$@&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\007&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;$@&lt;/span&gt;
+&lt;span class="nb"&gt;echo …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
 &lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。&lt;/p&gt;
 &lt;p&gt;好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/iterm2_default_profile.png" /&gt;&lt;/p&gt;
@@ -419,7 +586,21 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;即可&lt;/p&gt;</summary><category term="mac"></category><category term="osx"></category><category term="iterm2"></category></entry><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><published>2013-09-24T15:58:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
+&lt;p&gt;即可&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="iterm2"></category></entry><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><published>2013-09-24T15:58:00+08:00</published><updated>2013-09-24T15:58:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:/posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
+&lt;p&gt;正常情况下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+i RECV : Server Sftp Version: 3
+i SEND : RealPath(raw) .
+i Resolved RealPath: /home/demo
+i SEND : OpenDir /home/demo
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;而无法传输文件的服务器则是如下日志：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+i Changing state from STATE_CONNECTION to   STATE_TRANSPORT_STOPPING.
+i Changing state from STATE_TRANSPORT_STOPPING to STATE_CLOSING.
+i Changing state from …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
 i RECV : Server Sftp Version: 3
@@ -442,7 +623,7 @@ i Changing state from STATE_CLOSING to STATE_CLOSED.
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;然后重启sshd服务，问题解决。&lt;/p&gt;</summary><category term="sftp"></category><category term="secureFX"></category><category term="sshd"></category></entry><entry><title>Django Admin 使用 filter_horizontal 不生效</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html" rel="alternate"></link><published>2013-09-23T15:25:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-23:posts/2013-09-23/django-filter_horizontal.html</id><summary type="html">&lt;p&gt;考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。&lt;/p&gt;
+&lt;p&gt;然后重启sshd服务，问题解决。&lt;/p&gt;</content><category term="sftp"></category><category term="secureFX"></category><category term="sshd"></category></entry><entry><title>Django Admin 使用 filter_horizontal 不生效</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html" rel="alternate"></link><published>2013-09-23T15:25:00+08:00</published><updated>2013-09-23T15:25:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-23:/posts/2013-09-23/django-filter_horizontal.html</id><summary type="html">&lt;p&gt;Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用&lt;code&gt;filter_horizontal&lt;/code&gt;进行显示的时候，我们碰到了一些问题。&lt;/p&gt;</summary><content type="html">&lt;p&gt;考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。&lt;/p&gt;
 &lt;p&gt;Django 1.2.7 admin在使用&lt;code&gt;ManyToManyField&lt;/code&gt;的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，如下图所示：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/django_filter_vertical.png"&gt;&lt;/p&gt;
 &lt;p&gt;决定使用更直观的方式，&lt;code&gt;filter_horizontal&lt;/code&gt;，设置比较简单，只要在&lt;code&gt;admin.py&lt;/code&gt;里对应的模块下，添加类似如下内容即可：&lt;/p&gt;
@@ -460,11 +641,25 @@ i Changing state from STATE_CLOSING to STATE_CLOSED.
 
 
 &lt;p&gt;调整为&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;ips&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;models&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ManyToManyField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;IPData&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;verbose_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;u&amp;quot;使用IP&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;ips&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;models&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ManyToManyField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;IPData&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;verbose_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;使用IP&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;问题解决。使用&lt;code&gt;string&lt;/code&gt;是因为我们这些是一些老旧的系统，新项目必须果断的抛弃&lt;code&gt;string&lt;/code&gt;，拥抱&lt;code&gt;unicode&lt;/code&gt;吧！&lt;/p&gt;</summary><category term="django"></category><category term="python"></category></entry><entry><title>pelican增加自定义jinja template filters</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"></link><published>2013-09-11T19:46:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-11:posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
+&lt;p&gt;问题解决。使用&lt;code&gt;string&lt;/code&gt;是因为我们这些是一些老旧的系统，新项目必须果断的抛弃&lt;code&gt;string&lt;/code&gt;，拥抱&lt;code&gt;unicode&lt;/code&gt;吧！&lt;/p&gt;</content><category term="django"></category><category term="python"></category></entry><entry><title>pelican增加自定义jinja template filters</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"></link><published>2013-09-11T19:46:00+08:00</published><updated>2013-09-11T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-11:/posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
+&lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
+&lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序&lt;/p&gt;
+&lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
+&lt;p&gt;不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch&lt;/p&gt;
+&lt;p&gt;当然，更幸运的是在&lt;code&gt;github&lt;/code&gt;找到了此commit:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;https://github.com/getpelican/pelican/pull/96
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;原来有个&lt;code&gt;JINJA_FILTERS&lt;/code&gt;的设置，那一切就好办了, 增加自定义模块&lt;code&gt;jinja_filters.py&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;random&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;shuffle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; Jinja template …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
 &lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
 &lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序&lt;/p&gt;
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
@@ -494,7 +689,19 @@ i Changing state from STATE_CLOSING to STATE_CLOSED.
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;尝试重新编译生成html文件，顺利完成。&lt;/p&gt;</summary><category term="python"></category><category term="pelican"></category><category term="jinja"></category></entry><entry><title>配置Bind使用MySQL dlz模式</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html" rel="alternate"></link><published>2013-09-09T16:18:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:posts/2013-09-09/install-bind-mysql-dlz.html</id><summary type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;尝试重新编译生成html文件，顺利完成。&lt;/p&gt;</content><category term="python"></category><category term="pelican"></category><category term="jinja"></category></entry><entry><title>配置Bind使用MySQL dlz模式</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html" rel="alternate"></link><published>2013-09-09T16:18:00+08:00</published><updated>2013-09-09T16:18:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/install-bind-mysql-dlz.html</id><summary type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;使用 &lt;code&gt;use dns&lt;/code&gt; 切换进 &lt;code&gt;dns&lt;/code&gt; 数据库后，使用如下命令创建一张 &lt;code&gt;dns_records&lt;/code&gt; 表：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE TABLE `dns_records` (
+`zone` varchar(255) NOT NULL,
+`host` varchar(255) NOT NULL,
+`type` varchar(12) NOT NULL …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
@@ -549,12 +756,12 @@ PRIMARY KEY (`id`),
 &lt;p&gt;用户名为 &lt;code&gt;dns&lt;/code&gt; ，密码也为 &lt;code&gt;dns&lt;/code&gt; ，只允许本地主机 &lt;code&gt;localhost&lt;/code&gt; 访问，并只给予了 &lt;code&gt;select&lt;/code&gt; 权限。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; Bind-dlz配置 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;这里只涉及dlz的配置，其它named.conf的配置不涉及&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="x"&gt;dlz &amp;quot;your custom description&amp;quot; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
-&lt;span class="x"&gt;    database &amp;quot;mysql&lt;/span&gt;
-&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;host=localhost dbname=dns user=dns pass=dns}&lt;/span&gt;
-&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;select zone from dns_records where zone = &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;zone&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;&amp;#39;}&lt;/span&gt;
-&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="x"&gt;select ttl, type, data from dns_records where host = &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;record&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;&amp;#39; and zone=&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="nv"&gt;zone&lt;/span&gt;&lt;span class="p"&gt;$&lt;/span&gt;&lt;span class="x"&gt;&amp;#39;}&amp;quot;;&lt;/span&gt;
-&lt;span class="x"&gt;};&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dlz &amp;quot;your custom description&amp;quot; {
+    database &amp;quot;mysql
+        {host=localhost dbname=dns user=dns pass=dns}
+        {select zone from dns_records where zone = &amp;#39;$zone$&amp;#39;}
+        {select ttl, type, data from dns_records where host = &amp;#39;$record$&amp;#39; and zone=&amp;#39;$zone$&amp;#39;}&amp;quot;;
+};
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -563,7 +770,7 @@ PRIMARY KEY (`id`),
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;配置完成。&lt;/p&gt;</summary><category term="bind"></category></entry><entry><title>Django multiple select option with title</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html" rel="alternate"></link><published>2013-09-09T15:02:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:posts/2013-09-09/django-multiple-select-option-with-title.html</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
+&lt;p&gt;配置完成。&lt;/p&gt;</content><category term="bind"></category></entry><entry><title>Django multiple select option with title</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html" rel="alternate"></link><published>2013-09-09T15:02:00+08:00</published><updated>2013-09-09T15:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/django-multiple-select-option-with-title.html</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.encoding&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;conditional_escape&lt;/span&gt;
 
@@ -571,12 +778,34 @@ PRIMARY KEY (`id`),
     &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; multiple select optihon with title &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
     &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;render_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
         &lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="n"&gt;selected_html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="s1"&gt;u&amp;#39; selected=&amp;quot;selected&amp;quot;&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s1"&gt;u&amp;#39;&amp;lt;option value=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt; title=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&amp;gt;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;lt;/option&amp;gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+        &lt;span class="n"&gt;selected_html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39; selected=&amp;quot;selected&amp;quot;&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&amp;lt;option value=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.encoding&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;conditional_escape&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SelectMultipleWithTitle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SelectMultiple&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; multiple select optihon with title &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;render_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;selected_html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39; selected=&amp;quot;selected&amp;quot;&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&amp;lt;option value=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt; title=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&amp;gt;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;lt;/option&amp;gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
             &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;selected_html&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
             &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
             &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><category term="python"></category><category term="django"></category></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"></link><published>2013-09-08T13:03:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="python"></category><category term="django"></category></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"></link><published>2013-09-08T13:03:00+08:00</published><updated>2013-09-08T13:03:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Debian Squeeze 6.0 amd64&lt;/p&gt;
+&lt;p&gt;thrift: 0.8.0&lt;/p&gt;
+&lt;p&gt;hadoop: 0.20.2 cdh3 hadoop-0.20_0.20.2+923.142&lt;/p&gt;
+&lt;p&gt;scribe: git current version&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;首先安装各种库，包括但不局限于:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;python-dev maven2 ant sun-java6-jre sun-java6-jdk bison flex gcc make autoconf libevent-dev libboost-all-dev git-core&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;之后:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;sudo update-alternatives --set java /usr/lib/jvm/java-6-sun/jre …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;p&gt;系统: &lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Debian Squeeze 6.0 amd64&lt;/p&gt;
 &lt;p&gt;thrift: 0.8.0&lt;/p&gt;
@@ -645,14 +874,14 @@ PRIMARY KEY (`id`),
 &lt;p&gt;保存退出后&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;sudo ldconfig&lt;/p&gt;
-&lt;/blockquote&gt;</summary><category term="debian"></category><category term="scribe"></category></entry><entry><title>Windows OpenVPN GUI记住用户名和密码</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html" rel="alternate"></link><published>2013-09-08T12:51:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:posts/2013-09-08/windows-openvpn-remember-password.html</id><summary type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。&lt;/p&gt;
+&lt;/blockquote&gt;</content><category term="debian"></category><category term="scribe"></category></entry><entry><title>Windows OpenVPN GUI记住用户名和密码</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html" rel="alternate"></link><published>2013-09-08T12:51:00+08:00</published><updated>2013-09-08T12:51:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/windows-openvpn-remember-password.html</id><summary type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。 如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦&lt;/p&gt;</summary><content type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。&lt;/p&gt;
 &lt;p&gt;如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦&lt;/p&gt;
 &lt;p&gt;我使用的版本（2.3.1），实际上已经支持保存密码的功能（旧版本可能需要重新编译），在ovpn配置文件里增加:&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;auth-user-pass pass.txt&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;之后在ovpn配置文件所在目录建立一个pass.txt的文件，第一行为用户名，第二行为密码即可。&lt;/p&gt;
-&lt;p&gt;PS：这样对自己电脑的安全性要有足够的保证，否则密码泄露就得不偿失了。&lt;/p&gt;</summary><category term="windows"></category><category term="openvpn"></category></entry><entry><title>Debian系统添加全局根证书（CNNIC）</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html" rel="alternate"></link><published>2013-09-08T12:25:00+08:00</published><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:posts/2013-09-08/debian-add-cnnic-ca.html</id><summary type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。&lt;/p&gt;
+&lt;p&gt;PS：这样对自己电脑的安全性要有足够的保证，否则密码泄露就得不偿失了。&lt;/p&gt;</content><category term="windows"></category><category term="openvpn"></category></entry><entry><title>Debian系统添加全局根证书（CNNIC）</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html" rel="alternate"></link><published>2013-09-08T12:25:00+08:00</published><updated>2013-09-08T12:25:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/debian-add-cnnic-ca.html</id><summary type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。本篇文章介绍了如何将CNNIC CA添加至Debian操作系统全局根证书。&lt;/p&gt;</summary><content type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。&lt;/p&gt;
 &lt;p&gt;虽然我也不喜欢cnnic，但没办法，这是反抗不了的事情。&lt;/p&gt;
 &lt;p&gt;过程如下（需要root权限）：&lt;/p&gt;
 &lt;blockquote&gt;
@@ -660,4 +889,4 @@ PRIMARY KEY (`id`),
 &lt;p&gt;mkdir -p /usr/share/ca-certificates/local #建立local目录是为了方便区分这是自己填加的证书，可以自定义，但一定要在/usr/share/ca-certificates目录下&lt;/p&gt;
 &lt;p&gt;将cnnic的证书复制至/usr/share/ca-certificates/local目录，请注意，证书的后缀必须修改为.crt&lt;/p&gt;
 &lt;p&gt;dpkg-reconfigure ca-certificates #选中刚才添加的local/cnnic.crt证中，确定，即可&lt;/p&gt;
-&lt;/blockquote&gt;</summary><category term="debian"></category></entry></feed>
+&lt;/blockquote&gt;</content><category term="debian"></category></entry></feed>
