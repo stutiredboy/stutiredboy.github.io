@@ -1,5 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶 - misc</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/misc.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2017-11-15T22:51:00+08:00</updated><entry><title>网易游戏 MySQL-MongoDB 运维及 DBA 招聘</title><link href="http://blog.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html" rel="alternate"></link><published>2017-11-15T22:51:00+08:00</published><updated>2017-11-15T22:51:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2017-11-15:/posts/2017-11-15/ntes-offers.html</id><summary type="html">&lt;p&gt;以下岗位部门均属于&lt;a href="http://hr.game.163.com/about.html"&gt;网易在线游戏事业部&lt;/a&gt;。
+<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶 - misc</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/misc.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2018-01-30T09:50:00+08:00</updated><entry><title>《OKR 工作法》读书笔记</title><link href="http://blog.chenxiaosheng.com/posts/2018-01-30/okr-reading-notes.html" rel="alternate"></link><published>2018-01-30T09:50:00+08:00</published><updated>2018-01-30T09:50:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2018-01-30:/posts/2018-01-30/okr-reading-notes.html</id><summary type="html">&lt;p&gt;OKR 就是要通过不断实践、总结，发不断发现、挑战团队的潜力，不要把这个过程当作汇报、考核的结果。没有完成，一起思考为什么会这样、怎么改进。目标达成，那就设置更有挑战的目标。把精力聚焦在学习总结、挖掘潜力和高效执行上。&lt;/p&gt;</summary><content type="html">&lt;p&gt;目标用来明确方向，关键结果则用来量化目标，使团队和个人聚焦在一个有挑战性的目标上。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;确定目标，确保团队聚焦&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;目标要有明确方向并鼓舞人心&lt;/li&gt;
+&lt;li&gt;目标要有时间期限&lt;/li&gt;
+&lt;li&gt;目标必须真正属于你&lt;blockquote&gt;
+&lt;p&gt;思考，哪些是关键成果，哪些是目标：销售额提升 30%/用户增加一倍/收入增加到 500 万美元/完成一轮融资/拿下 XX 市场/推出一个最小化可行产品&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;讨论关键结果，复盘 OKR&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;评估 OKR 实施成果&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;影响目标达成的关键因素&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;没有给目标设置优先级&lt;/li&gt;
+&lt;li&gt;缺乏充分沟通，导致没能准确理解目标&lt;blockquote&gt;
+&lt;p&gt;目标完成的进度必须在每周会议和邮件中汇报，分解出的项目任务必须能支撑目标的达成；&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;没有做好计划&lt;blockquote&gt;
+&lt;p&gt;承担、庆祝与盘点&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;没有把时间花在重要的事情上&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;重要的事情通常不紧急，紧急的事情通常不重要
+思考：计划应该是为了重要不紧急还是紧急不重要？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;轻易放弃&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;害怕失败，不给自己挑战机会，隐藏实力，导致目标设置太低
+期望过高，没有能力实现
+没有坚持跟进目标，直到最后一周才发现没有进展（注意前面的，需要持续复盘、评估、沟通）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;OKR 就是要通过不断实践、总结，发不断发现、挑战团队的潜力，不要把这个过程当作汇报、考核的结果。没有完成，一起思考为什么会这样、怎么改进。目标达成，那就设置更有挑战的目标。把精力聚焦在学习总结、挖掘潜力和高效执行上。&lt;/p&gt;
+&lt;p&gt;其它：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;如何评估绩效：持续沟通，不地加以指导和校正。管理者和员工各自分享自己的观点与想法，这样可以减少误解，问题也能得到快速解决。年终评估的事实大家可以通过持续的沟通提前知道。&lt;/li&gt;
+&lt;li&gt;目标里不要有传统的绩效考核指标。&lt;/li&gt;
+&lt;li&gt;OKR 进度确认（如周会）是一次谈话，而不是汇报（A做了什么B做了什么，这叫流水帐）或指标&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.amazon.cn/dp/B07577T3XS/ref=sr_1_1?ie=UTF8&amp;amp;qid=1517276944&amp;amp;sr=8-1&amp;amp;keywords=okr+%E5%B7%A5%E4%BD%9C%E6%B3%95"&gt;《OKR 工作法》&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://eleganthack.com/wp-content/uploads/2017/05/OKR_Worksheet.pdf"&gt; OKR 练习册&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;</content><category term="okr"></category></entry><entry><title>网易游戏 MySQL-MongoDB 运维及 DBA 招聘</title><link href="http://blog.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html" rel="alternate"></link><published>2017-11-15T22:51:00+08:00</published><updated>2017-11-15T22:51:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2017-11-15:/posts/2017-11-15/ntes-offers.html</id><summary type="html">&lt;p&gt;以下岗位部门均属于&lt;a href="http://hr.game.163.com/about.html"&gt;网易在线游戏事业部&lt;/a&gt;。
 其中 MongoDB 运维及运维开发工程师可选工作地点为广州或杭州。&lt;/p&gt;
 &lt;p&gt;相关数据库产品均服务于如《&lt;a href="http://hy.163.com"&gt;荒野行动&lt;/a&gt;》、《&lt;a href="http://xyq.163.com"&gt;梦幻西游&lt;/a&gt;》、《&lt;a href="http://dhxy.163.com"&gt;大话西游&lt;/a&gt;》、《&lt;a href="http://yys.163.com"&gt;阴阳师&lt;/a&gt;》、《&lt;a href="http://mc.163.com"&gt;我的世界&lt;/a&gt;》、&lt;a href="http://cc.163.com"&gt;CC&lt;/a&gt;等网易游戏海量用户业务。
 如果需要也有更深入了解的，也可以给我留言或者&lt;a href="https://www.dropbox.com/s/fcx2kqf77kmx7zv/wechat_qrcode.jpeg?dl=0"&gt;微信（二维码戳我）&lt;/a&gt;私我。同时欢迎推荐及转发。&lt;/p&gt;
