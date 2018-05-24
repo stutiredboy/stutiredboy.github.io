@@ -1,5 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2018-01-30T09:50:00+08:00</updated><entry><title>《OKR 工作法》读书笔记</title><link href="http://blog.chenxiaosheng.com/posts/2018-01-30/okr-reading-notes.html" rel="alternate"></link><published>2018-01-30T09:50:00+08:00</published><updated>2018-01-30T09:50:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2018-01-30:/posts/2018-01-30/okr-reading-notes.html</id><summary type="html">&lt;p&gt;OKR 就是要通过不断实践、总结，发不断发现、挑战团队的潜力，不要把这个过程当作汇报、考核的结果。没有完成，一起思考为什么会这样、怎么改进。目标达成，那就设置更有挑战的目标。把精力聚焦在学习总结、挖掘潜力和高效执行上。&lt;/p&gt;</summary><content type="html">&lt;p&gt;目标用来明确方向，关键结果则用来量化目标，使团队和个人聚焦在一个有挑战性的目标上。&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2018-05-24T12:14:13+08:00</updated><entry><title>MongoDB 随机查询获取一条或 N 条记录的方法</title><link href="http://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html" rel="alternate"></link><published>2018-05-24T12:14:13+08:00</published><updated>2018-05-24T12:14:13+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2018-05-24:/posts/2018-05-24/mongodb-random-query.html</id><summary type="html">&lt;p&gt;MySQL 可以通过 &lt;code&gt;rand()&lt;/code&gt; 配合 &lt;code&gt;limit&lt;/code&gt; 获取随机的 N 条记录，那么在 MongoDB 上我们又该如何操作呢？&lt;/p&gt;</summary><content type="html">&lt;p&gt;熟悉 MySQL 的同学应该都知道可以通过类似如下语句简单的获取一张表里随机的 N 条记录：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;SELECT * FROM table ORDER BY RAND() LIMIT N;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在 MongoDB 里应该如何操作呢？官方在 3.2 版本带来了直接的解决方案：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;$sample (aggregation)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;具体应该如何操作，官方也给出了一个示例，假设 Collection users 有如下记录：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{ &amp;quot;_id&amp;quot; : 1, &amp;quot;name&amp;quot; : &amp;quot;dave123&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
+{ &amp;quot;_id&amp;quot; : 2, &amp;quot;name&amp;quot; : &amp;quot;dave2&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : false  }
+{ &amp;quot;_id&amp;quot; : 3, &amp;quot;name&amp;quot; : &amp;quot;ahn&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
+{ &amp;quot;_id&amp;quot; : 4, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : false  }
+{ &amp;quot;_id&amp;quot; : 5, &amp;quot;name&amp;quot; : &amp;quot;annT&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
+{ &amp;quot;_id&amp;quot; : 6, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
+{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;那么可以通过命令 &lt;code&gt;db.users.aggregate( [ { $sample: { size: N } } ] )&lt;/code&gt; 获取随机的 N 条记录，如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
+{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true }
+{ &amp;quot;_id&amp;quot; : 4, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : false }
+{ &amp;quot;_id&amp;quot; : 1, &amp;quot;name&amp;quot; : &amp;quot;dave123&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
+mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
+{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true }
+{ &amp;quot;_id&amp;quot; : 3, &amp;quot;name&amp;quot; : &amp;quot;ahn&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
+{ &amp;quot;_id&amp;quot; : 2, &amp;quot;name&amp;quot; : &amp;quot;dave2&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : false }
+mongos&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;$sample uses one of two methods to obtain N random documents, depending on the size of the collection, the size of N, and $sample’s position in the pipeline.
+$sample 会使用如下两种方式来获取随机的 N 条记录，具体使用哪种方式取决于如下条件：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;$sample 处于聚合管道的第一阶段；&lt;/li&gt;
+&lt;li&gt;N 小于总文档数量的 5% ;&lt;/li&gt;
+&lt;li&gt;集合（Collection）中的文档数量大于 100；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;当以上 3 个条件都满足时，$sample 将通过伪随机的游标来获取记录。当任一条件不满足时，$sample 将进行集合扫描，并通过随机排序来选择相应的 N 条记录。&lt;/p&gt;
+&lt;p&gt;需要注意的是：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;当使用随机排序来获取记录时，排序操作会有 100 MB 的内存限制，具体可以参考 &lt;a href="https://docs.mongodb.com/manual/reference/operator/aggregation/sort/#sort-memory-limit"&gt;$sort and Memory Restrictions&lt;/a&gt;；&lt;/li&gt;
+&lt;li&gt;$sample 有可能多次返回同一条记录（document）；&lt;/li&gt;
+&lt;li&gt;尝试在一张十亿级的 Collection 上获取 1W 条随机记录，耗时约 2.5 秒，供参考；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;参考文档：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;https://docs.mongodb.com/manual/reference/operator/aggregation/sample/&lt;/li&gt;
+&lt;li&gt;https://jira.mongodb.org/browse/SERVER-533&lt;/li&gt;
+&lt;/ol&gt;</content><category term="mongodb"></category></entry><entry><title>《OKR 工作法》读书笔记</title><link href="http://blog.chenxiaosheng.com/posts/2018-01-30/okr-reading-notes.html" rel="alternate"></link><published>2018-01-30T09:50:00+08:00</published><updated>2018-01-30T09:50:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2018-01-30:/posts/2018-01-30/okr-reading-notes.html</id><summary type="html">&lt;p&gt;OKR 就是要通过不断实践、总结，发不断发现、挑战团队的潜力，不要把这个过程当作汇报、考核的结果。没有完成，一起思考为什么会这样、怎么改进。目标达成，那就设置更有挑战的目标。把精力聚焦在学习总结、挖掘潜力和高效执行上。&lt;/p&gt;</summary><content type="html">&lt;p&gt;目标用来明确方向，关键结果则用来量化目标，使团队和个人聚焦在一个有挑战性的目标上。&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;
 &lt;p&gt;确定目标，确保团队聚焦&lt;/p&gt;
