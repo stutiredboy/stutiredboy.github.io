@@ -31,8 +31,7 @@ mongos&amp;gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;$sample uses one of two methods to obtain N random documents, depending on the size of the collection, the size of N, and $sample’s position in the pipeline.
-$sample 会使用如下两种方式来获取随机的 N 条记录，具体使用哪种方式取决于如下条件：&lt;/p&gt;
+&lt;p&gt;$sample 会使用如下两种方式来获取随机的 N 条记录，具体使用哪种方式取决于如下条件：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;$sample 处于聚合管道的第一阶段；&lt;/li&gt;
 &lt;li&gt;N 小于总文档数量的 5% ;&lt;/li&gt;
