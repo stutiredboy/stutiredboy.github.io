@@ -221,7 +221,7 @@ mongos&amp;gt;
 
 
 &lt;p&gt;这个值，我们的设置是 0，所以不会是因为这个设置导致的。&lt;/p&gt;
-&lt;ol&gt;
+&lt;ol start="2"&gt;
 &lt;li&gt;MaxSpareThreads&lt;/li&gt;
 &lt;/ol&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.
