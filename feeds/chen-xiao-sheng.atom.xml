@@ -75,7 +75,6 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;{:start="2"}&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 &lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 及非常符合异常特征的参数名称 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt;&lt;/li&gt;
 &lt;/ol&gt;
