@@ -124,6 +124,7 @@
 &lt;/ol&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    &lt;span class="cm"&gt;/* Get the first bind addr or NULL */&lt;/span&gt;
     &lt;span class="cp"&gt;#define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/span&gt;
+    &lt;span class="cp"&gt;#&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
