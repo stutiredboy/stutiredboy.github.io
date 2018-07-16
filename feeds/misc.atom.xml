@@ -15,15 +15,12 @@
 &lt;p&gt;首要事件是保证服务可用，我们第一时间回退配置，重启后 redis 服务恢复正常。&lt;/p&gt;
 &lt;h3&gt;问题回放&lt;/h3&gt;
 &lt;p&gt;开启 Debug 模式，发现有大量的 createing socket: invalid argument 怀疑是 redis 拿了 bind 中的第一个 IP 为节点 IP，导致集群中所有节点的 IP 为 127.0.0.1，因此集群的通信出现问题（事后 review 代码确认跟第一个 IP 有关系，但不是导致所有节点的 IP 为 127.0.0.1）。&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;1616&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;25.407&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;changed&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ok&lt;/span&gt;
-&lt;span class="o"&gt;......&lt;/span&gt;
-&lt;span class="mi"&gt;13236&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;27.104&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="n"&gt;Unable&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;connect&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;Node&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;]:&lt;/span&gt;&lt;span class="mi"&gt;16379&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;creating&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Invalid&lt;/span&gt; &lt;span class="n"&gt;argument&lt;/span&gt;
-&lt;span class="mi"&gt;13236&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;27.104&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="n"&gt;Unable&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;connect&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;Node&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;]:&lt;/span&gt;&lt;span class="mi"&gt;16379&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;creating&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Invalid&lt;/span&gt; &lt;span class="n"&gt;argument&lt;/span&gt;
-&lt;span class="o"&gt;......&lt;/span&gt;
-&lt;span class="mi"&gt;1616&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;38.438&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;changed&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;fail&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;&lt;code&gt;1616:M 02 Jul 11:02:25.407 # Cluster state changed: ok
+......
+13236:M 02 Jul 11:02:27.104 . Unable to connect to Cluster Node [10.x.x.x]:16379 -&amp;gt; creating socket: Invalid argument
+13236:M 02 Jul 11:02:27.104 . Unable to connect to Cluster Node [10.x.x.x]:16379 -&amp;gt; creating socket: Invalid argument
+......
+1616:M 02 Jul 11:02:38.438 # Cluster state changed: fail&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;有了上面的怀疑之后，我们尝试修改 bind 的配置，将 127.0.0.1 放到后面，即：&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;bind ${本机内网 IP} 127.0.0.1&lt;/p&gt;
@@ -38,98 +35,92 @@
 &lt;li&gt;当节点状态为 CLUSTER_NODE_FAIL 或 CLUSTER_NODE_PFAIL 时，节点被标记为不可达；&lt;/li&gt;
 &lt;li&gt;当不可达的 master 节点大于 quorum 时，集群被标记为不可用；&lt;/li&gt;
 &lt;/ul&gt;
+&lt;p&gt;```c
+    /&lt;em&gt; Compute the cluster size, that is the number of master nodes
+     * serving at least a single slot.
+     &lt;/em&gt;
+     * At the same time count the number of reachable masters having
+     * at least one slot. */
+    {
+     ...
+                if ((node-&amp;gt;flags &amp;amp; (CLUSTER_NODE_FAIL|CLUSTER_NODE_PFAIL)) == 0)
+                    reachable_masters++;
+     ...
+    }&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/* If we are in a minority partition, change the cluster state
+ * to FAIL. */
+{
+    int needed_quorum = (server.cluster-&amp;gt;size / 2) + 1;
+
+    if (reachable_masters &amp;lt; needed_quorum) {
+        new_state = CLUSTER_FAIL;
+        among_minority_time = mstime();
+    }
+}
+
+/* Log a state change */
+if (new_state != server.cluster-&amp;gt;state) {
+    ....
+    /* Change the state and log the event. */
+    serverLog(LL_WARNING,"Cluster state changed: %s",
+        new_state == CLUSTER_OK ? "ok" : "fail");
+    server.cluster-&amp;gt;state = new_state;
+    ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;```&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 &lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 及非常符合异常特征的参数名称 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;c
+            fd = anetTcpNonBlockBindConnect(server.neterr, node-&amp;gt;ip,
+                node-&amp;gt;port+CLUSTER_PORT_INCR, NET_FIRST_BIND_ADDR);
+            if (fd == -1) {
+                /* We got a synchronous error from connect before
+                 * clusterSendPing() had a chance to be called.
+                 * If node-&amp;gt;ping_sent is zero, failure detection can't work,
+                 * so we claim we actually sent a ping now (that will
+                 * be really sent as soon as the link is obtained). */
+                if (node-&amp;gt;ping_sent == 0) node-&amp;gt;ping_sent = mstime();
+                serverLog(LL_DEBUG, "Unable to connect to "
+                    "Cluster Node [%s]:%d -&amp;gt; %s", node-&amp;gt;ip,
+                    node-&amp;gt;port+CLUSTER_PORT_INCR,
+                    server.neterr);
+                continue;
+            }&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 函数位于 anet.c 文件中，该函数调用了另一个函数 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt;，&lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt; 函数，找到以下内容：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;c
+        if (source_addr) {
+            int bound = 0;
+            /* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */
+            if ((rv = getaddrinfo(source_addr, NULL, &amp;amp;hints, &amp;amp;bservinfo)) != 0)
+            {
+                anetSetError(err, "%s", gai_strerror(rv));
+                goto error;
+            }
+            for (b = bservinfo; b != NULL; b = b-&amp;gt;ai_next) {
+                if (bind(s,b-&amp;gt;ai_addr,b-&amp;gt;ai_addrlen) != -1) {
+                    bound = 1;
+                    break;
+                }
+            }
+            freeaddrinfo(bservinfo);
+            if (!bound) {
+               anetSetError(err, "bind: %s", strerror(errno));
+               goto error;
+            }
+        }&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1&lt;/p&gt;
+&lt;p&gt;```c
+/&lt;em&gt; Get the first bind addr or NULL &lt;/em&gt;/&lt;/p&gt;
+&lt;h1&gt;define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/h1&gt;
+&lt;p&gt;```&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;        &lt;span class="cm"&gt;/* Compute the cluster size, that is the number of master nodes&lt;/span&gt;
-&lt;span class="cm"&gt;         * serving at least a single slot.&lt;/span&gt;
-&lt;span class="cm"&gt;         *&lt;/span&gt;
-&lt;span class="cm"&gt;         * At the same time count the number of reachable masters having&lt;/span&gt;
-&lt;span class="cm"&gt;         * at least one slot. */&lt;/span&gt;
-        &lt;span class="p"&gt;{&lt;/span&gt;
-         &lt;span class="p"&gt;...&lt;/span&gt;
-                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;flags&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_NODE_FAIL&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_NODE_PFAIL&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-                        &lt;span class="n"&gt;reachable_masters&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-         &lt;span class="p"&gt;...&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-
-        &lt;span class="cm"&gt;/* If we are in a minority partition, change the cluster state&lt;/span&gt;
-&lt;span class="cm"&gt;         * to FAIL. */&lt;/span&gt;
-        &lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;needed_quorum&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-
-            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;reachable_masters&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;needed_quorum&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                &lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;CLUSTER_FAIL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="n"&gt;among_minority_time&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mstime&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
-            &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-
-        &lt;span class="cm"&gt;/* Log a state change */&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;state&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="p"&gt;....&lt;/span&gt;
-            &lt;span class="cm"&gt;/* Change the state and log the event. */&lt;/span&gt;
-            &lt;span class="n"&gt;serverLog&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;LL_WARNING&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Cluster state changed: %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                &lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;CLUSTER_OK&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;ok&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;fail&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
-            &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;new_state&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-            &lt;span class="p"&gt;...&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;ol&gt;
-&lt;li&gt;redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 &lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 及非常符合异常特征的参数名称 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;                &lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;anetTcpNonBlockBindConnect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;neterr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                    &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_PORT_INCR&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;NET_FIRST_BIND_ADDR&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                    &lt;span class="cm"&gt;/* We got a synchronous error from connect before&lt;/span&gt;
-&lt;span class="cm"&gt;                     * clusterSendPing() had a chance to be called.&lt;/span&gt;
-&lt;span class="cm"&gt;                     * If node-&amp;gt;ping_sent is zero, failure detection can&amp;#39;t work,&lt;/span&gt;
-&lt;span class="cm"&gt;                     * so we claim we actually sent a ping now (that will&lt;/span&gt;
-&lt;span class="cm"&gt;                     * be really sent as soon as the link is obtained). */&lt;/span&gt;
-                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ping_sent&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ping_sent&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mstime&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
-                    &lt;span class="n"&gt;serverLog&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;LL_DEBUG&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Unable to connect to &amp;quot;&lt;/span&gt;
-                        &lt;span class="s"&gt;&amp;quot;Cluster Node [%s]:%d -&amp;gt; %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                        &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_PORT_INCR&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                        &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;neterr&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
-                    &lt;span class="k"&gt;continue&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;ol&gt;
-&lt;li&gt;&lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 函数位于 anet.c 文件中，该函数调用了另一个函数 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt;，&lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt; 函数，找到以下内容：&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;source_addr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;bound&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="cm"&gt;/* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;rv&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getaddrinfo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;source_addr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;hints&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-                &lt;span class="p"&gt;{&lt;/span&gt;
-                    &lt;span class="n"&gt;anetSetError&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;err&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;%s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;gai_strerror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rv&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
-                    &lt;span class="k"&gt;goto&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="p"&gt;}&lt;/span&gt;
-                &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_next&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_addr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_addrlen&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                        &lt;span class="n"&gt;bound&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                        &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                    &lt;span class="p"&gt;}&lt;/span&gt;
-                &lt;span class="p"&gt;}&lt;/span&gt;
-                &lt;span class="n"&gt;freeaddrinfo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="n"&gt;bound&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                   &lt;span class="n"&gt;anetSetError&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;err&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bind: %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;strerror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;errno&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
-                   &lt;span class="k"&gt;goto&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="p"&gt;}&lt;/span&gt;
-            &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;ol&gt;
-&lt;li&gt;通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    &lt;span class="cm"&gt;/* Get the first bind addr or NULL */&lt;/span&gt;
-    &lt;span class="cp"&gt;#define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;h3&gt;问题结论&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;redis cluster 在检测节点健康状态时，尝试与其它节点建立连接，但强制使用了 bind 配置中的第一个 IP 为建立 socket 的源地址&lt;/li&gt;
@@ -154,20 +145,15 @@
 &lt;p&gt;$sample (aggregation)&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;具体应该如何操作，官方也给出了一个示例，假设 Collection users 有如下记录：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{ &amp;quot;_id&amp;quot; : 1, &amp;quot;name&amp;quot; : &amp;quot;dave123&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
-{ &amp;quot;_id&amp;quot; : 2, &amp;quot;name&amp;quot; : &amp;quot;dave2&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : false  }
-{ &amp;quot;_id&amp;quot; : 3, &amp;quot;name&amp;quot; : &amp;quot;ahn&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
-{ &amp;quot;_id&amp;quot; : 4, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : false  }
-{ &amp;quot;_id&amp;quot; : 5, &amp;quot;name&amp;quot; : &amp;quot;annT&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
-{ &amp;quot;_id&amp;quot; : 6, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
-{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
-```
-
-那么可以通过命令 `db.users.aggregate( [ { $sample: { size: N } } ] )` 获取随机的 N 条记录，如：
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
+&lt;p&gt;&lt;code&gt;{ "_id" : 1, "name" : "dave123", "q1" : true, "q2" : true }
+{ "_id" : 2, "name" : "dave2", "q1" : false, "q2" : false  }
+{ "_id" : 3, "name" : "ahn", "q1" : true, "q2" : true  }
+{ "_id" : 4, "name" : "li", "q1" : true, "q2" : false  }
+{ "_id" : 5, "name" : "annT", "q1" : false, "q2" : true  }
+{ "_id" : 6, "name" : "li", "q1" : true, "q2" : true  }
+{ "_id" : 7, "name" : "ty", "q1" : false, "q2" : true  }&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;那么可以通过命令 &lt;code&gt;db.users.aggregate( [ { $sample: { size: N } } ] )&lt;/code&gt; 获取随机的 N 条记录，如：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
 { "_id" : 7, "name" : "ty", "q1" : false, "q2" : true }
 { "_id" : 4, "name" : "li", "q1" : true, "q2" : false }
 { "_id" : 1, "name" : "dave123", "q1" : true, "q2" : true }
@@ -175,8 +161,7 @@ mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
 { "_id" : 7, "name" : "ty", "q1" : false, "q2" : true }
 { "_id" : 3, "name" : "ahn", "q1" : true, "q2" : true }
 { "_id" : 2, "name" : "dave2", "q1" : false, "q2" : false }
-mongos&amp;gt;
-```&lt;/p&gt;
+mongos&amp;gt;&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;$sample 会使用如下两种方式来获取随机的 N 条记录，具体使用哪种方式取决于如下条件：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;$sample 处于聚合管道的第一阶段；&lt;/li&gt;
@@ -362,20 +347,14 @@ mongos&amp;gt;
 &lt;ol&gt;
 &lt;li&gt;MaxRequestsPerChild&lt;/li&gt;
 &lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;The MaxRequestsPerChild directive sets the limit on the number of requests that an individual child server process will handle. After MaxRequestsPerChild requests, the child process will die. If MaxRequestsPerChild is 0, then the process will never expire.
-```
-这个值，我们的设置是 0，所以不会是因为这个设置导致的。
-
-2. MaxSpareThreads
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;我们原来的值设置为 75，怀疑是因为这个值设得太小了，尝试将此值调整至与 `MaxClients` 相等，重启 apache ，发现负载开始持续下降，`top 中 apache 进程 pid 几乎没有产生变化`，服务正常，qps没有明显下降（未导致服务不可用）。新的配置如：
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;&lt;IfModule mpm_worker_module&gt;
+&lt;p&gt;&lt;code&gt;The MaxRequestsPerChild directive sets the limit on the number of requests that an individual child server process will handle. After MaxRequestsPerChild requests, the child process will die. If MaxRequestsPerChild is 0, then the process will never expire.&lt;/code&gt;
+这个值，我们的设置是 0，所以不会是因为这个设置导致的。&lt;/p&gt;
+&lt;ol start="2"&gt;
+&lt;li&gt;MaxSpareThreads&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;code&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;我们原来的值设置为 75，怀疑是因为这个值设得太小了，尝试将此值调整至与 &lt;code&gt;MaxClients&lt;/code&gt; 相等，重启 apache ，发现负载开始持续下降，&lt;code&gt;top 中 apache 进程 pid 几乎没有产生变化&lt;/code&gt;，服务正常，qps没有明显下降（未导致服务不可用）。新的配置如：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;&amp;lt;IfModule mpm_worker_module&amp;gt;
     StartServers          2
     ServerLimit          12
     MinSpareThreads      25
@@ -384,38 +363,31 @@ mongos&amp;gt;
     ThreadsPerChild      64
     MaxClients          768
     MaxRequestsPerChild   0
-&lt;/IfModule&gt;
-```&lt;/p&gt;
+&amp;lt;/IfModule&amp;gt;&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;至此问题解决，附优化前后的负载对比图：&lt;/p&gt;
 &lt;p&gt;优化前：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/apache_before_tuning.png"&gt;&lt;/p&gt;
 &lt;p&gt;优化后：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/apache_after_tuning.png"&gt;&lt;/p&gt;</content><category term="apache"></category></entry><entry><title>pip 升级 pip 失败</title><link href="http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html" rel="alternate"></link><published>2016-05-19T12:11:00+08:00</published><updated>2016-05-19T12:11:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</id><summary type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
-Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+&lt;p&gt;```&lt;/p&gt;
+&lt;h1&gt;pip install --upgrade pip&lt;/h1&gt;
+&lt;p&gt;Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
-You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
-```
-
-尝试按说明执行 `pip …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
-Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+You should consider upgrading via the 'pip install --upgrade pip' command.
+```&lt;/p&gt;
+&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+&lt;p&gt;```&lt;/p&gt;
+&lt;h1&gt;pip install --upgrade pip&lt;/h1&gt;
+&lt;p&gt;Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
-You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
-```
-
-尝试按说明执行 `pip install --upgrade pip` ，没有任何报错，但一直升级不成功，百思不得解，
-在查看 `man pip` 的时候，找到如下选项：
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;-v, --verbose
-    Give more output. Option is additive, and can be used up to 3 times.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;尝试执行 `pip install --upgrade pip -vvv` 终于有更多提示：
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;1 location(s) to search for versions of pip:
+You should consider upgrading via the 'pip install --upgrade pip' command.
+```&lt;/p&gt;
+&lt;p&gt;尝试按说明执行 &lt;code&gt;pip install --upgrade pip&lt;/code&gt; ，没有任何报错，但一直升级不成功，百思不得解，
+在查看 &lt;code&gt;man pip&lt;/code&gt; 的时候，找到如下选项：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;-v, --verbose
+    Give more output. Option is additive, and can be used up to 3 times.&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;尝试执行 &lt;code&gt;pip install --upgrade pip -vvv&lt;/code&gt; 终于有更多提示：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;1 location(s) to search for versions of pip:
 * http://example.url/simple/pip/
 Getting page http://example.url/simple/pip/
 Starting new HTTP connection (1): example.url
@@ -423,8 +395,7 @@ Starting new HTTP connection (1): example.url
 Could not fetch URL http://example.url/simple/pip/: 403 Client Error: Forbidden for url: http://example.url/simple/pip/ - skipping
 Installed version (8.1.2) is most up-to-date (past versions: none)
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages/pip-8.1.2-py2.7.egg
-Cleaning up...
-```&lt;/p&gt;
+Cleaning up...&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;这时才发现，原来在我的 &lt;code&gt;~/.pip/pip.conf&lt;/code&gt; 配置文件里，&lt;code&gt;index-url&lt;/code&gt; 使用了一个已经废弃的地址，删除文件后重新升级，一切恢复正常。&lt;/p&gt;
 &lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</content><category term="python"></category><category term="pip"></category></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><published>2014-11-17T14:35:00+08:00</published><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
@@ -433,118 +404,84 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
 &lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/Library/Preferences/SystemConfiguration
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;/Library/Preferences/SystemConfiguration
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ls
-NetworkInterfaces.plist …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+&lt;p&gt;&lt;code&gt;$ ls
+NetworkInterfaces.plist …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
 &lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
 并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
 却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
 &lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/Library/Preferences/SystemConfiguration
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;/Library/Preferences/SystemConfiguration
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ls
+&lt;p&gt;&lt;code&gt;$ ls
 NetworkInterfaces.plist             com.apple.smb.server.plist
 com.apple.airport.preferences.plist com.apple.wifi.message-tracer.plist
-com.apple.captive.probe.plist       preferences.plist
-&lt;span class="sb"&gt;```&lt;/span&gt;
-
-把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
-注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。
-
-后来在网上看到 &lt;span class="o"&gt;[&lt;/span&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;span class="o"&gt;](&lt;/span&gt;http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/&lt;span class="o"&gt;)&lt;/span&gt;
-这编文章，其实只要删除：
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;com.apple.airport.preferences.plist
+com.apple.captive.probe.plist       preferences.plist&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
+注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
+&lt;p&gt;后来在网上看到 &lt;a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/"&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;/a&gt;
+这编文章，其实只要删除：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;com.apple.airport.preferences.plist
 com.apple.network.identification.plist
 com.apple.wifi.message-tracer.plist 
 NetworkInterfaces.plist 
-preferences.plist&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s s-Atom"&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
-```&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><updated>2014-07-07T20:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
-&lt;/pre&gt;&lt;/div&gt;
-
-
+preferences.plist&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了&lt;/code&gt;&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><updated>2014-07-07T20:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt; dig @${server} TXT CHAOS version.bind
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;${server}换成你想查询的dns服务器IP地址即可，如：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;dig&lt;/span&gt; &lt;span class="mf"&gt;@8.8.8.8&lt;/span&gt; &lt;span class="n"&gt;CHAOS&lt;/span&gt; &lt;span class="n"&gt;TXT&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;dig @8.8.8.8 CHAOS TXT version.bind
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;其实通常情况下出于安全考虑，大多数我们是查询不到版本信息的（系统管理员禁用了）&lt;/p&gt;
 &lt;p&gt;bind 可以通过如下设置禁用版本号查询：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;options {
+&lt;p&gt;&lt;code&gt;options {
     version none;
-}
-&lt;/pre&gt;&lt;/div&gt;
-
-
+}&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</summary><content type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt; dig @${server} TXT CHAOS version.bind
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;${server}换成你想查询的dns服务器IP地址即可，如：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;dig&lt;/span&gt; &lt;span class="mf"&gt;@8.8.8.8&lt;/span&gt; &lt;span class="n"&gt;CHAOS&lt;/span&gt; &lt;span class="n"&gt;TXT&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;dig @8.8.8.8 CHAOS TXT version.bind
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;其实通常情况下出于安全考虑，大多数我们是查询不到版本信息的（系统管理员禁用了）&lt;/p&gt;
 &lt;p&gt;bind 可以通过如下设置禁用版本号查询：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;options {
+&lt;p&gt;&lt;code&gt;options {
     version none;
-}
-&lt;/pre&gt;&lt;/div&gt;
-
-
+}&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</content><category term="bind"></category><category term="dns"></category><category term="dig"></category><category term="named"></category></entry><entry><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html" rel="alternate"></link><published>2014-05-09T13:31:00+08:00</published><updated>2014-05-09T13:31:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</id><summary type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
+&lt;p&gt;&lt;code&gt;field         allowed values
            -----         --------------
            minute        0-59
            hour          0-23
            day of month  1-31
            month         1-12 (or names, see below)
-           day of week   0-7 (0 or 7 is Sun, or use names)
-```
-
-&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
+           day of week   0-7 (0 or 7 is Sun, or use names)&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;field         allowed values
            -----         --------------
            minute        0-59
            hour          0-23
            day of month  1-31
            month         1-12 (or names, see below)
-           day of week   0-7 (0 or 7 is Sun, or use names)
-```
-
-&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and day of week.
-&amp;gt; If both fields are restricted (ie, are not *), the command will be
-&amp;gt; run when either field matches the current time.
-&amp;gt; For example, &amp;#39;&amp;#39;30 4 1,15 * 5&amp;#39;&amp;#39; would cause a command to be run
-&amp;gt; at 4:30 am on the 1st and 15th of each month, plus every Fri-day.
-
-来自wikipedia的说明（[http://en.wikipedia.org/wiki/Crontab](http://en.wikipedia.org/wiki/Crontab)）：
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;While normally the job is executed when the time/date specification fields all match the current time and date,
+           day of week   0-7 (0 or 7 is Sun, or use names)&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day of week.
+If both fields are restricted (ie, are not *), the command will be
+run when either field matches the current time.
+For example, ''30 4 1,15 * 5'' would cause a command to be run
+at 4:30 am on the 1st and 15th of each month, plus every Fri-day.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;来自wikipedia的说明（&lt;a href="http://en.wikipedia.org/wiki/Crontab"&gt;http://en.wikipedia.org/wiki/Crontab&lt;/a&gt;）：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;While normally the job is executed when the time/date specification fields all match the current time and date,
 there is one exception: if both "day of month" and "day of week" are restricted (not "*"),
-then either the "day of month" field (3) or the "day of week" field (5) must match the current day.
-```&lt;/p&gt;
+then either the "day of month" field (3) or the "day of week" field (5) must match the current day.&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;以设置crontab： 11 14 27 3 3 为例，下面两个类型的时间都能满足该表达式：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;3月里的每一个周三&lt;/li&gt;
@@ -552,595 +489,515 @@ then either the "day of month" field (3) or the "day of week" field (5) must mat
 &lt;/ol&gt;</content><category term="crontab"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;/bin/ip neigh flush dev eth0
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;其次向网关发送本机的ip/mac地址&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
 &lt;p&gt;00:17 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;/bin/ip neigh flush dev eth0
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;其次向网关发送本机的ip/mac地址&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
 &lt;p&gt;00:17:a4:8d:0e:98 为本机MAC地址&lt;/p&gt;
 &lt;p&gt;1.1.1.1 为网关&lt;/p&gt;</content><category term="linux"></category><category term="arp"></category></entry><entry><title>Java 发起Http Post请求</title><link href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html" rel="alternate"></link><published>2014-02-19T17:16:00+08:00</published><updated>2014-02-19T17:16:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-02-19:/posts/2014-02-19/java-ssl-and-http_post.html</id><summary type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
 &lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
-&lt;span class="cm"&gt; * Java POST Example&lt;/span&gt;
-&lt;span class="cm"&gt; */&lt;/span&gt;
-
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.IOException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.MalformedURLException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.ProtocolException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URL&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URLEncoder&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
+&lt;p&gt;```java
+/&lt;em&gt;
+ * Java POST Example
+ &lt;/em&gt;/&lt;/p&gt;
+&lt;p&gt;import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.net.URLEncoder;
+import …&lt;/p&gt;</summary><content type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
 &lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
-&lt;span class="cm"&gt; * Java POST Example&lt;/span&gt;
-&lt;span class="cm"&gt; */&lt;/span&gt;
+&lt;p&gt;```java
+/&lt;em&gt;
+ * Java POST Example
+ &lt;/em&gt;/&lt;/p&gt;
+&lt;p&gt;import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.io.DataOutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;&lt;/p&gt;
+&lt;p&gt;import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.KeyStore;&lt;/p&gt;
+&lt;p&gt;import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;&lt;/p&gt;
+&lt;p&gt;/&lt;em&gt;&lt;em&gt;
+ &lt;/em&gt;
+ * @author Greg （原链接：http://sigterm.sh/2009/10/simple-post-in-java/）
+ &lt;/em&gt;/
+public class SimpleHttpPost {&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/**
+ * Pretend you're a script...
+ */
+public static void main(String[] args) throws Exception {
+    URL url = null;
 
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.IOException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.MalformedURLException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.ProtocolException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URL&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URLEncoder&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.DataOutputStream&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.BufferedReader&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.InputStreamReader&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.util.logging.Level&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.util.logging.Logger&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    /* 加载CNNIC证书开始 */
 
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.File&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.FileInputStream&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.InputStream&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.security.KeyStore&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    X509TrustManager sunJSSEX509TrustManager;
+    // 加载 Keytool 生成的证书文件
+    char[] passphrase;
+    String p = "changeit";
+    passphrase = p.toCharArray();
+    File file = new File("java.cnnic.cacert");
+    System.out.println("Loading KeyStore " + file + "...");
+    InputStream in = new FileInputStream(file);
+    KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+    ks.load(in, passphrase);
+    in.close();
 
+    // 构造 javax.net.ssl.TrustManager 对象
+    TrustManagerFactory tmf =
+    TrustManagerFactory.getInstance("SunX509", "SunJSSE");
+    tmf.init(ks);
+    TrustManager tms [] = tmf.getTrustManagers();
 
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.security.cert.CertificateException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.security.cert.X509Certificate&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.HttpsURLConnection&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.TrustManager&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.TrustManagerFactory&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.X509TrustManager&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.SSLContext&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.SSLSocketFactory&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    // 使用构造好的 TrustManager 访问相应的 https 站点
+    SSLContext sslContext = SSLContext.getInstance("SSL", "SunJSSE");
+    sslContext.init(null, tms, new java.security.SecureRandom());
+    SSLSocketFactory ssf = sslContext.getSocketFactory();
 
-&lt;span class="cm"&gt;/**&lt;/span&gt;
-&lt;span class="cm"&gt; *&lt;/span&gt;
-&lt;span class="cm"&gt; * @author Greg （原链接：http://sigterm.sh/2009/10/simple-post-in-java/）&lt;/span&gt;
-&lt;span class="cm"&gt; */&lt;/span&gt;
-&lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SimpleHttpPost&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    /* 加载CNNIC证书结束 */
+    try {
+        url = new URL("https://demo.site.url/uri/");
+    } catch (MalformedURLException ex) {
+        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
+    }
 
-    &lt;span class="cm"&gt;/**&lt;/span&gt;
-&lt;span class="cm"&gt;     * Pretend you&amp;#39;re a script...&lt;/span&gt;
-&lt;span class="cm"&gt;     */&lt;/span&gt;
-    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;static&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;String&lt;/span&gt;&lt;span class="o"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="kd"&gt;throws&lt;/span&gt; &lt;span class="n"&gt;Exception&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-        &lt;span class="n"&gt;URL&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+    HttpsURLConnection urlConn = null;
+    try {
+        // URL connection channel.
+        urlConn = (HttpsURLConnection) url.openConnection();
+    } catch (IOException ex) {
+        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
+    }
 
-        &lt;span class="cm"&gt;/* 加载CNNIC证书开始 */&lt;/span&gt;
+    // Let the conn use SSL
+    urlConn.setSSLSocketFactory(ssf);
+    // Let the run-time system (RTS) know that we want input.
+    urlConn.setDoInput (true);
 
-        &lt;span class="n"&gt;X509TrustManager&lt;/span&gt; &lt;span class="n"&gt;sunJSSEX509TrustManager&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="c1"&gt;// 加载 Keytool 生成的证书文件&lt;/span&gt;
-        &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;passphrase&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;String&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;changeit&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;passphrase&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;toCharArray&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="n"&gt;File&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;File&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;java.cnnic.cacert&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;out&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;println&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Loading KeyStore &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;...&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;InputStream&lt;/span&gt; &lt;span class="n"&gt;in&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;FileInputStream&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;KeyStore&lt;/span&gt; &lt;span class="n"&gt;ks&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;KeyStore&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getInstance&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;KeyStore&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getDefaultType&lt;/span&gt;&lt;span class="o"&gt;());&lt;/span&gt;
-        &lt;span class="n"&gt;ks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;load&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;in&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;passphrase&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;in&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;close&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+    // Let the RTS know that we want to do output.
+    urlConn.setDoOutput (true);
 
-        &lt;span class="c1"&gt;// 构造 javax.net.ssl.TrustManager 对象&lt;/span&gt;
-        &lt;span class="n"&gt;TrustManagerFactory&lt;/span&gt; &lt;span class="n"&gt;tmf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
-        &lt;span class="n"&gt;TrustManagerFactory&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getInstance&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;SunX509&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;SunJSSE&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;tmf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;init&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ks&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;TrustManager&lt;/span&gt; &lt;span class="n"&gt;tms&lt;/span&gt; &lt;span class="o"&gt;[]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tmf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getTrustManagers&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+    // No caching, we want the real thing.
+    urlConn.setUseCaches (false);
 
-        &lt;span class="c1"&gt;// 使用构造好的 TrustManager 访问相应的 https 站点&lt;/span&gt;
-        &lt;span class="n"&gt;SSLContext&lt;/span&gt; &lt;span class="n"&gt;sslContext&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;SSLContext&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getInstance&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;SSL&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;SunJSSE&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;sslContext&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;init&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tms&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;java&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;security&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SecureRandom&lt;/span&gt;&lt;span class="o"&gt;());&lt;/span&gt;
-        &lt;span class="n"&gt;SSLSocketFactory&lt;/span&gt; &lt;span class="n"&gt;ssf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sslContext&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getSocketFactory&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+    try {
+        urlConn.setRequestMethod("POST");
+    } catch (ProtocolException ex) {
+        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
+    }
 
-        &lt;span class="cm"&gt;/* 加载CNNIC证书结束 */&lt;/span&gt;
-        &lt;span class="k"&gt;try&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;https://demo.site.url/uri/&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt; &lt;span class="k"&gt;catch&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;MalformedURLException&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;Logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getLogger&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SimpleHttpPost&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;class&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getName&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="na"&gt;log&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Level&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SEVERE&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt;
+    try {
+        urlConn.connect();
+    } catch (IOException ex) {
+        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
+    }
 
-        &lt;span class="n"&gt;HttpsURLConnection&lt;/span&gt; &lt;span class="n"&gt;urlConn&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="k"&gt;try&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="c1"&gt;// URL connection channel.&lt;/span&gt;
-            &lt;span class="n"&gt;urlConn&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;HttpsURLConnection&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;openConnection&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt; &lt;span class="k"&gt;catch&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IOException&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;Logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getLogger&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SimpleHttpPost&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;class&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getName&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="na"&gt;log&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Level&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SEVERE&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt;
+    DataOutputStream output = null;
+    BufferedReader input = null;
 
-        &lt;span class="c1"&gt;// Let the conn use SSL&lt;/span&gt;
-        &lt;span class="n"&gt;urlConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setSSLSocketFactory&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ssf&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="c1"&gt;// Let the run-time system (RTS) know that we want input.&lt;/span&gt;
-        &lt;span class="n"&gt;urlConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setDoInput&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+    try {
+        output = new DataOutputStream(urlConn.getOutputStream());
+    } catch (IOException ex) {
+        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
+    }
 
-        &lt;span class="c1"&gt;// Let the RTS know that we want to do output.&lt;/span&gt;
-        &lt;span class="n"&gt;urlConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setDoOutput&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+    // Specify the content type if needed.
+    //urlConn.setRequestProperty("Content-Type",
+    //  "application/x-www-form-urlencoded");
 
-        &lt;span class="c1"&gt;// No caching, we want the real thing.&lt;/span&gt;
-        &lt;span class="n"&gt;urlConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setUseCaches&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+    // Construct the POST data.
+    String content =
+      "username=" + "randomuser" +
+      "&amp;amp;password=" + "wrongmd5string";
 
-        &lt;span class="k"&gt;try&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;urlConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setRequestMethod&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;POST&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt; &lt;span class="k"&gt;catch&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ProtocolException&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;Logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getLogger&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SimpleHttpPost&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;class&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getName&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="na"&gt;log&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Level&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SEVERE&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt;
+    // Send the request data.
+    try {
+        output.writeBytes(content);
+        output.flush();
+        output.close();
+    } catch (IOException ex) {
+        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
+    }
 
-        &lt;span class="k"&gt;try&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;urlConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;connect&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt; &lt;span class="k"&gt;catch&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IOException&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;Logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getLogger&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SimpleHttpPost&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;class&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getName&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="na"&gt;log&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Level&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SEVERE&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt;
-
-        &lt;span class="n"&gt;DataOutputStream&lt;/span&gt; &lt;span class="n"&gt;output&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;BufferedReader&lt;/span&gt; &lt;span class="n"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-
-        &lt;span class="k"&gt;try&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;output&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;DataOutputStream&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;urlConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getOutputStream&lt;/span&gt;&lt;span class="o"&gt;());&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt; &lt;span class="k"&gt;catch&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IOException&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;Logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getLogger&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SimpleHttpPost&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;class&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getName&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="na"&gt;log&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Level&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SEVERE&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt;
-
-        &lt;span class="c1"&gt;// Specify the content type if needed.&lt;/span&gt;
-        &lt;span class="c1"&gt;//urlConn.setRequestProperty(&amp;quot;Content-Type&amp;quot;,&lt;/span&gt;
-        &lt;span class="c1"&gt;//  &amp;quot;application/x-www-form-urlencoded&amp;quot;);&lt;/span&gt;
-
-        &lt;span class="c1"&gt;// Construct the POST data.&lt;/span&gt;
-        &lt;span class="n"&gt;String&lt;/span&gt; &lt;span class="n"&gt;content&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
-          &lt;span class="s"&gt;&amp;quot;username=&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;randomuser&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt;
-          &lt;span class="s"&gt;&amp;quot;&amp;amp;password=&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;wrongmd5string&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-
-        &lt;span class="c1"&gt;// Send the request data.&lt;/span&gt;
-        &lt;span class="k"&gt;try&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;output&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;writeBytes&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-            &lt;span class="n"&gt;output&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;flush&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-            &lt;span class="n"&gt;output&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;close&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt; &lt;span class="k"&gt;catch&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IOException&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;Logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getLogger&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SimpleHttpPost&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;class&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getName&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="na"&gt;log&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Level&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SEVERE&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt;
-
-        &lt;span class="c1"&gt;// Get response data.&lt;/span&gt;
-        &lt;span class="n"&gt;String&lt;/span&gt; &lt;span class="n"&gt;str&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="k"&gt;try&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;BufferedReader&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;InputStreamReader&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;urlConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getInputStream&lt;/span&gt;&lt;span class="o"&gt;()));&lt;/span&gt;
-            &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;null&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="o"&gt;((&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;input&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;readLine&lt;/span&gt;&lt;span class="o"&gt;())))&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-                &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;out&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;println&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;str&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-            &lt;span class="o"&gt;}&lt;/span&gt;
-            &lt;span class="n"&gt;input&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;close&lt;/span&gt; &lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt; &lt;span class="k"&gt;catch&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IOException&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;Logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getLogger&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;SimpleHttpPost&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;class&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getName&lt;/span&gt;&lt;span class="o"&gt;()).&lt;/span&gt;&lt;span class="na"&gt;log&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Level&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SEVERE&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ex&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt;
-    &lt;span class="o"&gt;}&lt;/span&gt;
-&lt;span class="o"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="java"></category><category term="ssl"></category><category term="http"></category><category term="post"></category></entry><entry><title>Java 使用自签证书访问https站点</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html" rel="alternate"></link><published>2013-12-26T10:18:00+08:00</published><updated>2013-12-26T10:18:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-26:/posts/2013-12-26/java-use-self_signed_certificate.html</id><summary type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
+    // Get response data.
+    String str = null;
+    try {
+        input = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+        while (null != ((str = input.readLine()))) {
+            System.out.println(str);
+        }
+        input.close ();
+    } catch (IOException ex) {
+        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;}
+```&lt;/p&gt;</content><category term="java"></category><category term="ssl"></category><category term="http"></category><category term="post"></category></entry><entry><title>Java 使用自签证书访问https站点</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html" rel="alternate"></link><published>2013-12-26T10:18:00+08:00</published><updated>2013-12-26T10:18:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-26:/posts/2013-12-26/java-use-self_signed_certificate.html</id><summary type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
 我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
 都不知道他们怎么胜任日常的编码工作的=,=
 同时做为一个 Java 黑，我觉得，好吧，更黑了。。&lt;/p&gt;
 &lt;p&gt;anyway，经过各种折腾，至少总结出了以下两种使用自签证书访问 https 站点的办法。&lt;/p&gt;
 &lt;h3&gt;方法一&lt;/h3&gt;
 &lt;p&gt;拿到相应的 https 站点证书后（好吧，我这里是cnnic.crt，顺便吐槽一下万恶的 cnnic 证书，各种不信任）：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;keytool&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;keystore&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;JAVA_HOME&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jre&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;security&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;cacerts&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;certificate …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
-我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
-都不知道他们怎么胜任日常的编码工作的=,=
-同时做为一个 Java 黑，我觉得，好吧，更黑了。。&lt;/p&gt;
-&lt;p&gt;anyway，经过各种折腾，至少总结出了以下两种使用自签证书访问 https 站点的办法。&lt;/p&gt;
-&lt;h3&gt;方法一&lt;/h3&gt;
-&lt;p&gt;拿到相应的 https 站点证书后（好吧，我这里是cnnic.crt，顺便吐槽一下万恶的 cnnic 证书，各种不信任）：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;keytool&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;keystore&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;JAVA_HOME&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jre&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;security&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;cacerts&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;certificate&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;keytool -import -alias ${alias} -keystore ${JAVA_HOME}/jre/lib/security/cacerts -file ${path-to-certificate-file}
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;其中&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; 请替换为你想使用的名称，比如我这里是 CNNIC
-&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;JAVA_HOME&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; 请替换为你自己的 JAVA_HOME 目录，比如我这里是 /usr/lib/jvm/java-6-openjdk
-&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;certificate&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; 请替换为你的ca证书路径，比如我这里就是当前目录的 cnnic.crt
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;${alias …&lt;/code&gt;&lt;/pre&gt;</summary><content type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
+我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
+都不知道他们怎么胜任日常的编码工作的=,=
+同时做为一个 Java 黑，我觉得，好吧，更黑了。。&lt;/p&gt;
+&lt;p&gt;anyway，经过各种折腾，至少总结出了以下两种使用自签证书访问 https 站点的办法。&lt;/p&gt;
+&lt;h3&gt;方法一&lt;/h3&gt;
+&lt;p&gt;拿到相应的 https 站点证书后（好吧，我这里是cnnic.crt，顺便吐槽一下万恶的 cnnic 证书，各种不信任）：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;keytool -import -alias ${alias} -keystore ${JAVA_HOME}/jre/lib/security/cacerts -file ${path-to-certificate-file}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;其中&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;${alias} 请替换为你想使用的名称，比如我这里是 CNNIC
+${JAVA_HOME} 请替换为你自己的 JAVA_HOME 目录，比如我这里是 /usr/lib/jvm/java-6-openjdk
+${path-to-certificate-file} 请替换为你的ca证书路径，比如我这里就是当前目录的 cnnic.crt
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;那么，我需要完整执行的命令就是：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;keytool&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="n"&gt;CNNIC&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;keystore&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jvm&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;java&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;openjdk&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jre&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;security&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;cacerts&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt; &lt;span class="n"&gt;cnnic&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;crt&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;keytool -import -alias CNNIC -keystore /usr/lib/jvm/java-6-openjdk/jre/lib/security/cacerts -file cnnic.crt
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;如果 keytool 要求你输入密码，在你没有变更过的情况下，该值默认为英文 &lt;code&gt;changeit&lt;/code&gt; 。&lt;/p&gt;
 &lt;h3&gt;方法二&lt;/h3&gt;
 &lt;p&gt;有些同学表示，他们的服务器不允许导入证书，或者他们是一个很大的集群，不适合每台都导入，那怎么办呢？
 方法就是在每次访问的时候，程序自己加载相应的证书，但是在加载证书之前，你还是需要使用 keytool 工具将原ca转换成
 Java 可以读取的证书格式，命令同方法一，只是 keystore 的位置你可以放在你的程序可以读取的任一路径，如我这里：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;keytool&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="n"&gt;CNNIC&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;keystore&lt;/span&gt; &lt;span class="n"&gt;java&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cnnic&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cacert&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt; &lt;span class="n"&gt;cnnic&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;crt&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;keytool -import -alias CNNIC -keystore java.cnnic.cacert -file cnnic.crt
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;之后在你的 Java 程序里，使用 keystore 加载该证书，并附加该证书创建 https 请求即可。&lt;/p&gt;
 &lt;p&gt;从 Java 官方 docs 和 网上拼凑了小样例一枚，请君参照并自行完善：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.File&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.FileInputStream&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.InputStream&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.InputStreamReader&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.security.KeyStore&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-
-
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.security.cert.CertificateException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.security.cert.X509Certificate&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URL&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.HttpsURLConnection&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.TrustManager&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.TrustManagerFactory&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.X509TrustManager&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.SSLContext&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;javax.net.ssl.SSLSocketFactory&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-
-&lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;LoadCert&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-    &lt;span class="kd"&gt;public&lt;/span&gt; &lt;span class="kd"&gt;static&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;String&lt;/span&gt;&lt;span class="o"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="kd"&gt;throws&lt;/span&gt; &lt;span class="n"&gt;Exception&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-
-        &lt;span class="n"&gt;X509TrustManager&lt;/span&gt; &lt;span class="n"&gt;sunJSSEX509TrustManager&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="c1"&gt;// 加载 Keytool 生成的证书文件&lt;/span&gt;
-        &lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;passphrase&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;String&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;changeit&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
-        &lt;span class="n"&gt;passphrase&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;p&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;toCharArray&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="n"&gt;File&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;File&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;java.cnnic.cacert&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;out&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;println&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Loading KeyStore &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;file&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;...&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;InputStream&lt;/span&gt; &lt;span class="n"&gt;in&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;FileInputStream&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;file&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;KeyStore&lt;/span&gt; &lt;span class="n"&gt;ks&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;KeyStore&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getInstance&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;KeyStore&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getDefaultType&lt;/span&gt;&lt;span class="o"&gt;());&lt;/span&gt;
-        &lt;span class="n"&gt;ks&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;load&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;in&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;passphrase&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;in&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;close&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="c1"&gt;// 构造 javax.net.ssl.TrustManager 对象&lt;/span&gt;
-        &lt;span class="n"&gt;TrustManagerFactory&lt;/span&gt; &lt;span class="n"&gt;tmf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
-        &lt;span class="n"&gt;TrustManagerFactory&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getInstance&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;SunX509&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;SunJSSE&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;tmf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;init&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ks&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;TrustManager&lt;/span&gt; &lt;span class="n"&gt;tms&lt;/span&gt; &lt;span class="o"&gt;[]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tmf&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getTrustManagers&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="c1"&gt;// 使用构造好的 TrustManager 访问相应的 https 站点&lt;/span&gt;
-        &lt;span class="n"&gt;SSLContext&lt;/span&gt; &lt;span class="n"&gt;sslContext&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;SSLContext&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getInstance&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;SSL&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;SunJSSE&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;sslContext&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;init&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tms&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;java&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;security&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;SecureRandom&lt;/span&gt;&lt;span class="o"&gt;());&lt;/span&gt;
-        &lt;span class="n"&gt;SSLSocketFactory&lt;/span&gt; &lt;span class="n"&gt;ssf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sslContext&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getSocketFactory&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="n"&gt;URL&lt;/span&gt; &lt;span class="n"&gt;myURL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;https://replace.to.your.site.real.url/&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;HttpsURLConnection&lt;/span&gt; &lt;span class="n"&gt;httpsConn&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;HttpsURLConnection&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="n"&gt;myURL&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;openConnection&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="n"&gt;httpsConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setSSLSocketFactory&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ssf&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-        &lt;span class="n"&gt;InputStreamReader&lt;/span&gt; &lt;span class="n"&gt;insr&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;InputStreamReader&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;httpsConn&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getInputStream&lt;/span&gt;&lt;span class="o"&gt;());&lt;/span&gt;
-        &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;respInt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;insr&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;read&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="n"&gt;respInt&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
-            &lt;span class="n"&gt;System&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;out&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;print&lt;/span&gt;&lt;span class="o"&gt;((&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="n"&gt;respInt&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-            &lt;span class="n"&gt;respInt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;insr&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;read&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-        &lt;span class="o"&gt;}&lt;/span&gt;
-    &lt;span class="o"&gt;}&lt;/span&gt;
-&lt;span class="o"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="java"></category><category term="ssl"></category></entry><entry><title>OpenID4Java 使用dumb模式（stateless）并禁用 discovery</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html" rel="alternate"></link><published>2013-12-25T12:20:00+08:00</published><updated>2013-12-25T12:20:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-25:/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html</id><summary type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;manager&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ConsumerManager&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getRealmVerifier&lt;/span&gt;&lt;span class="o"&gt;().&lt;/span&gt;&lt;span class="na"&gt;setEnforceRpId&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-&lt;span class="c1"&gt;// 强制manager使用无状态模式&lt;/span&gt;
-&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setMaxAssocAttempts&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;```java
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.security.KeyStore;&lt;/p&gt;
+&lt;p&gt;import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.net.URL;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;&lt;/p&gt;
+&lt;p&gt;public class LoadCert {
+    public static void main(String[] args) throws Exception {&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;    X509TrustManager sunJSSEX509TrustManager;
+    // 加载 Keytool 生成的证书文件
+    char[] passphrase;
+    String p = "changeit";
+    passphrase = p.toCharArray();
+    File file = new File("java.cnnic.cacert");
+    System.out.println("Loading KeyStore " + file + "...");
+    InputStream in = new FileInputStream(file);
+    KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+    ks.load(in, passphrase);
+    in.close();
+    // 构造 javax.net.ssl.TrustManager 对象
+    TrustManagerFactory tmf =
+    TrustManagerFactory.getInstance("SunX509", "SunJSSE");
+    tmf.init(ks);
+    TrustManager tms [] = tmf.getTrustManagers();
+    // 使用构造好的 TrustManager 访问相应的 https 站点
+    SSLContext sslContext = SSLContext.getInstance("SSL", "SunJSSE");
+    sslContext.init(null, tms, new java.security.SecureRandom());
+    SSLSocketFactory ssf = sslContext.getSocketFactory();
+    URL myURL = new URL("https://replace.to.your.site.real.url/");
+    HttpsURLConnection httpsConn = (HttpsURLConnection) myURL.openConnection();
+    httpsConn.setSSLSocketFactory(ssf);
+    InputStreamReader insr = new InputStreamReader(httpsConn.getInputStream());
+    int respInt = insr.read();
+    while (respInt != -1) {
+        System.out.print((char) respInt);
+        respInt = insr.read();
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;}
+```&lt;/p&gt;</content><category term="java"></category><category term="ssl"></category></entry><entry><title>OpenID4Java 使用dumb模式（stateless）并禁用 discovery</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html" rel="alternate"></link><published>2013-12-25T12:20:00+08:00</published><updated>2013-12-25T12:20:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-25:/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html</id><summary type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;java
+manager = new ConsumerManager();
+manager.getRealmVerifier().setEnforceRpId(false);
+// 强制manager使用无状态模式
+manager.setMaxAssocAttempts(0);&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;禁用 discovery&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;// 不要使用manager.discover构造discoveries&lt;/span&gt;
-&lt;span class="c1"&gt;// List discoveries = manager.discover(userSuppliedString);&lt;/span&gt;
-&lt;span class="c1"&gt;// 使用人肉构造discoveries&lt;/span&gt;
-&lt;span class="n"&gt;List&lt;/span&gt; &lt;span class="n"&gt;discoveries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ArrayList&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-&lt;span class="n"&gt;discoveries&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;DiscoveryInformation&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http//real.openid.server.url&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;);&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;manager&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ConsumerManager&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getRealmVerifier&lt;/span&gt;&lt;span class="o"&gt;().&lt;/span&gt;&lt;span class="na"&gt;setEnforceRpId&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-&lt;span class="c1"&gt;// 强制manager使用无状态模式&lt;/span&gt;
-&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setMaxAssocAttempts&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;&lt;code&gt;java
+// 不要使用manager.discover构造discoveries
+// List discoveries = manager.discover(userSuppliedString);
+// 使用人肉构造discoveries
+List discoveries = new ArrayList();
+discoveries.add( new DiscoveryInformation( new URL("http//real.openid.server.url") ) );&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;java
+manager = new ConsumerManager();
+manager.getRealmVerifier().setEnforceRpId(false);
+// 强制manager使用无状态模式
+manager.setMaxAssocAttempts(0);&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;禁用 discovery&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;// 不要使用manager.discover构造discoveries&lt;/span&gt;
-&lt;span class="c1"&gt;// List discoveries = manager.discover(userSuppliedString);&lt;/span&gt;
-&lt;span class="c1"&gt;// 使用人肉构造discoveries&lt;/span&gt;
-&lt;span class="n"&gt;List&lt;/span&gt; &lt;span class="n"&gt;discoveries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ArrayList&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
-&lt;span class="n"&gt;discoveries&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;DiscoveryInformation&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http//real.openid.server.url&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;);&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="openid"></category><category term="java"></category></entry><entry><title>ssh client 通过 socks5 proxy 登录远程服务器</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html" rel="alternate"></link><published>2013-12-20T12:20:00+08:00</published><updated>2013-12-20T12:20:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-20:/posts/2013-12-20/ssh-through-socks-proxy.html</id><summary type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
+&lt;p&gt;&lt;code&gt;java
+// 不要使用manager.discover构造discoveries
+// List discoveries = manager.discover(userSuppliedString);
+// 使用人肉构造discoveries
+List discoveries = new ArrayList();
+discoveries.add( new DiscoveryInformation( new URL("http//real.openid.server.url") ) );&lt;/code&gt;&lt;/p&gt;</content><category term="openid"></category><category term="java"></category></entry><entry><title>ssh client 通过 socks5 proxy 登录远程服务器</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html" rel="alternate"></link><published>2013-12-20T12:20:00+08:00</published><updated>2013-12-20T12:20:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-12-20:/posts/2013-12-20/ssh-through-socks-proxy.html</id><summary type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
 发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
 因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x &lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;:&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server_port&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; %h %p&amp;#39; xxx.xxx.xxx.xxx
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;ssh -o ProxyCommand='nc -x ${proxy_server}:${proxy_server_port} %h %p' xxx.xxx.xxx.xxx
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;如：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39; 8.8.8.8
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;ssh -o ProxyCommand='nc -x 127.0.0.1:7070 %h %p' 8.8.8.8
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;需要注意的是，nc需要使用 OpenBSD 版本 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
 发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
 因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x &lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;:&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server_port&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; %h %p&amp;#39; xxx.xxx.xxx.xxx
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;ssh -o ProxyCommand='nc -x ${proxy_server}:${proxy_server_port} %h %p' xxx.xxx.xxx.xxx
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;如：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39; 8.8.8.8
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;ssh -o ProxyCommand='nc -x 127.0.0.1:7070 %h %p' 8.8.8.8
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;需要注意的是，nc需要使用 OpenBSD 版本，非 Linux 默认版本（该版本不支持）
 通常，类 Debian 的衍生版本，都可以通过如下命令直接安装：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;apt-get install netcat-openbsd
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;apt-get install netcat-openbsd
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;非OpenBSD 可能报如下错误：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/nc: invalid option -- &amp;#39;x&amp;#39;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="ssh"></category><category term="proxy"></category></entry><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><published>2013-10-29T16:43:00+08:00</published><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/bin/nc: invalid option -- 'x'
+&lt;/code&gt;&lt;/pre&gt;</content><category term="ssh"></category><category term="proxy"></category></entry><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><published>2013-10-29T16:43:00+08:00</published><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
 &lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。&lt;/p&gt;
 &lt;p&gt;好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/iterm2_default_profile.png" /&gt;&lt;/p&gt;
 &lt;p&gt;我另外建立了一个Profile，叫GBK：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/iterm2_gbk_profile.png" /&gt;&lt;/p&gt;
 &lt;p&gt;并编写了一个非常简单的切换脚本：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
-&lt;span class="c1"&gt;# 使用GBK Profile&lt;/span&gt;
-&lt;span class="nb"&gt;echo&lt;/span&gt; -e &lt;span class="s2"&gt;&amp;quot;\033]50;SetProfile=GBK\a&amp;quot;&lt;/span&gt;
-&lt;span class="c1"&gt;# 环境编码切换为GBK&lt;/span&gt;
-&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;LANG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
-&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;LC_ALL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
-&lt;span class="c1"&gt;# 更改当前 iTerm2 tab title&lt;/span&gt;
-&lt;span class="nb"&gt;echo&lt;/span&gt; -ne &lt;span class="s2"&gt;&amp;quot;\033]0;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;$@&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\007&amp;quot;&lt;/span&gt;
-&lt;span class="nv"&gt;$@&lt;/span&gt;
-&lt;span class="nb"&gt;echo …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+&lt;p&gt;```shell&lt;/p&gt;
+&lt;h1&gt;!/bin/bash&lt;/h1&gt;
+&lt;h1&gt;使用GBK Profile&lt;/h1&gt;
+&lt;p&gt;echo -e "\033]50;SetProfile=GBK\a"&lt;/p&gt;
+&lt;h1&gt;环境编码切换为GBK&lt;/h1&gt;
+&lt;p&gt;export LANG=zh_CN.GBK
+export LC_ALL=zh_CN.GBK&lt;/p&gt;
+&lt;h1&gt;更改当前 iTerm2 tab title&lt;/h1&gt;
+&lt;p&gt;echo -ne "\033]0;"$@"\007 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
 &lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。&lt;/p&gt;
 &lt;p&gt;好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/iterm2_default_profile.png" /&gt;&lt;/p&gt;
 &lt;p&gt;我另外建立了一个Profile，叫GBK：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/iterm2_gbk_profile.png" /&gt;&lt;/p&gt;
 &lt;p&gt;并编写了一个非常简单的切换脚本：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
-&lt;span class="c1"&gt;# 使用GBK Profile&lt;/span&gt;
-&lt;span class="nb"&gt;echo&lt;/span&gt; -e &lt;span class="s2"&gt;&amp;quot;\033]50;SetProfile=GBK\a&amp;quot;&lt;/span&gt;
-&lt;span class="c1"&gt;# 环境编码切换为GBK&lt;/span&gt;
-&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;LANG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
-&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;LC_ALL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
-&lt;span class="c1"&gt;# 更改当前 iTerm2 tab title&lt;/span&gt;
-&lt;span class="nb"&gt;echo&lt;/span&gt; -ne &lt;span class="s2"&gt;&amp;quot;\033]0;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;$@&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\007&amp;quot;&lt;/span&gt;
-&lt;span class="nv"&gt;$@&lt;/span&gt;
-&lt;span class="nb"&gt;echo&lt;/span&gt; -ne &lt;span class="s2"&gt;&amp;quot;\033]0;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="p"&gt;/#&lt;/span&gt;&lt;span class="nv"&gt;$HOME&lt;/span&gt;&lt;span class="p"&gt;/~&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\007&amp;quot;&lt;/span&gt;
-&lt;span class="c1"&gt;# GBK任务完成后，自动切换回默认编码（UTF-8）&lt;/span&gt;
-&lt;span class="nb"&gt;echo&lt;/span&gt; -e &lt;span class="s2"&gt;&amp;quot;\033]50;SetProfile=Default\a&amp;quot;&lt;/span&gt;
-&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;LANG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.UTF-8
-&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;LC_ALL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.UTF-8
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;```shell&lt;/p&gt;
+&lt;h1&gt;!/bin/bash&lt;/h1&gt;
+&lt;h1&gt;使用GBK Profile&lt;/h1&gt;
+&lt;p&gt;echo -e "\033]50;SetProfile=GBK\a"&lt;/p&gt;
+&lt;h1&gt;环境编码切换为GBK&lt;/h1&gt;
+&lt;p&gt;export LANG=zh_CN.GBK
+export LC_ALL=zh_CN.GBK&lt;/p&gt;
+&lt;h1&gt;更改当前 iTerm2 tab title&lt;/h1&gt;
+&lt;p&gt;echo -ne "\033]0;"$@"\007"
+$@
+echo -ne "\033]0;"${PWD/#$HOME/~}"\007"&lt;/p&gt;
+&lt;h1&gt;GBK任务完成后，自动切换回默认编码（UTF-8）&lt;/h1&gt;
+&lt;p&gt;echo -e "\033]50;SetProfile=Default\a"
+export LANG=zh_CN.UTF-8
+export LC_ALL=zh_CN.UTF-8
+```&lt;/p&gt;
 &lt;p&gt;将以上内容保存为一个叫grun的文件，并赋予可执行权限，同时加到系统可执行目录（PATH）&lt;/p&gt;
 &lt;p&gt;当我需要登录一台GBK编码的服务器时，只需要&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grun ssh &lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;hostname&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;grun ssh ${hostname}
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;即可&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="iterm2"></category></entry><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><published>2013-09-24T15:58:00+08:00</published><updated>2013-09-24T15:58:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:/posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+&lt;pre&gt;&lt;code&gt;i RECV : AUTH_SUCCESS
 i RECV : Server Sftp Version: 3
 i SEND : RealPath(raw) .
 i Resolved RealPath: /home/demo
 i SEND : OpenDir /home/demo
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;而无法传输文件的服务器则是如下日志：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+&lt;pre&gt;&lt;code&gt;i RECV : AUTH_SUCCESS
 i Changing state from STATE_CONNECTION to   STATE_TRANSPORT_STOPPING.
 i Changing state from STATE_TRANSPORT_STOPPING to STATE_CLOSING.
-i Changing state from …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
+i Changing state from …&lt;/code&gt;&lt;/pre&gt;</summary><content type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+&lt;pre&gt;&lt;code&gt;i RECV : AUTH_SUCCESS
 i RECV : Server Sftp Version: 3
 i SEND : RealPath(raw) .
 i Resolved RealPath: /home/demo
 i SEND : OpenDir /home/demo
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;而无法传输文件的服务器则是如下日志：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+&lt;pre&gt;&lt;code&gt;i RECV : AUTH_SUCCESS
 i Changing state from STATE_CONNECTION to   STATE_TRANSPORT_STOPPING.
 i Changing state from STATE_TRANSPORT_STOPPING to STATE_CLOSING.
 i Changing state from STATE_CLOSING to STATE_CLOSED.
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;查看&lt;code&gt;/etc/ssh/sshd_config&lt;/code&gt;配置，发现缺少&lt;code&gt;sftp&lt;/code&gt;的相关配置，在该配置文件中增加：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Subsystem   sftp    /usr/libexec/openssh/sftp-server
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;Subsystem   sftp    /usr/libexec/openssh/sftp-server
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;然后重启sshd服务，问题解决。&lt;/p&gt;</content><category term="sftp"></category><category term="secureFX"></category><category term="sshd"></category></entry><entry><title>Django Admin 使用 filter_horizontal 不生效</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html" rel="alternate"></link><published>2013-09-23T15:25:00+08:00</published><updated>2013-09-23T15:25:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-23:/posts/2013-09-23/django-filter_horizontal.html</id><summary type="html">&lt;p&gt;Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用&lt;code&gt;filter_horizontal&lt;/code&gt;进行显示的时候，我们碰到了一些问题。&lt;/p&gt;</summary><content type="html">&lt;p&gt;考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。&lt;/p&gt;
 &lt;p&gt;Django 1.2.7 admin在使用&lt;code&gt;ManyToManyField&lt;/code&gt;的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，如下图所示：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/django_filter_vertical.png"&gt;&lt;/p&gt;
-&lt;p&gt;决定使用更直观的方式，&lt;code&gt;filter_horizontal&lt;/code&gt;，设置比较简单，只要在&lt;code&gt;admin.py&lt;/code&gt;里对应的模块下，添加类似如下内容即可：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;filter_horizontal&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;example&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;决定使用更直观的方式，&lt;code&gt;filter_horizontal&lt;/code&gt;，设置比较简单，只要在&lt;code&gt;admin.py&lt;/code&gt;里对应的模块下，添加类似如下内容即可：
+&lt;code&gt;python
+filter_horizontal = ['example']&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;filter_horizontal&lt;/code&gt;显示方式如下图所示：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/django_filter_horizontal.png"&gt;&lt;/p&gt;
 &lt;p&gt;但是，当我设置了此选择后，发现出现了奇怪的问题，如下图：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/django_filter_nothing.png"&gt;&lt;/p&gt;
 &lt;p&gt;没有报错，但也没有出现设想中的选择框。经过研究，发现，原来是因为我对应的字段&lt;code&gt;ips&lt;/code&gt;，在&lt;code&gt;models.py&lt;/code&gt;里定义的时候，&lt;code&gt;verbose_name&lt;/code&gt;使用了字符串，而不是&lt;code&gt;unicode&lt;/code&gt;，如下：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;ips&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;models&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ManyToManyField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;IPData&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;verbose_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;使用IP&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;&lt;code&gt;python
+ips = models.ManyToManyField( IPData, verbose_name = "使用IP" )&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;调整为&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;ips&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;models&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ManyToManyField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;IPData&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;verbose_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;使用IP&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;&lt;code&gt;python
+ips = models.ManyToManyField( IPData, verbose_name = u"使用IP" )&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;问题解决。使用&lt;code&gt;string&lt;/code&gt;是因为我们这些是一些老旧的系统，新项目必须果断的抛弃&lt;code&gt;string&lt;/code&gt;，拥抱&lt;code&gt;unicode&lt;/code&gt;吧！&lt;/p&gt;</content><category term="django"></category><category term="python"></category></entry><entry><title>pelican增加自定义jinja template filters</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"></link><published>2013-09-11T19:46:00+08:00</published><updated>2013-09-11T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-11:/posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
 &lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
 &lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序&lt;/p&gt;
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
 &lt;p&gt;不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch&lt;/p&gt;
 &lt;p&gt;当然，更幸运的是在&lt;code&gt;github&lt;/code&gt;找到了此commit:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;https://github.com/getpelican/pelican/pull/96
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;https://github.com/getpelican/pelican/pull/96
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;原来有个&lt;code&gt;JINJA_FILTERS&lt;/code&gt;的设置，那一切就好办了, 增加自定义模块&lt;code&gt;jinja_filters.py&lt;/code&gt;&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;random&lt;/span&gt;
-
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;shuffle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; Jinja template …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
+&lt;p&gt;```python
+import random&lt;/p&gt;
+&lt;p&gt;def shuffle( value ):
+    """ Jinja …&lt;/p&gt;</summary><content type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
 &lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
 &lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序&lt;/p&gt;
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
 &lt;p&gt;不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch&lt;/p&gt;
 &lt;p&gt;当然，更幸运的是在&lt;code&gt;github&lt;/code&gt;找到了此commit:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;https://github.com/getpelican/pelican/pull/96
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;https://github.com/getpelican/pelican/pull/96
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;原来有个&lt;code&gt;JINJA_FILTERS&lt;/code&gt;的设置，那一切就好办了, 增加自定义模块&lt;code&gt;jinja_filters.py&lt;/code&gt;&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;random&lt;/span&gt;
-
-&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;shuffle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; Jinja template filter for shuffling list/tuple &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="nb"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;list&lt;/span&gt;
-            &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="nb"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;tuple&lt;/span&gt; &lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
-    &lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shuffle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;```python
+import random&lt;/p&gt;
+&lt;p&gt;def shuffle( value ):
+    """ Jinja template filter for shuffling list/tuple """
+    if not isinstance( value, list
+            ) and not isinstance( value, tuple ):
+        return value
+    random.shuffle( value )
+    return value
+```&lt;/p&gt;
 &lt;p&gt;在&lt;code&gt;pelican&lt;/code&gt;配置文件里填加:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;jinja_filters&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;shuffle&lt;/span&gt;
-
-&lt;span class="n"&gt;JINJA_FILTERS&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;shuffle&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;shuffle&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;```python
+from jinja_filters import shuffle&lt;/p&gt;
+&lt;p&gt;JINJA_FILTERS = { 'shuffle' : shuffle }
+```&lt;/p&gt;
 &lt;p&gt;尝试重新编译生成html文件，顺利完成。&lt;/p&gt;</content><category term="python"></category><category term="pelican"></category><category term="jinja"></category></entry><entry><title>配置Bind使用MySQL dlz模式</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html" rel="alternate"></link><published>2013-09-09T16:18:00+08:00</published><updated>2013-09-09T16:18:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/install-bind-mysql-dlz.html</id><summary type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;使用 &lt;code&gt;use dns&lt;/code&gt; 切换进 &lt;code&gt;dns&lt;/code&gt; 数据库后，使用如下命令创建一张 &lt;code&gt;dns_records&lt;/code&gt; 表：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE TABLE `dns_records` (
+&lt;pre&gt;&lt;code&gt;CREATE TABLE `dns_records` (
 `zone` varchar(255) NOT NULL,
 `host` varchar(255) NOT NULL,
-`type` varchar(12) NOT NULL …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
+`type` varchar(12) NOT NULL …&lt;/code&gt;&lt;/pre&gt;</summary><content type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;使用 &lt;code&gt;use dns&lt;/code&gt; 切换进 &lt;code&gt;dns&lt;/code&gt; 数据库后，使用如下命令创建一张 &lt;code&gt;dns_records&lt;/code&gt; 表：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE TABLE `dns_records` (
+&lt;pre&gt;&lt;code&gt;CREATE TABLE `dns_records` (
 `zone` varchar(255) NOT NULL,
 `host` varchar(255) NOT NULL,
 `type` varchar(12) NOT NULL,
 `data` varchar(255) NOT NULL,
-`ttl` int(11) DEFAULT &amp;#39;600&amp;#39;,
+`ttl` int(11) DEFAULT '600',
 `id` int(11) NOT NULL AUTO_INCREMENT,
 PRIMARY KEY (`id`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;这里以域 &lt;code&gt;example.com&lt;/code&gt; 为例，说明如上字段意义，假设我需要有一条 &lt;code&gt;www.example.com&lt;/code&gt; 的记录指向 &lt;code&gt;1.1.1.1&lt;/code&gt; 这个IP，应该增加哪些内容：&lt;/p&gt;
 &lt;p&gt;zone:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;域，这里指 example.com
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;域，这里指 example.com
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;host:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;主机名（名字），这里为 www
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;主机名（名字），这里为 www
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;type:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;记录类型，这里为A
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;记录类型，这里为A
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;data:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;域名资源数据，这里为IP地址 1.1.1.1
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;域名资源数据，这里为IP地址 1.1.1.1
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;ttl:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;域名TTL，为任意整数（建议不要低于120，即2分钟）
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;域名TTL，为任意整数（建议不要低于120，即2分钟）
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;将该数据库授权给某用户（后续bind-dlz配置需要用到）：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grant select on dns.* to dns@localhost identified by &amp;#39;dns&amp;#39;;
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;pre&gt;&lt;code&gt;grant select on dns.* to dns@localhost identified by 'dns';
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;用户名为 &lt;code&gt;dns&lt;/code&gt; ，密码也为 &lt;code&gt;dns&lt;/code&gt; ，只允许本地主机 &lt;code&gt;localhost&lt;/code&gt; 访问，并只给予了 &lt;code&gt;select&lt;/code&gt; 权限。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; Bind-dlz配置 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;这里只涉及dlz的配置，其它named.conf的配置不涉及&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dlz &amp;quot;your custom description&amp;quot; {
-    database &amp;quot;mysql
+&lt;pre&gt;&lt;code&gt;dlz "your custom description" {
+    database "mysql
         {host=localhost dbname=dns user=dns pass=dns}
-        {select zone from dns_records where zone = &amp;#39;$zone$&amp;#39;}
-        {select ttl, type, data from dns_records where host = &amp;#39;$record$&amp;#39; and zone=&amp;#39;$zone$&amp;#39;}&amp;quot;;
+        {select zone from dns_records where zone = '$zone$'}
+        {select ttl, type, data from dns_records where host = '$record$' and zone='$zone$'}";
 };
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;your custom description:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;管理员自行添加的描述
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;配置完成。&lt;/p&gt;</content><category term="bind"></category></entry><entry><title>Django multiple select option with title</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html" rel="alternate"></link><published>2013-09-09T15:02:00+08:00</published><updated>2013-09-09T15:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/django-multiple-select-option-with-title.html</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.encoding&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;conditional_escape&lt;/span&gt;
-
-&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SelectMultipleWithTitle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SelectMultiple&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; multiple select optihon with title &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;render_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="n"&gt;selected_html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39; selected=&amp;quot;selected&amp;quot;&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&amp;lt;option value=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.encoding&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;
-&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;conditional_escape&lt;/span&gt;
-
-&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SelectMultipleWithTitle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SelectMultiple&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; multiple select optihon with title &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;render_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="n"&gt;selected_html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39; selected=&amp;quot;selected&amp;quot;&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&amp;lt;option value=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt; title=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&amp;gt;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;lt;/option&amp;gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
-            &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;selected_html&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-            &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
-            &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="python"></category><category term="django"></category></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"></link><published>2013-09-08T13:03:00+08:00</published><updated>2013-09-08T13:03:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;管理员自行添加的描述
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;配置完成。&lt;/p&gt;</content><category term="bind"></category></entry><entry><title>Django multiple select option with title</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html" rel="alternate"></link><published>2013-09-09T15:02:00+08:00</published><updated>2013-09-09T15:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/django-multiple-select-option-with-title.html</id><summary type="html">&lt;p&gt;```python
+from django import forms
+from django.utils.encoding import force_unicode
+from django.utils.html import escape, conditional_escape&lt;/p&gt;
+&lt;p&gt;class SelectMultipleWithTitle(forms.SelectMultiple):
+    """ multiple select optihon with title """
+    def render_option(self, selected_choices, option_value, option_label):
+        option_value = force_unicode(option_value)
+        selected_html = (option_value in selected_choices) and u' selected="selected"' or ''
+        return u'&lt;option value="%s"%s title="%s"&gt;%s&lt;/option&gt;' % (
+            escape(option_value …&lt;/p&gt;</summary><content type="html">&lt;p&gt;```python
+from django import forms
+from django.utils.encoding import force_unicode
+from django.utils.html import escape, conditional_escape&lt;/p&gt;
+&lt;p&gt;class SelectMultipleWithTitle(forms.SelectMultiple):
+    """ multiple select optihon with title """
+    def render_option(self, selected_choices, option_value, option_label):
+        option_value = force_unicode(option_value)
+        selected_html = (option_value in selected_choices) and u' selected="selected"' or ''
+        return u'&lt;option value="%s"%s title="%s"&gt;%s&lt;/option&gt;' % (
+            escape(option_value), selected_html,
+            conditional_escape(force_unicode(option_label)),
+            conditional_escape(force_unicode(option_label)))
+```&lt;/p&gt;</content><category term="python"></category><category term="django"></category></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"></link><published>2013-09-08T13:03:00+08:00</published><updated>2013-09-08T13:03:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Debian Squeeze 6.0 amd64&lt;/p&gt;
 &lt;p&gt;thrift: 0.8.0&lt;/p&gt;
