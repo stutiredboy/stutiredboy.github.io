@@ -1,5 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2018-05-24T12:14:13+08:00</updated><entry><title>MongoDB 随机查询获取一条或 N 条记录的方法</title><link href="http://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html" rel="alternate"></link><published>2018-05-24T12:14:13+08:00</published><updated>2018-05-24T12:14:13+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2018-05-24:/posts/2018-05-24/mongodb-random-query.html</id><summary type="html">&lt;p&gt;MySQL 可以通过 &lt;code&gt;rand()&lt;/code&gt; 配合 &lt;code&gt;limit&lt;/code&gt; 获取随机的 N 条记录，那么在 MongoDB 上我们又该如何操作呢？&lt;/p&gt;</summary><content type="html">&lt;p&gt;熟悉 MySQL 的同学应该都知道可以通过类似如下语句简单的获取一张表里随机的 N 条记录：&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2018-07-16T00:51:00+08:00</updated><entry><title>一次「安全」的变更将 redis cluster 送进了孤岛</title><link href="http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind/bug.html" rel="alternate"></link><published>2018-07-16T00:51:00+08:00</published><updated>2018-07-16T00:51:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-07-16:/posts/2018-07-16/redis-cluster-bind/bug.html</id><summary type="html">&lt;p&gt;一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</summary><content type="html">&lt;p&gt;鉴于 redis 没有有效的鉴权方法（特别是 redis cluster），为了防止人为疏忽导致系统防火墙未被有效开启，我们决定对线上的 redis 增加显示监听内网 IP 配置：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;bind 127.0.0.1 ${本机内网 IP}&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;在我们看来，这是一个不可能出现问题的变更，因此也没有专门安排测试。事实证明，没有保持敬畏之心的我们还是太天真了！&lt;/p&gt;
+&lt;p&gt;线上配置发布后，重启 redis 服务，一切都很顺利，进程成功启动。然后，灾难开始降临，业务开始反馈 redis 缓存无法读写，查看 redis 日志，发现：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Cluster state changed: fail&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;尝试通过 redis-cli 连接进行操作，连接没有问题，但当我们尝试执行 &lt;code&gt;get a&lt;/code&gt; 操作时，集却群反馈错误：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;-CLUSTERDOWN The cluster is down&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;首要事件是保证服务可用，我们第一时间回退配置，重启后 redis 服务恢复正常。&lt;/p&gt;
+&lt;h3&gt;问题回放&lt;/h3&gt;
+&lt;p&gt;开启 Debug 模式，发现有大量的 createing socket: invalid argument 怀疑是 redis 拿了 bind 中的第一个 IP 为节点 IP，导致集群中所有节点的 IP 为 127.0.0.1，因此集群的通信出现问题（事后 review 代码确认跟第一个 IP 有关系，但不是导致所有节点的 IP 为 127.0.0.1）。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;1616&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;25.407&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;changed&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ok&lt;/span&gt;
+&lt;span class="o"&gt;......&lt;/span&gt;
+&lt;span class="mi"&gt;13236&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;27.104&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="n"&gt;Unable&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;connect&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;Node&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;]:&lt;/span&gt;&lt;span class="mi"&gt;16379&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;creating&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Invalid&lt;/span&gt; &lt;span class="n"&gt;argument&lt;/span&gt;
+&lt;span class="mi"&gt;13236&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;27.104&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="n"&gt;Unable&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;connect&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;Node&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;]:&lt;/span&gt;&lt;span class="mi"&gt;16379&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;creating&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Invalid&lt;/span&gt; &lt;span class="n"&gt;argument&lt;/span&gt;
+&lt;span class="o"&gt;......&lt;/span&gt;
+&lt;span class="mi"&gt;1616&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;38.438&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;changed&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;fail&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;有了上面的怀疑之后，我们尝试修改 bind 的配置，将 127.0.0.1 放到后面，即：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;bind ${本机内网 IP} 127.0.0.1&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;重启集群发现问题果然没有出现，感觉自己好机智（进行源码分析后，发现自己还是想的太简单了）。&lt;/p&gt;
+&lt;h3&gt;源码分析&lt;/h3&gt;
+&lt;p&gt;redis 版本：3.2.11&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;根据 &lt;code&gt;Cluster state changed: fail&lt;/code&gt; 我们定位到，redis 是在 cluster.c 的 clusterUpdateState 函数里进行集群的状态判断：&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;当节点状态为 CLUSTER_NODE_FAIL 或 CLUSTER_NODE_PFAIL 时，节点被标记为不可达；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;当不可达的 master 节点大于 quorum 时，集群被标记为不可用；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;```c
+       /&lt;em&gt; Compute the cluster size, that is the number of master nodes
+        * serving at least a single slot.
+        &lt;/em&gt;
+        * At the same time count the number of reachable masters having
+        * at least one slot. */
+       {
+        ......
+                   if ((node-&amp;gt;flags &amp;amp; (CLUSTER_NODE_FAIL|CLUSTER_NODE_PFAIL)) == 0)
+                       reachable_masters++;
+        ......
+       }&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;   /* If we are in a minority partition, change the cluster state
+    * to FAIL. */
+   {
+       int needed_quorum = (server.cluster-&amp;gt;size / 2) + 1;
+
+       if (reachable_masters &amp;lt; needed_quorum) {
+           new_state = CLUSTER_FAIL;
+           among_minority_time = mstime();
+       }
+   }
+
+   /* Log a state change */
+   if (new_state != server.cluster-&amp;gt;state) {
+       ......
+       /* Change the state and log the event. */
+       serverLog(LL_WARNING,&amp;quot;Cluster state changed: %s&amp;quot;,
+           new_state == CLUSTER_OK ? &amp;quot;ok&amp;quot; : &amp;quot;fail&amp;quot;);
+       server.cluster-&amp;gt;state = new_state;
+       ......
+   }
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;```&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 &lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 及非常符合异常特征的参数名称 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;code&gt;c
+               fd = anetTcpNonBlockBindConnect(server.neterr, node-&amp;gt;ip,
+                   node-&amp;gt;port+CLUSTER_PORT_INCR, NET_FIRST_BIND_ADDR);
+               if (fd == -1) {
+                   /* We got a synchronous error from connect before
+                    * clusterSendPing() had a chance to be called.
+                    * If node-&amp;gt;ping_sent is zero, failure detection can't work,
+                    * so we claim we actually sent a ping now (that will
+                    * be really sent as soon as the link is obtained). */
+                   if (node-&amp;gt;ping_sent == 0) node-&amp;gt;ping_sent = mstime();
+                   serverLog(LL_DEBUG, "Unable to connect to "
+                       "Cluster Node [%s]:%d -&amp;gt; %s", node-&amp;gt;ip,
+                       node-&amp;gt;port+CLUSTER_PORT_INCR,
+                       server.neterr);
+                   continue;
+               }&lt;/code&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 函数位于 anet.c 文件中，该函数调用了另一个函数 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt;，&lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt; 函数，找到以下内容：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;code&gt;c
+           if (source_addr) {
+               int bound = 0;
+               /* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */
+               if ((rv = getaddrinfo(source_addr, NULL, &amp;amp;hints, &amp;amp;bservinfo)) != 0)
+               {
+                   anetSetError(err, "%s", gai_strerror(rv));
+                   goto error;
+               }
+               for (b = bservinfo; b != NULL; b = b-&amp;gt;ai_next) {
+                   if (bind(s,b-&amp;gt;ai_addr,b-&amp;gt;ai_addrlen) != -1) {
+                       bound = 1;
+                       break;
+                   }
+               }
+               freeaddrinfo(bservinfo);
+               if (!bound) {
+                   anetSetError(err, "bind: %s", strerror(errno));
+                   goto error;
+               }
+           }&lt;/code&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;code&gt;c
+   /* Get the first bind addr or NULL */
+   #define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/code&gt;&lt;/p&gt;
+&lt;h3&gt;问题结论&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;redis cluster 在检测节点健康状态时，尝试与其它节点建立连接，但强制使用了 bind 配置中的第一个 IP 为建立 socket 的源地址&lt;/li&gt;
+&lt;li&gt;以上案例，当配置了监听 127.0.0.1 时，redis cluster 将尝试使用本地地址 127.0.0.1 去和一个外部节点建立链接，因此失败了；&lt;/li&gt;
+&lt;li&gt;基本的解决方法：使用 bind 配置时，确保将可进行通讯的 IP 放在第一个；&lt;/li&gt;
+&lt;li&gt;有没有其它问题：如果这是一个新建的 cluster 集群，那么在使用 redis-trib.rb 进行初始化集群时，该配置将导致 redis-trib.rb 工具长期阻塞，无法成功执行；&lt;/li&gt;
+&lt;li&gt;所有支持 cluster 的 redis 版本均受影响（包括 unstable 分支）；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;其它&lt;/h3&gt;
+&lt;p&gt;私以为强制使用 bind 第一个 IP 进行通讯的方法略有不妥，如果检测健康状态时一定需要指定源地址的话，兴许做出如下调整会有一定的优势：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;当未初始化时（集群节点未明确 IP 地址），建立 socket 连接，不要指定源地址，由操作系统自行分配源地址即可；&lt;/li&gt;
+&lt;li&gt;当 redis cluster 初始化时，可以使用初始化时指定的节点 IP 做为源地址；&lt;/li&gt;
+&lt;li&gt;redis 在 anet.c 文件里，其实还提供了 &lt;code&gt;anetTcpNonBlockBestEffortBindConnect&lt;/code&gt; 函数，这个函数如果通过绑定源地址建立 socket 链接失败后，会再次尝试由系统分配源地址的方式（不绑定），健康检查函数换成这个也不失为一个好办法；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;最（chao）后（xi）：对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</content><category term="redis"></category></entry><entry><title>MongoDB 随机查询获取一条或 N 条记录的方法</title><link href="http://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html" rel="alternate"></link><published>2018-05-24T12:14:13+08:00</published><updated>2018-05-24T12:14:13+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2018-05-24:/posts/2018-05-24/mongodb-random-query.html</id><summary type="html">&lt;p&gt;MySQL 可以通过 &lt;code&gt;rand()&lt;/code&gt; 配合 &lt;code&gt;limit&lt;/code&gt; 获取随机的 N 条记录，那么在 MongoDB 上我们又该如何操作呢？&lt;/p&gt;</summary><content type="html">&lt;p&gt;熟悉 MySQL 的同学应该都知道可以通过类似如下语句简单的获取一张表里随机的 N 条记录：&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;SELECT * FROM table ORDER BY RAND() LIMIT N;&lt;/p&gt;
 &lt;/blockquote&gt;

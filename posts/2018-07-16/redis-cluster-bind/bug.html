@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>一次「安全」的变更将 redis cluster 送进了孤岛</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Open Graph tags -->
+
+            <meta property="og:type" content="article"/>
+            <meta property="og:title" content="一次「安全」的变更将 redis cluster 送进了孤岛"/>
+            <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind/bug.html"/>
+            <meta property="og:description" content="一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。"/>
+
+    <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
+    <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+    <link href="http://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/style.css">
+    <!--[if lt IE 9]>
+        <script src="http://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <![endif]-->
+    <!--[if gte IE 9]><!-->
+        <script src="http://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <!--<![endif]-->
+
+        <link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="老树的碎叶 ATOM Feed"/>
+
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30723232-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+
+    </script>
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <!-- I don't need this //by tiredboy
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>-->
+            <a href="http://blog.chenxiaosheng.com" class="navbar-brand">老树的碎叶</a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</nav>
+<!-- /.navbar -->
+<div class="container">
+    <div class="row">
+        <div class="col-md-9 col-lg-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind/bug.html"
+                       rel="bookmark"
+                       title="Permalink to 一次「安全」的变更将 redis cluster 送进了孤岛">
+                        一次「安全」的变更将 redis cluster 送进了孤岛
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="published">
+      <i class="icon-calendar"></i>2018-07-16 00:51
+    </span>
+
+
+
+<i class="icon-tags"></i>
+	<a href="http://blog.chenxiaosheng.com/tag/redis.html">redis</a>
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>鉴于 redis 没有有效的鉴权方法（特别是 redis cluster），为了防止人为疏忽导致系统防火墙未被有效开启，我们决定对线上的 redis 增加显示监听内网 IP 配置：</p>
+<blockquote>
+<p>bind 127.0.0.1 ${本机内网 IP}</p>
+</blockquote>
+<p>在我们看来，这是一个不可能出现问题的变更，因此也没有专门安排测试。事实证明，没有保持敬畏之心的我们还是太天真了！</p>
+<p>线上配置发布后，重启 redis 服务，一切都很顺利，进程成功启动。然后，灾难开始降临，业务开始反馈 redis 缓存无法读写，查看 redis 日志，发现：</p>
+<blockquote>
+<p>Cluster state changed: fail</p>
+</blockquote>
+<p>尝试通过 redis-cli 连接进行操作，连接没有问题，但当我们尝试执行 <code>get a</code> 操作时，集却群反馈错误：</p>
+<blockquote>
+<p>-CLUSTERDOWN The cluster is down</p>
+</blockquote>
+<p>首要事件是保证服务可用，我们第一时间回退配置，重启后 redis 服务恢复正常。</p>
+<h3>问题回放</h3>
+<p>开启 Debug 模式，发现有大量的 createing socket: invalid argument 怀疑是 redis 拿了 bind 中的第一个 IP 为节点 IP，导致集群中所有节点的 IP 为 127.0.0.1，因此集群的通信出现问题（事后 review 代码确认跟第一个 IP 有关系，但不是导致所有节点的 IP 为 127.0.0.1）。</p>
+<div class="highlight"><pre><span></span><span class="mi">1616</span><span class="o">:</span><span class="n">M</span> <span class="mi">02</span> <span class="n">Jul</span> <span class="mi">11</span><span class="o">:</span><span class="mi">02</span><span class="o">:</span><span class="mf">25.407</span> <span class="err">#</span> <span class="n">Cluster</span> <span class="n">state</span> <span class="n">changed</span><span class="o">:</span> <span class="n">ok</span>
+<span class="o">......</span>
+<span class="mi">13236</span><span class="o">:</span><span class="n">M</span> <span class="mi">02</span> <span class="n">Jul</span> <span class="mi">11</span><span class="o">:</span><span class="mi">02</span><span class="o">:</span><span class="mf">27.104</span> <span class="o">.</span> <span class="n">Unable</span> <span class="n">to</span> <span class="n">connect</span> <span class="n">to</span> <span class="n">Cluster</span> <span class="n">Node</span> <span class="o">[</span><span class="mi">10</span><span class="o">.</span><span class="na">x</span><span class="o">.</span><span class="na">x</span><span class="o">.</span><span class="na">x</span><span class="o">]:</span><span class="mi">16379</span> <span class="o">-&gt;</span> <span class="n">creating</span> <span class="n">socket</span><span class="o">:</span> <span class="n">Invalid</span> <span class="n">argument</span>
+<span class="mi">13236</span><span class="o">:</span><span class="n">M</span> <span class="mi">02</span> <span class="n">Jul</span> <span class="mi">11</span><span class="o">:</span><span class="mi">02</span><span class="o">:</span><span class="mf">27.104</span> <span class="o">.</span> <span class="n">Unable</span> <span class="n">to</span> <span class="n">connect</span> <span class="n">to</span> <span class="n">Cluster</span> <span class="n">Node</span> <span class="o">[</span><span class="mi">10</span><span class="o">.</span><span class="na">x</span><span class="o">.</span><span class="na">x</span><span class="o">.</span><span class="na">x</span><span class="o">]:</span><span class="mi">16379</span> <span class="o">-&gt;</span> <span class="n">creating</span> <span class="n">socket</span><span class="o">:</span> <span class="n">Invalid</span> <span class="n">argument</span>
+<span class="o">......</span>
+<span class="mi">1616</span><span class="o">:</span><span class="n">M</span> <span class="mi">02</span> <span class="n">Jul</span> <span class="mi">11</span><span class="o">:</span><span class="mi">02</span><span class="o">:</span><span class="mf">38.438</span> <span class="err">#</span> <span class="n">Cluster</span> <span class="n">state</span> <span class="n">changed</span><span class="o">:</span> <span class="n">fail</span>
+</pre></div>
+
+
+<p>有了上面的怀疑之后，我们尝试修改 bind 的配置，将 127.0.0.1 放到后面，即：</p>
+<blockquote>
+<p>bind ${本机内网 IP} 127.0.0.1</p>
+</blockquote>
+<p>重启集群发现问题果然没有出现，感觉自己好机智（进行源码分析后，发现自己还是想的太简单了）。</p>
+<h3>源码分析</h3>
+<p>redis 版本：3.2.11</p>
+<ol>
+<li>
+<p>根据 <code>Cluster state changed: fail</code> 我们定位到，redis 是在 cluster.c 的 clusterUpdateState 函数里进行集群的状态判断：</p>
+</li>
+<li>
+<p>当节点状态为 CLUSTER_NODE_FAIL 或 CLUSTER_NODE_PFAIL 时，节点被标记为不可达；</p>
+</li>
+<li>当不可达的 master 节点大于 quorum 时，集群被标记为不可用；</li>
+</ol>
+<p>```c
+       /<em> Compute the cluster size, that is the number of master nodes
+        * serving at least a single slot.
+        </em>
+        * At the same time count the number of reachable masters having
+        * at least one slot. */
+       {
+        ......
+                   if ((node-&gt;flags &amp; (CLUSTER_NODE_FAIL|CLUSTER_NODE_PFAIL)) == 0)
+                       reachable_masters++;
+        ......
+       }</p>
+<div class="highlight"><pre><span></span>   /* If we are in a minority partition, change the cluster state
+    * to FAIL. */
+   {
+       int needed_quorum = (server.cluster-&gt;size / 2) + 1;
+
+       if (reachable_masters &lt; needed_quorum) {
+           new_state = CLUSTER_FAIL;
+           among_minority_time = mstime();
+       }
+   }
+
+   /* Log a state change */
+   if (new_state != server.cluster-&gt;state) {
+       ......
+       /* Change the state and log the event. */
+       serverLog(LL_WARNING,&quot;Cluster state changed: %s&quot;,
+           new_state == CLUSTER_OK ? &quot;ok&quot; : &quot;fail&quot;);
+       server.cluster-&gt;state = new_state;
+       ......
+   }
+</pre></div>
+
+
+<p>```</p>
+<ol>
+<li>redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 <code>anetTcpNonBlockBindConnect</code> 及非常符合异常特征的参数名称 <code>NET_FIRST_BIND_ADDR</code></li>
+</ol>
+<p><code>c
+               fd = anetTcpNonBlockBindConnect(server.neterr, node-&gt;ip,
+                   node-&gt;port+CLUSTER_PORT_INCR, NET_FIRST_BIND_ADDR);
+               if (fd == -1) {
+                   /* We got a synchronous error from connect before
+                    * clusterSendPing() had a chance to be called.
+                    * If node-&gt;ping_sent is zero, failure detection can't work,
+                    * so we claim we actually sent a ping now (that will
+                    * be really sent as soon as the link is obtained). */
+                   if (node-&gt;ping_sent == 0) node-&gt;ping_sent = mstime();
+                   serverLog(LL_DEBUG, "Unable to connect to "
+                       "Cluster Node [%s]:%d -&gt; %s", node-&gt;ip,
+                       node-&gt;port+CLUSTER_PORT_INCR,
+                       server.neterr);
+                   continue;
+               }</code></p>
+<ol>
+<li><code>anetTcpNonBlockBindConnect</code> 函数位于 anet.c 文件中，该函数调用了另一个函数 <code>anetTcpGenericConnect</code>，<code>NET_FIRST_BIND_ADDR</code> 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 <code>anetTcpGenericConnect</code> 函数，找到以下内容：</li>
+</ol>
+<p><code>c
+           if (source_addr) {
+               int bound = 0;
+               /* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */
+               if ((rv = getaddrinfo(source_addr, NULL, &amp;hints, &amp;bservinfo)) != 0)
+               {
+                   anetSetError(err, "%s", gai_strerror(rv));
+                   goto error;
+               }
+               for (b = bservinfo; b != NULL; b = b-&gt;ai_next) {
+                   if (bind(s,b-&gt;ai_addr,b-&gt;ai_addrlen) != -1) {
+                       bound = 1;
+                       break;
+                   }
+               }
+               freeaddrinfo(bservinfo);
+               if (!bound) {
+                   anetSetError(err, "bind: %s", strerror(errno));
+                   goto error;
+               }
+           }</code></p>
+<ol>
+<li>通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 <code>NET_FIRST_BIND_ADDR</code> 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1</li>
+</ol>
+<p><code>c
+   /* Get the first bind addr or NULL */
+   #define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)</code></p>
+<h3>问题结论</h3>
+<ol>
+<li>redis cluster 在检测节点健康状态时，尝试与其它节点建立连接，但强制使用了 bind 配置中的第一个 IP 为建立 socket 的源地址</li>
+<li>以上案例，当配置了监听 127.0.0.1 时，redis cluster 将尝试使用本地地址 127.0.0.1 去和一个外部节点建立链接，因此失败了；</li>
+<li>基本的解决方法：使用 bind 配置时，确保将可进行通讯的 IP 放在第一个；</li>
+<li>有没有其它问题：如果这是一个新建的 cluster 集群，那么在使用 redis-trib.rb 进行初始化集群时，该配置将导致 redis-trib.rb 工具长期阻塞，无法成功执行；</li>
+<li>所有支持 cluster 的 redis 版本均受影响（包括 unstable 分支）；</li>
+</ol>
+<h3>其它</h3>
+<p>私以为强制使用 bind 第一个 IP 进行通讯的方法略有不妥，如果检测健康状态时一定需要指定源地址的话，兴许做出如下调整会有一定的优势：</p>
+<ul>
+<li>当未初始化时（集群节点未明确 IP 地址），建立 socket 连接，不要指定源地址，由操作系统自行分配源地址即可；</li>
+<li>当 redis cluster 初始化时，可以使用初始化时指定的节点 IP 做为源地址；</li>
+<li>redis 在 anet.c 文件里，其实还提供了 <code>anetTcpNonBlockBestEffortBindConnect</code> 函数，这个函数如果通过绑定源地址建立 socket 链接失败后，会再次尝试由系统分配源地址的方式（不绑定），健康检查函数换成这个也不失为一个好办法；</li>
+</ul>
+<p>最（chao）后（xi）：对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。</p>
+                <h4>您可能还喜欢以下文章</h4>
+                <ul>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">install Facebook scribe on Debian Squeeze</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html">Mac OSX Yosemite 10.10 WIFI 掉线修复</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html">Linux系统上通知网关更新arp</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">Django multiple select option with title</a></li>
+                </ul>
+                <div class="panel-about row">
+                  <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
+                    <img src="/static/avatar.gif" class="img-circle">
+                  </div>
+                  <div class="panel-author-description col-md-10">
+                    <h4>关于老树</h4>
+                    就职于网易在线游戏事业部，任系统运维工程师职位。目前主要从事 MongoDB、MySQLDB、Redis、DNS 的运维工作。如果有相关求职需求，欢迎联系我。</br>
+                    <br/>
+                    VPS 使用 <a href="http://www.vultr.com/?ref=6820888">vultr</a>，欢迎使用我的 <a href="http://www.vultr.com/?ref=6820888">referral link</a>，我可以得到少许返利。<br/>
+                    <a href="https://www.vultr.com/?ref=6820888"><img src="https://www.vultr.com/media/banner_2.png" width="468" height="60"></a>
+                  </div>
+                </div>
+            </div>
+            <!-- /.entry-content -->
+    <hr />
+    <section class="comments" id="comments">
+        <h2>相关评论</h2>
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
+            var disqus_identifier = 'http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind/bug.html';
+            var disqus_url = 'http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind/bug.html';
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-md-3 col-lg-3 hidden-xs hidden-sm well well-sm" id="sidebar">
+<aside>
+    <section>
+        <ul class="list-group list-group-flush">
+            <!-- NOTIFICATION START -->
+            <div class="bs-callout bs-callout-info">
+              <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@<a href="http://www.zhihu.com" target="blank">知乎</a></p>
+            </div>
+            <!-- NOTIFICATION END -->
+            <!-- SOCIAL START -->
+            <!--
+                <li class="list-group-item">
+                <span class="span-group-item"><a href="http://weibo.com/stutiredboy"><i class="icon-weibo icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
+                <span class="span-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
+                </li>
+            -->
+            <!-- SOCIAL END -->
+            <!-- CONTACT START -->
+            <!--
+            <li class="list-group-item"><h4><i class="icon-envelope icon-large"></i>联系老树</h4></li>
+            <div class="text-center"><img src="/static/vCard.jpg" alt="联系我" class="img-rounded"></div>
+            -->
+            <!-- CONTACT END -->
+            <!-- TAGS CLOUD START -->
+            <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+            <!-- TAGS CLOUD END -->
+            <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
+            <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=15&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
+            <!-- Uncomment if you want to show Social
+                <li class="list-group-item"><h4><i class="icon-home icon-large"></i>Social</h4></li>
+                    <li class="list-group-item"><a href="http://weibo.com/stutiredboy"><i
+                            class="icon-weibo-sign icon-large"></i>weibo
+                    </a></li>
+                    <li class="list-group-item"><a href="https://www.facebook.com/stutiredboy"><i
+                            class="icon-facebook-sign icon-large"></i>facebook
+                    </a></li>
+                    <li class="list-group-item"><a href="https://twitter.com/stutiredboy"><i
+                            class="icon-twitter-sign icon-large"></i>twitter
+                    </a></li>
+                    <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
+                            class="icon-github-sign icon-large"></i>github
+                    </a></li>
+                    <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
+                            class="icon-rss-sign icon-large"></i>rss
+                    </a></li>
+            -->
+
+
+
+            <!-- 使用上面的标签云，这里不需要了
+                <li class="list-group-item tag-1">
+                    <a href="http://blog.chenxiaosheng.com/tag/python.html">
+                        python
+                    </a>
+                </li>
+                <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
+                        java
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/mongodb.html">
+                        mongodb
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
+                        ssl
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/debian.html">
+                        debian
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/mysql.html">
+                        mysql
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/yosemite.html">
+                        yosemite
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dns.html">
+                        dns
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
+                        http
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/redis.html">
+                        redis
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/pip.html">
+                        pip
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/wifi.html">
+                        wifi
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/okr.html">
+                        okr
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/lxc.html">
+                        lxc
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
+                        crontab
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/apache.html">
+                        apache
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/named.html">
+                        named
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
+                        openid
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dig.html">
+                        dig
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/netease.html">
+                        netease
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dba.html">
+                        dba
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
+                        post
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+            -->
+        </ul>
+    </section>
+</aside>
+</script>        </div>
+    </div>
+</div>
+
+<script src="http://cdn.staticfile.org/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="http://blog.chenxiaosheng.com/theme/js/respond.min.js"></script>
+<!-- Footer Start -->
+<footer class="footer">
+  <div class="container">
+    <p class="text-right visible-xs">&copy; 2013 ChenXiaosheng</p>
+    <p class="text-right hidden-xs">&copy; 2013 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://github.com">Github</a> - MarkDown 构建</p>
+    <p class="text-right hidden-xs">除非另有声明，本网站采用<a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh">自由转载-非商用-非衍生-保持署名| Creative Commons BY-NC-ND 3.0许可协议</a>授权</p>
+  </div>
+</footer>
+<!-- Footer End -->
+</body>
+</html>
