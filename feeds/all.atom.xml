@@ -122,9 +122,11 @@
 &lt;ol&gt;
 &lt;li&gt;通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;&lt;code&gt;c
-   /* Get the first bind addr or NULL */
-   #define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* Get the first bind addr or NULL */&lt;/span&gt;
+&lt;span class="cp"&gt;#define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;h3&gt;问题结论&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;redis cluster 在检测节点健康状态时，尝试与其它节点建立连接，但强制使用了 bind 配置中的第一个 IP 为建立 socket 的源地址&lt;/li&gt;
