@@ -12,7 +12,7 @@
             <meta property="og:type" content="article"/>
             <meta property="og:title" content="Java 发起Http Post请求"/>
             <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html"/>
-            <meta property="og:description" content="对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白， 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。 功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任） ```java / * Java POST Example / import java.io.IOException; import java.net.MalformedURLException; import java.net.ProtocolException; import java.net.URL; import java.net.URLEncoder; import …"/>
+            <meta property="og:description" content="对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白， 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。 功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任） /* * Java POST Example */ import java.io.IOException; import java.net.MalformedURLException; import java.net.ProtocolException; import java.net.URL; import java.net.URLEncoder; import java …"/>
 
     <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
     <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
@@ -103,155 +103,159 @@
                 <p>对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。</p>
 <p>功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）</p>
-<p>```java
-/<em>
- * Java POST Example
- </em>/</p>
-<p>import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.io.DataOutputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.logging.Level;
-import java.util.logging.Logger;</p>
-<p>import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.security.KeyStore;</p>
-<p>import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;</p>
-<p>/<em><em>
- </em>
- * @author Greg （原链接：http://sigterm.sh/2009/10/simple-post-in-java/）
- </em>/
-public class SimpleHttpPost {</p>
-<pre><code>/**
- * Pretend you're a script...
- */
-public static void main(String[] args) throws Exception {
-    URL url = null;
+<div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm"> * Java POST Example</span>
+<span class="cm"> */</span>
 
-    /* 加载CNNIC证书开始 */
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.MalformedURLException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.ProtocolException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URL</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.net.URLEncoder</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.DataOutputStream</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.BufferedReader</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.InputStreamReader</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.logging.Level</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.logging.Logger</span><span class="o">;</span>
 
-    X509TrustManager sunJSSEX509TrustManager;
-    // 加载 Keytool 生成的证书文件
-    char[] passphrase;
-    String p = "changeit";
-    passphrase = p.toCharArray();
-    File file = new File("java.cnnic.cacert");
-    System.out.println("Loading KeyStore " + file + "...");
-    InputStream in = new FileInputStream(file);
-    KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-    ks.load(in, passphrase);
-    in.close();
+<span class="kn">import</span> <span class="nn">java.io.File</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.FileInputStream</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.InputStream</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.security.KeyStore</span><span class="o">;</span>
 
-    // 构造 javax.net.ssl.TrustManager 对象
-    TrustManagerFactory tmf =
-    TrustManagerFactory.getInstance("SunX509", "SunJSSE");
-    tmf.init(ks);
-    TrustManager tms [] = tmf.getTrustManagers();
 
-    // 使用构造好的 TrustManager 访问相应的 https 站点
-    SSLContext sslContext = SSLContext.getInstance("SSL", "SunJSSE");
-    sslContext.init(null, tms, new java.security.SecureRandom());
-    SSLSocketFactory ssf = sslContext.getSocketFactory();
+<span class="kn">import</span> <span class="nn">java.security.cert.CertificateException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.security.cert.X509Certificate</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.net.ssl.HttpsURLConnection</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.net.ssl.TrustManager</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.net.ssl.TrustManagerFactory</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.net.ssl.X509TrustManager</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.net.ssl.SSLContext</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">javax.net.ssl.SSLSocketFactory</span><span class="o">;</span>
 
-    /* 加载CNNIC证书结束 */
-    try {
-        url = new URL("https://demo.site.url/uri/");
-    } catch (MalformedURLException ex) {
-        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
-    }
+<span class="cm">/**</span>
+<span class="cm"> *</span>
+<span class="cm"> * @author Greg （原链接：http://sigterm.sh/2009/10/simple-post-in-java/）</span>
+<span class="cm"> */</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">SimpleHttpPost</span> <span class="o">{</span>
 
-    HttpsURLConnection urlConn = null;
-    try {
-        // URL connection channel.
-        urlConn = (HttpsURLConnection) url.openConnection();
-    } catch (IOException ex) {
-        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
-    }
+    <span class="cm">/**</span>
+<span class="cm">     * Pretend you&#39;re a script...</span>
+<span class="cm">     */</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
 
-    // Let the conn use SSL
-    urlConn.setSSLSocketFactory(ssf);
-    // Let the run-time system (RTS) know that we want input.
-    urlConn.setDoInput (true);
+        <span class="cm">/* 加载CNNIC证书开始 */</span>
 
-    // Let the RTS know that we want to do output.
-    urlConn.setDoOutput (true);
+        <span class="n">X509TrustManager</span> <span class="n">sunJSSEX509TrustManager</span><span class="o">;</span>
+        <span class="c1">// 加载 Keytool 生成的证书文件</span>
+        <span class="kt">char</span><span class="o">[]</span> <span class="n">passphrase</span><span class="o">;</span>
+        <span class="n">String</span> <span class="n">p</span> <span class="o">=</span> <span class="s">&quot;changeit&quot;</span><span class="o">;</span>
+        <span class="n">passphrase</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="na">toCharArray</span><span class="o">();</span>
+        <span class="n">File</span> <span class="n">file</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="o">(</span><span class="s">&quot;java.cnnic.cacert&quot;</span><span class="o">);</span>
+        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Loading KeyStore &quot;</span> <span class="o">+</span> <span class="n">file</span> <span class="o">+</span> <span class="s">&quot;...&quot;</span><span class="o">);</span>
+        <span class="n">InputStream</span> <span class="n">in</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FileInputStream</span><span class="o">(</span><span class="n">file</span><span class="o">);</span>
+        <span class="n">KeyStore</span> <span class="n">ks</span> <span class="o">=</span> <span class="n">KeyStore</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="n">KeyStore</span><span class="o">.</span><span class="na">getDefaultType</span><span class="o">());</span>
+        <span class="n">ks</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="n">in</span><span class="o">,</span> <span class="n">passphrase</span><span class="o">);</span>
+        <span class="n">in</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
 
-    // No caching, we want the real thing.
-    urlConn.setUseCaches (false);
+        <span class="c1">// 构造 javax.net.ssl.TrustManager 对象</span>
+        <span class="n">TrustManagerFactory</span> <span class="n">tmf</span> <span class="o">=</span>
+        <span class="n">TrustManagerFactory</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;SunX509&quot;</span><span class="o">,</span> <span class="s">&quot;SunJSSE&quot;</span><span class="o">);</span>
+        <span class="n">tmf</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="n">ks</span><span class="o">);</span>
+        <span class="n">TrustManager</span> <span class="n">tms</span> <span class="o">[]</span> <span class="o">=</span> <span class="n">tmf</span><span class="o">.</span><span class="na">getTrustManagers</span><span class="o">();</span>
 
-    try {
-        urlConn.setRequestMethod("POST");
-    } catch (ProtocolException ex) {
-        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
-    }
+        <span class="c1">// 使用构造好的 TrustManager 访问相应的 https 站点</span>
+        <span class="n">SSLContext</span> <span class="n">sslContext</span> <span class="o">=</span> <span class="n">SSLContext</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;SSL&quot;</span><span class="o">,</span> <span class="s">&quot;SunJSSE&quot;</span><span class="o">);</span>
+        <span class="n">sslContext</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="n">tms</span><span class="o">,</span> <span class="k">new</span> <span class="n">java</span><span class="o">.</span><span class="na">security</span><span class="o">.</span><span class="na">SecureRandom</span><span class="o">());</span>
+        <span class="n">SSLSocketFactory</span> <span class="n">ssf</span> <span class="o">=</span> <span class="n">sslContext</span><span class="o">.</span><span class="na">getSocketFactory</span><span class="o">();</span>
 
-    try {
-        urlConn.connect();
-    } catch (IOException ex) {
-        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
-    }
+        <span class="cm">/* 加载CNNIC证书结束 */</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">&quot;https://demo.site.url/uri/&quot;</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">MalformedURLException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">SimpleHttpPost</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getName</span><span class="o">()).</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">SEVERE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
 
-    DataOutputStream output = null;
-    BufferedReader input = null;
+        <span class="n">HttpsURLConnection</span> <span class="n">urlConn</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="c1">// URL connection channel.</span>
+            <span class="n">urlConn</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpsURLConnection</span><span class="o">)</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">SimpleHttpPost</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getName</span><span class="o">()).</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">SEVERE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
 
-    try {
-        output = new DataOutputStream(urlConn.getOutputStream());
-    } catch (IOException ex) {
-        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
-    }
+        <span class="c1">// Let the conn use SSL</span>
+        <span class="n">urlConn</span><span class="o">.</span><span class="na">setSSLSocketFactory</span><span class="o">(</span><span class="n">ssf</span><span class="o">);</span>
+        <span class="c1">// Let the run-time system (RTS) know that we want input.</span>
+        <span class="n">urlConn</span><span class="o">.</span><span class="na">setDoInput</span> <span class="o">(</span><span class="kc">true</span><span class="o">);</span>
 
-    // Specify the content type if needed.
-    //urlConn.setRequestProperty("Content-Type",
-    //  "application/x-www-form-urlencoded");
+        <span class="c1">// Let the RTS know that we want to do output.</span>
+        <span class="n">urlConn</span><span class="o">.</span><span class="na">setDoOutput</span> <span class="o">(</span><span class="kc">true</span><span class="o">);</span>
 
-    // Construct the POST data.
-    String content =
-      "username=" + "randomuser" +
-      "&amp;password=" + "wrongmd5string";
+        <span class="c1">// No caching, we want the real thing.</span>
+        <span class="n">urlConn</span><span class="o">.</span><span class="na">setUseCaches</span> <span class="o">(</span><span class="kc">false</span><span class="o">);</span>
 
-    // Send the request data.
-    try {
-        output.writeBytes(content);
-        output.flush();
-        output.close();
-    } catch (IOException ex) {
-        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
-    }
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">urlConn</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">&quot;POST&quot;</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ProtocolException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">SimpleHttpPost</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getName</span><span class="o">()).</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">SEVERE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
 
-    // Get response data.
-    String str = null;
-    try {
-        input = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
-        while (null != ((str = input.readLine()))) {
-            System.out.println(str);
-        }
-        input.close ();
-    } catch (IOException ex) {
-        Logger.getLogger(SimpleHttpPost.class.getName()).log(Level.SEVERE, null, ex);
-    }
-}
-</code></pre>
-<p>}
-```</p>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">urlConn</span><span class="o">.</span><span class="na">connect</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">SimpleHttpPost</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getName</span><span class="o">()).</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">SEVERE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="n">DataOutputStream</span> <span class="n">output</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="n">BufferedReader</span> <span class="n">input</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DataOutputStream</span><span class="o">(</span><span class="n">urlConn</span><span class="o">.</span><span class="na">getOutputStream</span><span class="o">());</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">SimpleHttpPost</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getName</span><span class="o">()).</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">SEVERE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="c1">// Specify the content type if needed.</span>
+        <span class="c1">//urlConn.setRequestProperty(&quot;Content-Type&quot;,</span>
+        <span class="c1">//  &quot;application/x-www-form-urlencoded&quot;);</span>
+
+        <span class="c1">// Construct the POST data.</span>
+        <span class="n">String</span> <span class="n">content</span> <span class="o">=</span>
+          <span class="s">&quot;username=&quot;</span> <span class="o">+</span> <span class="s">&quot;randomuser&quot;</span> <span class="o">+</span>
+          <span class="s">&quot;&amp;password=&quot;</span> <span class="o">+</span> <span class="s">&quot;wrongmd5string&quot;</span><span class="o">;</span>
+
+        <span class="c1">// Send the request data.</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">output</span><span class="o">.</span><span class="na">writeBytes</span><span class="o">(</span><span class="n">content</span><span class="o">);</span>
+            <span class="n">output</span><span class="o">.</span><span class="na">flush</span><span class="o">();</span>
+            <span class="n">output</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">SimpleHttpPost</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getName</span><span class="o">()).</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">SEVERE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="c1">// Get response data.</span>
+        <span class="n">String</span> <span class="n">str</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">input</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">InputStreamReader</span><span class="o">(</span><span class="n">urlConn</span><span class="o">.</span><span class="na">getInputStream</span><span class="o">()));</span>
+            <span class="k">while</span> <span class="o">(</span><span class="kc">null</span> <span class="o">!=</span> <span class="o">((</span><span class="n">str</span> <span class="o">=</span> <span class="n">input</span><span class="o">.</span><span class="na">readLine</span><span class="o">())))</span> <span class="o">{</span>
+                <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">str</span><span class="o">);</span>
+            <span class="o">}</span>
+            <span class="n">input</span><span class="o">.</span><span class="na">close</span> <span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">Logger</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">SimpleHttpPost</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getName</span><span class="o">()).</span><span class="na">log</span><span class="o">(</span><span class="n">Level</span><span class="o">.</span><span class="na">SEVERE</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
                 <h4>您可能还喜欢以下文章</h4>
                 <ul>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html">Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</a></li>
                   <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html">Java 使用自签证书访问https站点</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html">一次「安全」的变更将 redis cluster 送进了孤岛</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html">查询 dns server 使用的bind版本</a></li>
                   <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html">ssh client 通过 socks5 proxy 登录远程服务器</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">Django multiple select option with title</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html">Debian系统添加全局根证书（CNNIC）</a></li>
                 </ul>
                 <div class="panel-about row">
                   <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
@@ -323,45 +327,45 @@ public static void main(String[] args) throws Exception {
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/named.html">named</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
                 <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
             <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=15&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
@@ -398,13 +402,28 @@ public static void main(String[] args) throws Exception {
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/debian.html">
                         debian
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
                     <a href="http://blog.chenxiaosheng.com/tag/mac.html">
                         mac
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/mongodb.html">
+                        mongodb
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
@@ -417,24 +436,69 @@ public static void main(String[] args) throws Exception {
                         bind
                     </a>
                 </li>
-                <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/mongodb.html">
-                        mongodb
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
                     </a>
                 </li>
-                <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
-                        django
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
                     </a>
                 </li>
-                <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
-                        osx
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/mysql.html">
+                        mysql
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dba.html">
+                        dba
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/wifi.html">
+                        wifi
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/netease.html">
+                        netease
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/yosemite.html">
+                        yosemite
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/lxc.html">
+                        lxc
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
                     <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
                         sftp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
+                        post
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -448,88 +512,18 @@ public static void main(String[] args) throws Exception {
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/dba.html">
-                        dba
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/netease.html">
-                        netease
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/wifi.html">
-                        wifi
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/redis.html">
-                        redis
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
-                        arp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/pip.html">
-                        pip
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
-                        ssh
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
-                        http
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/dig.html">
-                        dig
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/yosemite.html">
-                        yosemite
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
-                        proxy
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
                     <a href="http://blog.chenxiaosheng.com/tag/windows.html">
                         windows
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
-                        iterm2
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -538,13 +532,43 @@ public static void main(String[] args) throws Exception {
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/okr.html">
-                        okr
+                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
+                        crontab
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
-                        crontab
+                    <a href="http://blog.chenxiaosheng.com/tag/pip.html">
+                        pip
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/apache.html">
+                        apache
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dig.html">
+                        dig
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/redis.html">
+                        redis
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
+                        http
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -558,28 +582,8 @@ public static void main(String[] args) throws Exception {
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/apache.html">
-                        apache
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
-                        post
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/mysql.html">
-                        mysql
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/lxc.html">
-                        lxc
+                    <a href="http://blog.chenxiaosheng.com/tag/okr.html">
+                        okr
                     </a>
                 </li>
             -->
