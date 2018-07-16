@@ -349,7 +349,7 @@ mongos&amp;gt;&lt;/code&gt;&lt;/p&gt;
 &lt;/ol&gt;
 &lt;p&gt;&lt;code&gt;The MaxRequestsPerChild directive sets the limit on the number of requests that an individual child server process will handle. After MaxRequestsPerChild requests, the child process will die. If MaxRequestsPerChild is 0, then the process will never expire.&lt;/code&gt;
 这个值，我们的设置是 0，所以不会是因为这个设置导致的。&lt;/p&gt;
-&lt;ol start="2"&gt;
+&lt;ol&gt;
 &lt;li&gt;MaxSpareThreads&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;&lt;code&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.&lt;/code&gt;&lt;/p&gt;
