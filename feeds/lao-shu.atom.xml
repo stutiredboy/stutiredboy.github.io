@@ -8,15 +8,20 @@
 &lt;p&gt;$sample (aggregation)&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;具体应该如何操作，官方也给出了一个示例，假设 Collection users 有如下记录：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;{ "_id" : 1, "name" : "dave123", "q1" : true, "q2" : true }
-{ "_id" : 2, "name" : "dave2", "q1" : false, "q2" : false  }
-{ "_id" : 3, "name" : "ahn", "q1" : true, "q2" : true  }
-{ "_id" : 4, "name" : "li", "q1" : true, "q2" : false  }
-{ "_id" : 5, "name" : "annT", "q1" : false, "q2" : true  }
-{ "_id" : 6, "name" : "li", "q1" : true, "q2" : true  }
-{ "_id" : 7, "name" : "ty", "q1" : false, "q2" : true  }&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;那么可以通过命令 &lt;code&gt;db.users.aggregate( [ { $sample: { size: N } } ] )&lt;/code&gt; 获取随机的 N 条记录，如：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{ &amp;quot;_id&amp;quot; : 1, &amp;quot;name&amp;quot; : &amp;quot;dave123&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
+{ &amp;quot;_id&amp;quot; : 2, &amp;quot;name&amp;quot; : &amp;quot;dave2&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : false  }
+{ &amp;quot;_id&amp;quot; : 3, &amp;quot;name&amp;quot; : &amp;quot;ahn&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
+{ &amp;quot;_id&amp;quot; : 4, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : false  }
+{ &amp;quot;_id&amp;quot; : 5, &amp;quot;name&amp;quot; : &amp;quot;annT&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
+{ &amp;quot;_id&amp;quot; : 6, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
+{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
+```
+
+那么可以通过命令 `db.users.aggregate( [ { $sample: { size: N } } ] )` 获取随机的 N 条记录，如：
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
 { "_id" : 7, "name" : "ty", "q1" : false, "q2" : true }
 { "_id" : 4, "name" : "li", "q1" : true, "q2" : false }
 { "_id" : 1, "name" : "dave123", "q1" : true, "q2" : true }
@@ -24,7 +29,8 @@ mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
 { "_id" : 7, "name" : "ty", "q1" : false, "q2" : true }
 { "_id" : 3, "name" : "ahn", "q1" : true, "q2" : true }
 { "_id" : 2, "name" : "dave2", "q1" : false, "q2" : false }
-mongos&amp;gt;&lt;/code&gt;&lt;/p&gt;
+mongos&amp;gt;
+```&lt;/p&gt;
 &lt;p&gt;$sample 会使用如下两种方式来获取随机的 N 条记录，具体使用哪种方式取决于如下条件：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;$sample 处于聚合管道的第一阶段；&lt;/li&gt;
@@ -210,12 +216,16 @@ mongos&amp;gt;&lt;/code&gt;&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;MaxRequestsPerChild&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;&lt;code&gt;The MaxRequestsPerChild directive sets the limit on the number of requests that an individual child server process will handle. After MaxRequestsPerChild requests, the child process will die. If MaxRequestsPerChild is 0, then the process will never expire.&lt;/code&gt;
-这个值，我们的设置是 0，所以不会是因为这个设置导致的。&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;MaxSpareThreads&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;&lt;code&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;The MaxRequestsPerChild directive sets the limit on the number of requests that an individual child server process will handle. After MaxRequestsPerChild requests, the child process will die. If MaxRequestsPerChild is 0, then the process will never expire.
+```
+这个值，我们的设置是 0，所以不会是因为这个设置导致的。
+
+2. MaxSpareThreads
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.
+```&lt;/p&gt;
 &lt;p&gt;我们原来的值设置为 75，怀疑是因为这个值设得太小了，尝试将此值调整至与 &lt;code&gt;MaxClients&lt;/code&gt; 相等，重启 apache ，发现负载开始持续下降，&lt;code&gt;top 中 apache 进程 pid 几乎没有产生变化&lt;/code&gt;，服务正常，qps没有明显下降（未导致服务不可用）。新的配置如：&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;&amp;lt;IfModule mpm_worker_module&amp;gt;
     StartServers          2
@@ -232,23 +242,27 @@ mongos&amp;gt;&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/apache_before_tuning.png"&gt;&lt;/p&gt;
 &lt;p&gt;优化后：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/apache_after_tuning.png"&gt;&lt;/p&gt;</content><category term="apache"></category></entry><entry><title>pip 升级 pip 失败</title><link href="http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html" rel="alternate"></link><published>2016-05-19T12:11:00+08:00</published><updated>2016-05-19T12:11:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</id><summary type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;p&gt;```&lt;/p&gt;
-&lt;h1&gt;pip install --upgrade pip&lt;/h1&gt;
-&lt;p&gt;Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
-You should consider upgrading via the 'pip install --upgrade pip' command.
-```&lt;/p&gt;
-&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;p&gt;```&lt;/p&gt;
-&lt;h1&gt;pip install --upgrade pip&lt;/h1&gt;
-&lt;p&gt;Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
+```
+
+尝试按说明执行 `pip …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
-You should consider upgrading via the 'pip install --upgrade pip' command.
+You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
+```
+
+尝试按说明执行 `pip install --upgrade pip` ，没有任何报错，但一直升级不成功，百思不得解，
+在查看 `man pip` 的时候，找到如下选项：
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;-v, --verbose
+    Give more output. Option is additive, and can be used up to 3 times.
 ```&lt;/p&gt;
-&lt;p&gt;尝试按说明执行 &lt;code&gt;pip install --upgrade pip&lt;/code&gt; ，没有任何报错，但一直升级不成功，百思不得解，
-在查看 &lt;code&gt;man pip&lt;/code&gt; 的时候，找到如下选项：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;-v, --verbose
-    Give more output. Option is additive, and can be used up to 3 times.&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;尝试执行 &lt;code&gt;pip install --upgrade pip -vvv&lt;/code&gt; 终于有更多提示：&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;1 location(s) to search for versions of pip:
 * http://example.url/simple/pip/
@@ -272,8 +286,8 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 
 
 &lt;p&gt;这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;$ ls
-NetworkInterfaces.plist …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ls
+NetworkInterfaces.plist …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
 &lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
 并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
@@ -285,19 +299,26 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 
 
 &lt;p&gt;这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;$ ls
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ls
 NetworkInterfaces.plist             com.apple.smb.server.plist
 com.apple.airport.preferences.plist com.apple.wifi.message-tracer.plist
-com.apple.captive.probe.plist       preferences.plist&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
-注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
-&lt;p&gt;后来在网上看到 &lt;a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/"&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;/a&gt;
-这编文章，其实只要删除：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;com.apple.airport.preferences.plist
+com.apple.captive.probe.plist       preferences.plist
+&lt;span class="sb"&gt;```&lt;/span&gt;
+
+把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
+注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。
+
+后来在网上看到 &lt;span class="o"&gt;[&lt;/span&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;span class="o"&gt;](&lt;/span&gt;http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/&lt;span class="o"&gt;)&lt;/span&gt;
+这编文章，其实只要删除：
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;com.apple.airport.preferences.plist
 com.apple.network.identification.plist
 com.apple.wifi.message-tracer.plist 
 NetworkInterfaces.plist 
-preferences.plist&lt;/code&gt;&lt;/p&gt;
+preferences.plist
+```&lt;/p&gt;
 &lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了&lt;/code&gt;&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><updated>2014-07-07T20:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
@@ -330,33 +351,39 @@ preferences.plist&lt;/code&gt;&lt;/p&gt;
     version none;
 }&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</content><category term="bind"></category><category term="dns"></category><category term="dig"></category><category term="named"></category></entry><entry><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html" rel="alternate"></link><published>2014-05-09T13:31:00+08:00</published><updated>2014-05-09T13:31:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</id><summary type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;field         allowed values
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
            -----         --------------
            minute        0-59
            hour          0-23
            day of month  1-31
            month         1-12 (or names, see below)
-           day of week   0-7 (0 or 7 is Sun, or use names)&lt;/code&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;field         allowed values
+           day of week   0-7 (0 or 7 is Sun, or use names)
+```
+
+&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
            -----         --------------
            minute        0-59
            hour          0-23
            day of month  1-31
            month         1-12 (or names, see below)
-           day of week   0-7 (0 or 7 is Sun, or use names)&lt;/code&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day of week.
-If both fields are restricted (ie, are not *), the command will be
-run when either field matches the current time.
-For example, ''30 4 1,15 * 5'' would cause a command to be run
-at 4:30 am on the 1st and 15th of each month, plus every Fri-day.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;来自wikipedia的说明（&lt;a href="http://en.wikipedia.org/wiki/Crontab"&gt;http://en.wikipedia.org/wiki/Crontab&lt;/a&gt;）：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;While normally the job is executed when the time/date specification fields all match the current time and date,
+           day of week   0-7 (0 or 7 is Sun, or use names)
+```
+
+&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and day of week.
+&amp;gt; If both fields are restricted (ie, are not *), the command will be
+&amp;gt; run when either field matches the current time.
+&amp;gt; For example, &amp;#39;&amp;#39;30 4 1,15 * 5&amp;#39;&amp;#39; would cause a command to be run
+&amp;gt; at 4:30 am on the 1st and 15th of each month, plus every Fri-day.
+
+来自wikipedia的说明（[http://en.wikipedia.org/wiki/Crontab](http://en.wikipedia.org/wiki/Crontab)）：
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;While normally the job is executed when the time/date specification fields all match the current time and date,
 there is one exception: if both "day of month" and "day of week" are restricted (not "*"),
-then either the "day of month" field (3) or the "day of week" field (5) must match the current day.&lt;/code&gt;&lt;/p&gt;
+then either the "day of month" field (3) or the "day of week" field (5) must match the current day.
+```&lt;/p&gt;
 &lt;p&gt;以设置crontab： 11 14 27 3 3 为例，下面两个类型的时间都能满足该表达式：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;3月里的每一个周三&lt;/li&gt;

@@ -24,13 +24,13 @@
 &lt;p&gt;职位描述：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;负责 MongoDB …&lt;/li&gt;&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Wed, 15 Nov 2017 22:51:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2017-11-15:/posts/2017-11-15/ntes-offers.html</guid><category>netease</category><category>dba</category><category>mysql</category><category>mongodb</category></item><item><title>LXC 如何找出容器对应的 veth 设备</title><link>http://blog.chenxiaosheng.com/posts/2017-03-29/lxc-veth-pairs.html</link><description>&lt;p&gt;LXC 使用 veth 模式时，如果宿主机上创建了很多容器，那么宿主上将存在大量的 vethXXXX 设备，肉眼难以直接确认每个虚拟容器使用的是哪个 veth 设备。&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Wed, 29 Mar 2017 11:42:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2017-03-29:/posts/2017-03-29/lxc-veth-pairs.html</guid><category>lxc</category></item><item><title>记一次 Apache 性能调优</title><link>http://blog.chenxiaosheng.com/posts/2017-03-23/apache-performance-tuning.html</link><description>&lt;p&gt;每一次神优化背后都有一个很烧饼的设置（bug），刷一次负载下降 70%+ 的小目标。&lt;/br&gt;&lt;img src="/static/apache_load.png"&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Thu, 23 Mar 2017 09:44:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2017-03-23:/posts/2017-03-23/apache-performance-tuning.html</guid><category>apache</category></item><item><title>pip 升级 pip 失败</title><link>http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html</link><description>&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;p&gt;```&lt;/p&gt;
-&lt;h1&gt;pip install --upgrade pip&lt;/h1&gt;
-&lt;p&gt;Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
-You should consider upgrading via the 'pip install --upgrade pip' command.
-```&lt;/p&gt;
-&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Thu, 19 May 2016 12:11:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</guid><category>python</category><category>pip</category></item><item><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link>http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</link><description>&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
+```
+
+尝试按说明执行 `pip …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Thu, 19 May 2016 12:11:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</guid><category>python</category><category>pip</category></item><item><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link>http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</link><description>&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
 &lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
 并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
@@ -42,8 +42,8 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 
 
 &lt;p&gt;这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;$ ls
-NetworkInterfaces.plist …&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Mon, 17 Nov 2014 14:35:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</guid><category>mac</category><category>osx</category><category>yosemite</category><category>wifi</category></item><item><title>查询 dns server 使用的bind版本</title><link>http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html</link><description>&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ ls
+NetworkInterfaces.plist …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Mon, 17 Nov 2014 14:35:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</guid><category>mac</category><category>osx</category><category>yosemite</category><category>wifi</category></item><item><title>查询 dns server 使用的bind版本</title><link>http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html</link><description>&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -59,15 +59,16 @@ NetworkInterfaces.plist …&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmln
     version none;
 }&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Mon, 07 Jul 2014 20:21:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</guid><category>bind</category><category>dns</category><category>dig</category><category>named</category></item><item><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link>http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html</link><description>&lt;p&gt;man 5 crontab:&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;field         allowed values
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
            -----         --------------
            minute        0-59
            hour          0-23
            day of month  1-31
            month         1-12 (or names, see below)
-           day of week   0-7 (0 or 7 is Sun, or use names)&lt;/code&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Linux系统上通知网关更新arp</title><link>http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html</link><description>&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+           day of week   0-7 (0 or 7 is Sun, or use names)
+```
+
+&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Linux系统上通知网关更新arp</title><link>http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html</link><description>&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
