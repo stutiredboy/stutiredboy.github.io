@@ -38,98 +38,94 @@
 &lt;li&gt;当节点状态为 CLUSTER_NODE_FAIL 或 CLUSTER_NODE_PFAIL 时，节点被标记为不可达；&lt;/li&gt;
 &lt;li&gt;当不可达的 master 节点大于 quorum 时，集群被标记为不可用；&lt;/li&gt;
 &lt;/ul&gt;
+&lt;p&gt;```c
+    /&lt;em&gt; Compute the cluster size, that is the number of master nodes
+     * serving at least a single slot.
+     &lt;/em&gt;
+     * At the same time count the number of reachable masters having
+     * at least one slot. */
+    {
+     ...
+                if ((node-&amp;gt;flags &amp;amp; (CLUSTER_NODE_FAIL|CLUSTER_NODE_PFAIL)) == 0)
+                    reachable_masters++;
+     ...
+    }&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* If we are in a minority partition, change the cluster state&lt;/span&gt;
+&lt;span class="cm"&gt; * to FAIL. */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;int&lt;span class="w"&gt; &lt;/span&gt;needed_quorum&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;size&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="kr"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;reachable_masters&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;lt&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;needed_quorum&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;CLUSTER_FAIL&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;among_minority_time&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;mstime&lt;span class="o"&gt;()&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="cm"&gt;/* Log a state change */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="kr"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;!&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;state&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;....&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="cm"&gt;/* Change the state and log the event. */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;serverLog&lt;span class="o"&gt;(&lt;/span&gt;LL_WARNING&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Cluster state changed: %s&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;CLUSTER_OK&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;?&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;ok&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;fail&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;new_state&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;...&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;```&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 &lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 及非常符合异常特征的参数名称 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;c
+            fd = anetTcpNonBlockBindConnect(server.neterr, node-&amp;gt;ip,
+                node-&amp;gt;port+CLUSTER_PORT_INCR, NET_FIRST_BIND_ADDR);
+            if (fd == -1) {
+                /* We got a synchronous error from connect before
+                 * clusterSendPing() had a chance to be called.
+                 * If node-&amp;gt;ping_sent is zero, failure detection can't work,
+                 * so we claim we actually sent a ping now (that will
+                 * be really sent as soon as the link is obtained). */
+                if (node-&amp;gt;ping_sent == 0) node-&amp;gt;ping_sent = mstime();
+                serverLog(LL_DEBUG, "Unable to connect to "
+                    "Cluster Node [%s]:%d -&amp;gt; %s", node-&amp;gt;ip,
+                    node-&amp;gt;port+CLUSTER_PORT_INCR,
+                    server.neterr);
+                continue;
+            }&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 函数位于 anet.c 文件中，该函数调用了另一个函数 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt;，&lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt; 函数，找到以下内容：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;c
+        if (source_addr) {
+            int bound = 0;
+            /* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */
+            if ((rv = getaddrinfo(source_addr, NULL, &amp;amp;hints, &amp;amp;bservinfo)) != 0)
+            {
+                anetSetError(err, "%s", gai_strerror(rv));
+                goto error;
+            }
+            for (b = bservinfo; b != NULL; b = b-&amp;gt;ai_next) {
+                if (bind(s,b-&amp;gt;ai_addr,b-&amp;gt;ai_addrlen) != -1) {
+                    bound = 1;
+                    break;
+                }
+            }
+            freeaddrinfo(bservinfo);
+            if (!bound) {
+               anetSetError(err, "bind: %s", strerror(errno));
+               goto error;
+            }
+        }&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1&lt;/p&gt;
+&lt;p&gt;```c
+/&lt;em&gt; Get the first bind addr or NULL &lt;/em&gt;/&lt;/p&gt;
+&lt;h1&gt;define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/h1&gt;
+&lt;p&gt;```&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;        &lt;span class="cm"&gt;/* Compute the cluster size, that is the number of master nodes&lt;/span&gt;
-&lt;span class="cm"&gt;         * serving at least a single slot.&lt;/span&gt;
-&lt;span class="cm"&gt;         *&lt;/span&gt;
-&lt;span class="cm"&gt;         * At the same time count the number of reachable masters having&lt;/span&gt;
-&lt;span class="cm"&gt;         * at least one slot. */&lt;/span&gt;
-        &lt;span class="p"&gt;{&lt;/span&gt;
-         &lt;span class="p"&gt;...&lt;/span&gt;
-                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;flags&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_NODE_FAIL&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_NODE_PFAIL&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-                        &lt;span class="n"&gt;reachable_masters&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-         &lt;span class="p"&gt;...&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-
-        &lt;span class="cm"&gt;/* If we are in a minority partition, change the cluster state&lt;/span&gt;
-&lt;span class="cm"&gt;         * to FAIL. */&lt;/span&gt;
-        &lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;needed_quorum&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-
-            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;reachable_masters&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;needed_quorum&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                &lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;CLUSTER_FAIL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="n"&gt;among_minority_time&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mstime&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
-            &lt;span class="p"&gt;}&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-
-        &lt;span class="cm"&gt;/* Log a state change */&lt;/span&gt;
-        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;state&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-            &lt;span class="p"&gt;....&lt;/span&gt;
-            &lt;span class="cm"&gt;/* Change the state and log the event. */&lt;/span&gt;
-            &lt;span class="n"&gt;serverLog&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;LL_WARNING&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Cluster state changed: %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                &lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;CLUSTER_OK&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;ok&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;fail&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
-            &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;new_state&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-            &lt;span class="p"&gt;...&lt;/span&gt;
-        &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;ol start="2"&gt;
-&lt;li&gt;redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 &lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 及非常符合异常特征的参数名称 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;                &lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;anetTcpNonBlockBindConnect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;neterr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                    &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_PORT_INCR&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;NET_FIRST_BIND_ADDR&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                    &lt;span class="cm"&gt;/* We got a synchronous error from connect before&lt;/span&gt;
-&lt;span class="cm"&gt;                     * clusterSendPing() had a chance to be called.&lt;/span&gt;
-&lt;span class="cm"&gt;                     * If node-&amp;gt;ping_sent is zero, failure detection can&amp;#39;t work,&lt;/span&gt;
-&lt;span class="cm"&gt;                     * so we claim we actually sent a ping now (that will&lt;/span&gt;
-&lt;span class="cm"&gt;                     * be really sent as soon as the link is obtained). */&lt;/span&gt;
-                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ping_sent&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ping_sent&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mstime&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
-                    &lt;span class="n"&gt;serverLog&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;LL_DEBUG&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Unable to connect to &amp;quot;&lt;/span&gt;
-                        &lt;span class="s"&gt;&amp;quot;Cluster Node [%s]:%d -&amp;gt; %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                        &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_PORT_INCR&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-                        &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;neterr&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
-                    &lt;span class="k"&gt;continue&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;ol start="3"&gt;
-&lt;li&gt;&lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 函数位于 anet.c 文件中，该函数调用了另一个函数 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt;，&lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt; 函数，找到以下内容：&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;source_addr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;bound&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="cm"&gt;/* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;rv&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getaddrinfo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;source_addr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;hints&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-                &lt;span class="p"&gt;{&lt;/span&gt;
-                    &lt;span class="n"&gt;anetSetError&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;err&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;%s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;gai_strerror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rv&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
-                    &lt;span class="k"&gt;goto&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="p"&gt;}&lt;/span&gt;
-                &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_next&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_addr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_addrlen&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                        &lt;span class="n"&gt;bound&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                        &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                    &lt;span class="p"&gt;}&lt;/span&gt;
-                &lt;span class="p"&gt;}&lt;/span&gt;
-                &lt;span class="n"&gt;freeaddrinfo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
-                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="n"&gt;bound&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
-                   &lt;span class="n"&gt;anetSetError&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;err&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bind: %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;strerror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;errno&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
-                   &lt;span class="k"&gt;goto&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-                &lt;span class="p"&gt;}&lt;/span&gt;
-            &lt;span class="p"&gt;}&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;ol start="4"&gt;
-&lt;li&gt;通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1&lt;/li&gt;
-&lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    &lt;span class="cm"&gt;/* Get the first bind addr or NULL */&lt;/span&gt;
-    &lt;span class="cp"&gt;#define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
 &lt;h3&gt;问题结论&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;redis cluster 在检测节点健康状态时，尝试与其它节点建立连接，但强制使用了 bind 配置中的第一个 IP 为建立 socket 的源地址&lt;/li&gt;
@@ -161,22 +157,22 @@
 { &amp;quot;_id&amp;quot; : 5, &amp;quot;name&amp;quot; : &amp;quot;annT&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
 { &amp;quot;_id&amp;quot; : 6, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
 { &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
-```
-
-那么可以通过命令 `db.users.aggregate( [ { $sample: { size: N } } ] )` 获取随机的 N 条记录，如：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
-{ "_id" : 7, "name" : "ty", "q1" : false, "q2" : true }
-{ "_id" : 4, "name" : "li", "q1" : true, "q2" : false }
-{ "_id" : 1, "name" : "dave123", "q1" : true, "q2" : true }
+&lt;p&gt;那么可以通过命令 &lt;code&gt;db.users.aggregate( [ { $sample: { size: N } } ] )&lt;/code&gt; 获取随机的 N 条记录，如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
+{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true }
+{ &amp;quot;_id&amp;quot; : 4, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : false }
+{ &amp;quot;_id&amp;quot; : 1, &amp;quot;name&amp;quot; : &amp;quot;dave123&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
 mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
-{ "_id" : 7, "name" : "ty", "q1" : false, "q2" : true }
-{ "_id" : 3, "name" : "ahn", "q1" : true, "q2" : true }
-{ "_id" : 2, "name" : "dave2", "q1" : false, "q2" : false }
+{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true }
+{ &amp;quot;_id&amp;quot; : 3, &amp;quot;name&amp;quot; : &amp;quot;ahn&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
+{ &amp;quot;_id&amp;quot; : 2, &amp;quot;name&amp;quot; : &amp;quot;dave2&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : false }
 mongos&amp;gt;
-```&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;p&gt;$sample 会使用如下两种方式来获取随机的 N 条记录，具体使用哪种方式取决于如下条件：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;$sample 处于聚合管道的第一阶段；&lt;/li&gt;
@@ -363,19 +359,19 @@ mongos&amp;gt;
 &lt;li&gt;MaxRequestsPerChild&lt;/li&gt;
 &lt;/ol&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;The MaxRequestsPerChild directive sets the limit on the number of requests that an individual child server process will handle. After MaxRequestsPerChild requests, the child process will die. If MaxRequestsPerChild is 0, then the process will never expire.
-```
-这个值，我们的设置是 0，所以不会是因为这个设置导致的。
-
-2. MaxSpareThreads
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;我们原来的值设置为 75，怀疑是因为这个值设得太小了，尝试将此值调整至与 `MaxClients` 相等，重启 apache ，发现负载开始持续下降，`top 中 apache 进程 pid 几乎没有产生变化`，服务正常，qps没有明显下降（未导致服务不可用）。新的配置如：
+&lt;p&gt;这个值，我们的设置是 0，所以不会是因为这个设置导致的。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;MaxSpareThreads&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;&lt;IfModule mpm_worker_module&gt;
+&lt;p&gt;我们原来的值设置为 75，怀疑是因为这个值设得太小了，尝试将此值调整至与 &lt;code&gt;MaxClients&lt;/code&gt; 相等，重启 apache ，发现负载开始持续下降，&lt;code&gt;top 中 apache 进程 pid 几乎没有产生变化&lt;/code&gt;，服务正常，qps没有明显下降（未导致服务不可用）。新的配置如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;&amp;lt;IfModule&lt;/span&gt; &lt;span class="err"&gt;mpm_worker_module&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
     StartServers          2
     ServerLimit          12
     MinSpareThreads      25
@@ -384,8 +380,10 @@ mongos&amp;gt;
     ThreadsPerChild      64
     MaxClients          768
     MaxRequestsPerChild   0
-&lt;/IfModule&gt;
-```&lt;/p&gt;
+&lt;span class="nt"&gt;&amp;lt;/IfModule&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;p&gt;至此问题解决，附优化前后的负载对比图：&lt;/p&gt;
 &lt;p&gt;优化前：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/apache_before_tuning.png"&gt;&lt;/p&gt;
@@ -395,36 +393,37 @@ mongos&amp;gt;
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
 You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
-```
+&lt;/pre&gt;&lt;/div&gt;
 
-尝试按说明执行 `pip …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+
+&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
 You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
-```
-
-尝试按说明执行 `pip install --upgrade pip` ，没有任何报错，但一直升级不成功，百思不得解，
-在查看 `man pip` 的时候，找到如下选项：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;-v, --verbose
-    Give more output. Option is additive, and can be used up to 3 times.&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;尝试执行 `pip install --upgrade pip -vvv` 终于有更多提示：
+&lt;p&gt;尝试按说明执行 &lt;code&gt;pip install --upgrade pip&lt;/code&gt; ，没有任何报错，但一直升级不成功，百思不得解，
+在查看 &lt;code&gt;man pip&lt;/code&gt; 的时候，找到如下选项：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;-v, --verbose
+    Give more output. Option is additive, and can be used up to 3 times.
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;1 location(s) to search for versions of pip:
+&lt;p&gt;尝试执行 &lt;code&gt;pip install --upgrade pip -vvv&lt;/code&gt; 终于有更多提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;1 location(s) to search for versions of pip:
 * http://example.url/simple/pip/
 Getting page http://example.url/simple/pip/
 Starting new HTTP connection (1): example.url
-"GET /simple/pip/ HTTP/1.1" 403 247
+&amp;quot;GET /simple/pip/ HTTP/1.1&amp;quot; 403 247
 Could not fetch URL http://example.url/simple/pip/: 403 Client Error: Forbidden for url: http://example.url/simple/pip/ - skipping
 Installed version (8.1.2) is most up-to-date (past versions: none)
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages/pip-8.1.2-py2.7.egg
 Cleaning up...
-```&lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;p&gt;这时才发现，原来在我的 &lt;code&gt;~/.pip/pip.conf&lt;/code&gt; 配置文件里，&lt;code&gt;index-url&lt;/code&gt; 使用了一个已经废弃的地址，删除文件后重新升级，一切恢复正常。&lt;/p&gt;
 &lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</content><category term="python"></category><category term="pip"></category></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><published>2014-11-17T14:35:00+08:00</published><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
@@ -455,27 +454,24 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 NetworkInterfaces.plist             com.apple.smb.server.plist
 com.apple.airport.preferences.plist com.apple.wifi.message-tracer.plist
 com.apple.captive.probe.plist       preferences.plist
-&lt;span class="sb"&gt;```&lt;/span&gt;
-
-把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
-注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。
-
-后来在网上看到 &lt;span class="o"&gt;[&lt;/span&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;span class="o"&gt;](&lt;/span&gt;http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/&lt;span class="o"&gt;)&lt;/span&gt;
-这编文章，其实只要删除：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;com.apple.airport.preferences.plist
+&lt;p&gt;把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
+注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
+&lt;p&gt;后来在网上看到 &lt;a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/"&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;/a&gt;
+这编文章，其实只要删除：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;com.apple.airport.preferences.plist
 com.apple.network.identification.plist
 com.apple.wifi.message-tracer.plist 
 NetworkInterfaces.plist 
-preferences.plist&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s s-Atom"&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+preferences.plist
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
-```&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><updated>2014-07-07T20:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+&lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
+&lt;/pre&gt;&lt;/div&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><updated>2014-07-07T20:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -519,9 +515,11 @@ preferences.plist&lt;/p&gt;
            day of month  1-31
            month         1-12 (or names, see below)
            day of week   0-7 (0 or 7 is Sun, or use names)
-```
+&lt;/pre&gt;&lt;/div&gt;
 
-&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
            -----         --------------
            minute        0-59
@@ -529,22 +527,23 @@ preferences.plist&lt;/p&gt;
            day of month  1-31
            month         1-12 (or names, see below)
            day of week   0-7 (0 or 7 is Sun, or use names)
-```
-
-&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and day of week.
-&amp;gt; If both fields are restricted (ie, are not *), the command will be
-&amp;gt; run when either field matches the current time.
-&amp;gt; For example, &amp;#39;&amp;#39;30 4 1,15 * 5&amp;#39;&amp;#39; would cause a command to be run
-&amp;gt; at 4:30 am on the 1st and 15th of each month, plus every Fri-day.
-
-来自wikipedia的说明（[http://en.wikipedia.org/wiki/Crontab](http://en.wikipedia.org/wiki/Crontab)）：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;While normally the job is executed when the time/date specification fields all match the current time and date,
-there is one exception: if both "day of month" and "day of week" are restricted (not "*"),
-then either the "day of month" field (3) or the "day of week" field (5) must match the current day.
-```&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day of week.
+If both fields are restricted (ie, are not *), the command will be
+run when either field matches the current time.
+For example, ''30 4 1,15 * 5'' would cause a command to be run
+at 4:30 am on the 1st and 15th of each month, plus every Fri-day.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;来自wikipedia的说明（&lt;a href="http://en.wikipedia.org/wiki/Crontab"&gt;http://en.wikipedia.org/wiki/Crontab&lt;/a&gt;）：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;While normally the job is executed when the time/date specification fields all match the current time and date,
+there is one exception: if both &amp;quot;day of month&amp;quot; and &amp;quot;day of week&amp;quot; are restricted (not &amp;quot;*&amp;quot;),
+then either the &amp;quot;day of month&amp;quot; field (3) or the &amp;quot;day of week&amp;quot; field (5) must match the current day.
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;p&gt;以设置crontab： 11 14 27 3 3 为例，下面两个类型的时间都能满足该表达式：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;3月里的每一个周三&lt;/li&gt;
