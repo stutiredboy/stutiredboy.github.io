@@ -2,8 +2,8 @@
 <feed xmlns="http://www.w3.org/2005/Atom"><title>老树的碎叶</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2018-11-02T19:58:00+08:00</updated><entry><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link href="http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html" rel="alternate"></link><published>2018-11-02T19:58:00+08:00</published><updated>2018-11-02T19:58:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2018-11-02:/posts/2018-11-02/capture-packet-from-ios-through-mac.html</id><summary type="html">&lt;ol&gt;
 &lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
 &lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
-&lt;li&gt;Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网络设备，不管手机用的是移动网络还是 WIFI，均可以通过该设备进行抓包。启动虚拟设备的命令如下：&lt;/li&gt;
-&lt;/ol&gt;
+&lt;li&gt;
+&lt;p&gt;Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网络设备，不管手机用的是移动网络还是 WIFI，均可以通过该设备进行抓包。启动虚拟设备的命令如下：&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;rvictl -s ${uuid}&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -14,11 +14,11 @@
 &lt;p&gt;其中的 rvi0 即为可用于抓包的虚拟设备。&lt;/p&gt;
 &lt;p&gt;如果操作失败，并返回 &lt;code&gt;bootstrap_look_up(): 1102&lt;/code&gt; 错误，请通过如下命令启动服务，并重复 &lt;code&gt;rvictl -s ${uuid}&lt;/code&gt; 的操作即可：&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;sudo launchctl load …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;ol&gt;
+&lt;p&gt;sudo launchctl load …&lt;/p&gt;&lt;/blockquote&gt;&lt;/li&gt;&lt;/ol&gt;</summary><content type="html">&lt;ol&gt;
 &lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
 &lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
-&lt;li&gt;Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网络设备，不管手机用的是移动网络还是 WIFI，均可以通过该设备进行抓包。启动虚拟设备的命令如下：&lt;/li&gt;
-&lt;/ol&gt;
+&lt;li&gt;
+&lt;p&gt;Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网络设备，不管手机用的是移动网络还是 WIFI，均可以通过该设备进行抓包。启动虚拟设备的命令如下：&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;rvictl -s ${uuid}&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -31,16 +31,18 @@
 &lt;blockquote&gt;
 &lt;p&gt;sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.rpmuxd.plist&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;之后就可以通过 tcpdump 命令进行抓包了，如：&lt;/li&gt;
-&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;之后就可以通过 tcpdump 命令进行抓包了，如：&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;tcpdump -i rvi0 -s 0 -vvv dst host x.x.x.x -w test.pcap&lt;/p&gt;
 &lt;/blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;之后可以通过 wireshark 打开 test.pcap 进行查看。通常你可以使用 &lt;code&gt;brew cask install wireshark&lt;/code&gt; 安装 wireshark.&lt;/li&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;之后可以通过 wireshark 打开 test.pcap 进行查看。通常你可以使用 &lt;code&gt;brew cask install wireshark&lt;/code&gt; 安装 wireshark.&lt;/p&gt;
+&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h3&gt;怎么通过 iTunes 往手机上安装 ipa 包？&lt;/h3&gt;
+&lt;h4&gt;怎么通过 iTunes 往手机上安装 ipa 包？&lt;/h4&gt;
 &lt;p&gt;旧版本的 iTunes，在设备信息里有个「应用」入口，并可以在这里安装 ipa 文件。这次顺便发现 iTunes 没有了这个入口，刚拿到 ipa 包时，有点不知道怎么办。原来，只要将将文件拖到 iTunes 对应的设备里，就会自动安装了。（拖到下面截图红色框框部份）&lt;/p&gt;
 &lt;p&gt;&lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_drop.png"&gt;&lt;/p&gt;</content><category term="tcpdump"></category><category term="wireshark"></category><category term="ios"></category><category term="mac"></category></entry><entry><title>一次「安全」的变更将 redis cluster 送进了孤岛</title><link href="http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html" rel="alternate"></link><published>2018-07-16T00:51:00+08:00</published><updated>2018-07-16T00:51:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-07-16:/posts/2018-07-16/redis-cluster-bind-bug.html</id><summary type="html">&lt;p&gt;一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</summary><content type="html">&lt;p&gt;鉴于 redis 没有有效的鉴权方法（特别是 redis cluster），为了防止人为疏忽导致系统防火墙未被有效开启，我们决定对线上的 redis 增加显示监听内网 IP 配置：&lt;/p&gt;
 &lt;blockquote&gt;
