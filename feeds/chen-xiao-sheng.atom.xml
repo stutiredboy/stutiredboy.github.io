@@ -38,94 +38,98 @@
 &lt;li&gt;当节点状态为 CLUSTER_NODE_FAIL 或 CLUSTER_NODE_PFAIL 时，节点被标记为不可达；&lt;/li&gt;
 &lt;li&gt;当不可达的 master 节点大于 quorum 时，集群被标记为不可用；&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;```c
-    /&lt;em&gt; Compute the cluster size, that is the number of master nodes
-     * serving at least a single slot.
-     &lt;/em&gt;
-     * At the same time count the number of reachable masters having
-     * at least one slot. */
-    {
-     ...
-                if ((node-&amp;gt;flags &amp;amp; (CLUSTER_NODE_FAIL|CLUSTER_NODE_PFAIL)) == 0)
-                    reachable_masters++;
-     ...
-    }&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* If we are in a minority partition, change the cluster state&lt;/span&gt;
-&lt;span class="cm"&gt; * to FAIL. */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;int&lt;span class="w"&gt; &lt;/span&gt;needed_quorum&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;size&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;        &lt;span class="cm"&gt;/* Compute the cluster size, that is the number of master nodes&lt;/span&gt;
+&lt;span class="cm"&gt;         * serving at least a single slot.&lt;/span&gt;
+&lt;span class="cm"&gt;         *&lt;/span&gt;
+&lt;span class="cm"&gt;         * At the same time count the number of reachable masters having&lt;/span&gt;
+&lt;span class="cm"&gt;         * at least one slot. */&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+         &lt;span class="p"&gt;...&lt;/span&gt;
+                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;flags&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_NODE_FAIL&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_NODE_PFAIL&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                        &lt;span class="n"&gt;reachable_masters&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+         &lt;span class="p"&gt;...&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
 
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="kr"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;reachable_masters&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;lt&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;needed_quorum&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;        &lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;CLUSTER_FAIL&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;        &lt;/span&gt;among_minority_time&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;mstime&lt;span class="o"&gt;()&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+        &lt;span class="cm"&gt;/* If we are in a minority partition, change the cluster state&lt;/span&gt;
+&lt;span class="cm"&gt;         * to FAIL. */&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;needed_quorum&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 
-&lt;span class="cm"&gt;/* Log a state change */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="kr"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;!&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;state&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;....&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="cm"&gt;/* Change the state and log the event. */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;serverLog&lt;span class="o"&gt;(&lt;/span&gt;LL_WARNING&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Cluster state changed: %s&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;        &lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;CLUSTER_OK&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;?&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;ok&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;fail&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;new_state&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;...&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;reachable_masters&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;needed_quorum&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;CLUSTER_FAIL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="n"&gt;among_minority_time&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mstime&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+
+        &lt;span class="cm"&gt;/* Log a state change */&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;state&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="p"&gt;....&lt;/span&gt;
+            &lt;span class="cm"&gt;/* Change the state and log the event. */&lt;/span&gt;
+            &lt;span class="n"&gt;serverLog&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;LL_WARNING&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Cluster state changed: %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="n"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;CLUSTER_OK&lt;/span&gt; &lt;span class="o"&gt;?&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;ok&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;fail&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;new_state&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;...&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;```&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 &lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 及非常符合异常特征的参数名称 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;c
-            fd = anetTcpNonBlockBindConnect(server.neterr, node-&amp;gt;ip,
-                node-&amp;gt;port+CLUSTER_PORT_INCR, NET_FIRST_BIND_ADDR);
-            if (fd == -1) {
-                /* We got a synchronous error from connect before
-                 * clusterSendPing() had a chance to be called.
-                 * If node-&amp;gt;ping_sent is zero, failure detection can't work,
-                 * so we claim we actually sent a ping now (that will
-                 * be really sent as soon as the link is obtained). */
-                if (node-&amp;gt;ping_sent == 0) node-&amp;gt;ping_sent = mstime();
-                serverLog(LL_DEBUG, "Unable to connect to "
-                    "Cluster Node [%s]:%d -&amp;gt; %s", node-&amp;gt;ip,
-                    node-&amp;gt;port+CLUSTER_PORT_INCR,
-                    server.neterr);
-                continue;
-            }&lt;/code&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 函数位于 anet.c 文件中，该函数调用了另一个函数 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt;，&lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt; 函数，找到以下内容：&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;c
-        if (source_addr) {
-            int bound = 0;
-            /* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */
-            if ((rv = getaddrinfo(source_addr, NULL, &amp;amp;hints, &amp;amp;bservinfo)) != 0)
-            {
-                anetSetError(err, "%s", gai_strerror(rv));
-                goto error;
-            }
-            for (b = bservinfo; b != NULL; b = b-&amp;gt;ai_next) {
-                if (bind(s,b-&amp;gt;ai_addr,b-&amp;gt;ai_addrlen) != -1) {
-                    bound = 1;
-                    break;
-                }
-            }
-            freeaddrinfo(bservinfo);
-            if (!bound) {
-               anetSetError(err, "bind: %s", strerror(errno));
-               goto error;
-            }
-        }&lt;/code&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1&lt;/p&gt;
-&lt;p&gt;```c
-/&lt;em&gt; Get the first bind addr or NULL &lt;/em&gt;/&lt;/p&gt;
-&lt;h1&gt;define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/h1&gt;
-&lt;p&gt;```&lt;/p&gt;
-&lt;/li&gt;
+&lt;ol start="2"&gt;
+&lt;li&gt;redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 &lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 及非常符合异常特征的参数名称 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt;&lt;/li&gt;
 &lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;                &lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;anetTcpNonBlockBindConnect&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;neterr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_PORT_INCR&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;NET_FIRST_BIND_ADDR&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="cm"&gt;/* We got a synchronous error from connect before&lt;/span&gt;
+&lt;span class="cm"&gt;                     * clusterSendPing() had a chance to be called.&lt;/span&gt;
+&lt;span class="cm"&gt;                     * If node-&amp;gt;ping_sent is zero, failure detection can&amp;#39;t work,&lt;/span&gt;
+&lt;span class="cm"&gt;                     * so we claim we actually sent a ping now (that will&lt;/span&gt;
+&lt;span class="cm"&gt;                     * be really sent as soon as the link is obtained). */&lt;/span&gt;
+                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ping_sent&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ping_sent&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mstime&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+                    &lt;span class="n"&gt;serverLog&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;LL_DEBUG&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Unable to connect to &amp;quot;&lt;/span&gt;
+                        &lt;span class="s"&gt;&amp;quot;Cluster Node [%s]:%d -&amp;gt; %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="n"&gt;node&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;CLUSTER_PORT_INCR&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;neterr&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                    &lt;span class="k"&gt;continue&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="3"&gt;
+&lt;li&gt;&lt;code&gt;anetTcpNonBlockBindConnect&lt;/code&gt; 函数位于 anet.c 文件中，该函数调用了另一个函数 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt;，&lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 &lt;code&gt;anetTcpGenericConnect&lt;/code&gt; 函数，找到以下内容：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;source_addr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;bound&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="cm"&gt;/* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="n"&gt;rv&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getaddrinfo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;source_addr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;hints&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+                &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="n"&gt;anetSetError&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;err&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;%s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;gai_strerror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;rv&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+                    &lt;span class="k"&gt;goto&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_next&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_addr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;ai_addrlen&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="n"&gt;bound&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                        &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                    &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="n"&gt;freeaddrinfo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bservinfo&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="n"&gt;bound&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                   &lt;span class="n"&gt;anetSetError&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;err&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;bind: %s&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;strerror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;errno&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+                   &lt;span class="k"&gt;goto&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;ol start="4"&gt;
+&lt;li&gt;通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 &lt;code&gt;NET_FIRST_BIND_ADDR&lt;/code&gt; 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    &lt;span class="cm"&gt;/* Get the first bind addr or NULL */&lt;/span&gt;
+    &lt;span class="cp"&gt;#define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;h3&gt;问题结论&lt;/h3&gt;
 &lt;ol&gt;
 &lt;li&gt;redis cluster 在检测节点健康状态时，尝试与其它节点建立连接，但强制使用了 bind 配置中的第一个 IP 为建立 socket 的源地址&lt;/li&gt;
