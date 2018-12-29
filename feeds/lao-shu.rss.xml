@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>老树的碎叶 - 老树</title><link>http://blog.chenxiaosheng.com/</link><description></description><lastBuildDate>Fri, 02 Nov 2018 19:58:00 +0800</lastBuildDate><item><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link>http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html</link><description>&lt;ol&gt;
+<rss version="2.0"><channel><title>碎碎念 - 老树</title><link>http://blog.chenxiaosheng.com/</link><description></description><lastBuildDate>Fri, 02 Nov 2018 19:58:00 +0800</lastBuildDate><item><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link>http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html</link><description>&lt;ol&gt;
 &lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
 &lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
 &lt;li&gt;
@@ -43,9 +43,10 @@
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
 You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
-```
+&lt;/pre&gt;&lt;/div&gt;
 
-尝试按说明执行 `pip …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Thu, 19 May 2016 12:11:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</guid><category>python</category><category>pip</category></item><item><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link>http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</link><description>&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+
+&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Thu, 19 May 2016 12:11:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</guid><category>python</category><category>pip</category></item><item><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link>http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</link><description>&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
 &lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
 并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
@@ -84,9 +85,11 @@ NetworkInterfaces.plist …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xml
            day of month  1-31
            month         1-12 (or names, see below)
            day of week   0-7 (0 or 7 is Sun, or use names)
-```
+&lt;/pre&gt;&lt;/div&gt;
 
-&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Linux系统上通知网关更新arp</title><link>http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html</link><description>&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Linux系统上通知网关更新arp</title><link>http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html</link><description>&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
