@@ -40,9 +40,11 @@
            day of month  1-31
            month         1-12 (or names, see below)
            day of week   0-7 (0 or 7 is Sun, or use names)
-```
+&lt;/pre&gt;&lt;/div&gt;
 
-&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Java 发起Http Post请求</title><link>http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html</link><description>&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
+
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Java 发起Http Post请求</title><link>http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html</link><description>&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
 &lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
