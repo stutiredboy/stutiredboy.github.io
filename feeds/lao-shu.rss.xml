@@ -28,10 +28,9 @@
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
 You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
-&lt;/pre&gt;&lt;/div&gt;
+```
 
-
-&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Thu, 19 May 2016 12:11:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</guid><category>python</category><category>pip</category></item><item><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link>http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</link><description>&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+尝试按说明执行 `pip …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">老树</dc:creator><pubDate>Thu, 19 May 2016 12:11:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</guid><category>python</category><category>pip</category></item><item><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link>http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</link><description>&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
 &lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
 并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
