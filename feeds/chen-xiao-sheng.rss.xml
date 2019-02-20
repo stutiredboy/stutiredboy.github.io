@@ -1,2 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>老树的碎叶 - 陈小生</title><link>http://blog.chenxiaosheng.com/</link><description></description><lastBuildDate>Mon, 16 Jul 2018 00:51:00 +0800</lastBuildDate><item><title>一次「安全」的变更将 redis cluster 送进了孤岛</title><link>http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html</link><description>&lt;p&gt;一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Mon, 16 Jul 2018 00:51:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2018-07-16:/posts/2018-07-16/redis-cluster-bind-bug.html</guid><category>redis</category></item></channel></rss>
+<rss version="2.0"><channel><title>碎碎念 - 陈小生</title><link>http://blog.chenxiaosheng.com/</link><description></description><lastBuildDate>Fri, 02 Nov 2018 19:58:00 +0800</lastBuildDate><item><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link>http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html</link><description>&lt;ol&gt;
+&lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
+&lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网络设备，不管手机用的是移动网络还是 WIFI，均可以通过该设备进行抓包。启动虚拟设备的命令如下：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;rvictl -s ${uuid}&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如果成功启动，将返回：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Starting device xxxxxxxx [SUCCEEDED] with interface rvi0&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;其中的 rvi0 即为可用于抓包的虚拟设备。&lt;/p&gt;
+&lt;p&gt;如果操作失败，并返回 &lt;code&gt;bootstrap_look_up(): 1102&lt;/code&gt; 错误，请通过如下命令启动服务，并重复 &lt;code&gt;rvictl -s ${uuid}&lt;/code&gt; 的操作即可：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;sudo launchctl load …&lt;/p&gt;&lt;/blockquote&gt;&lt;/li&gt;&lt;/ol&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Fri, 02 Nov 2018 19:58:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2018-11-02:/posts/2018-11-02/capture-packet-from-ios-through-mac.html</guid><category>tcpdump</category><category>wireshark</category><category>ios</category><category>mac</category></item><item><title>一次「安全」的变更将 redis cluster 送进了孤岛</title><link>http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html</link><description>&lt;p&gt;一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Mon, 16 Jul 2018 00:51:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2018-07-16:/posts/2018-07-16/redis-cluster-bind-bug.html</guid><category>redis</category></item><item><title>MongoDB 随机查询获取一条或 N 条记录的方法</title><link>http://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html</link><description>&lt;p&gt;MySQL 可以通过 &lt;code&gt;rand()&lt;/code&gt; 配合 &lt;code&gt;limit&lt;/code&gt; 获取随机的 N 条记录，那么在 MongoDB 上我们又该如何操作呢？&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Thu, 24 May 2018 12:14:13 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2018-05-24:/posts/2018-05-24/mongodb-random-query.html</guid><category>mongodb</category></item><item><title>LXC 如何找出容器对应的 veth 设备</title><link>http://blog.chenxiaosheng.com/posts/2017-03-29/lxc-veth-pairs.html</link><description>&lt;p&gt;LXC 使用 veth 模式时，如果宿主机上创建了很多容器，那么宿主上将存在大量的 vethXXXX 设备，肉眼难以直接确认每个虚拟容器使用的是哪个 veth 设备。&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Wed, 29 Mar 2017 11:42:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2017-03-29:/posts/2017-03-29/lxc-veth-pairs.html</guid><category>lxc</category></item><item><title>记一次 Apache 性能调优</title><link>http://blog.chenxiaosheng.com/posts/2017-03-23/apache-performance-tuning.html</link><description>&lt;p&gt;每一次神优化背后都有一个很烧饼的设置（bug），刷一次负载下降 70%+ 的小目标。&lt;/br&gt;&lt;img src="/static/apache_load.png"&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Thu, 23 Mar 2017 09:44:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2017-03-23:/posts/2017-03-23/apache-performance-tuning.html</guid><category>apache</category></item><item><title>查询 dns server 使用的bind版本</title><link>http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html</link><description>&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;${server}换成你想查询的dns服务器IP地址即可，如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;dig&lt;/span&gt; &lt;span class="mf"&gt;@8.8.8.8&lt;/span&gt; &lt;span class="n"&gt;CHAOS&lt;/span&gt; &lt;span class="n"&gt;TXT&lt;/span&gt; &lt;span class="n"&gt;version&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;bind&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其实通常情况下出于安全考虑，大多数我们是查询不到版本信息的（系统管理员禁用了）&lt;/p&gt;
+&lt;p&gt;bind 可以通过如下设置禁用版本号查询：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;options {
+    version none;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Mon, 07 Jul 2014 20:21:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</guid><category>bind</category><category>dns</category><category>dig</category><category>named</category></item><item><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link>http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html</link><description>&lt;p&gt;man 5 crontab:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
+           -----         --------------
+           minute        0-59
+           hour          0-23
+           day of month  1-31
+           month         1-12 (or names, see below)
+           day of week   0-7 (0 or 7 is Sun, or use names)
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;blockquote&gt;
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Java 发起Http Post请求</title><link>http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html</link><description>&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
+看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
+&lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
+&lt;span class="cm"&gt; * Java POST Example&lt;/span&gt;
+&lt;span class="cm"&gt; */&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.io.IOException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.MalformedURLException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.ProtocolException&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URL&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java.net.URLEncoder&lt;/span&gt;&lt;span class="o"&gt;;&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;java …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Wed, 19 Feb 2014 17:16:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-02-19:/posts/2014-02-19/java-ssl-and-http_post.html</guid><category>java</category><category>ssl</category><category>http</category><category>post</category></item><item><title>Java 使用自签证书访问https站点</title><link>http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html</link><description>&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
+我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
+都不知道他们怎么胜任日常的编码工作的=,=
+同时做为一个 Java 黑，我觉得，好吧，更黑了。。&lt;/p&gt;
+&lt;p&gt;anyway，经过各种折腾，至少总结出了以下两种使用自签证书访问 https 站点的办法。&lt;/p&gt;
+&lt;h3&gt;方法一&lt;/h3&gt;
+&lt;p&gt;拿到相应的 https 站点证书后（好吧，我这里是cnnic.crt，顺便吐槽一下万恶的 cnnic 证书，各种不信任）：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;keytool&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;keystore&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;JAVA_HOME&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jre&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;security&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;cacerts&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;file&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;certificate …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Thu, 26 Dec 2013 10:18:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-12-26:/posts/2013-12-26/java-use-self_signed_certificate.html</guid><category>java</category><category>ssl</category></item><item><title>OpenID4Java 使用dumb模式（stateless）并禁用 discovery</title><link>http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html</link><description>&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;manager&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ConsumerManager&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getRealmVerifier&lt;/span&gt;&lt;span class="o"&gt;().&lt;/span&gt;&lt;span class="na"&gt;setEnforceRpId&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+&lt;span class="c1"&gt;// 强制manager使用无状态模式&lt;/span&gt;
+&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;setMaxAssocAttempts&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;禁用 discovery&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;// 不要使用manager.discover构造discoveries&lt;/span&gt;
+&lt;span class="c1"&gt;// List discoveries = manager.discover(userSuppliedString);&lt;/span&gt;
+&lt;span class="c1"&gt;// 使用人肉构造discoveries&lt;/span&gt;
+&lt;span class="n"&gt;List&lt;/span&gt; &lt;span class="n"&gt;discoveries&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;ArrayList&lt;/span&gt;&lt;span class="o"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;discoveries&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;DiscoveryInformation&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http//real.openid.server.url&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Wed, 25 Dec 2013 12:20:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-12-25:/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html</guid><category>openid</category><category>java</category></item><item><title>ssh client 通过 socks5 proxy 登录远程服务器</title><link>http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html</link><description>&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
+发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
+因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x &lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;:&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;proxy_server_port&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; %h %p&amp;#39; xxx.xxx.xxx.xxx
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;如：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39; 8.8.8.8
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;需要注意的是，nc需要使用 OpenBSD 版本 …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Fri, 20 Dec 2013 12:20:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-12-20:/posts/2013-12-20/ssh-through-socks-proxy.html</guid><category>ssh</category><category>proxy</category></item><item><title>sshd无法使用secureFX传输文件</title><link>http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html</link><description>&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
+&lt;p&gt;正常情况下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+i RECV : Server Sftp Version: 3
+i SEND : RealPath(raw) .
+i Resolved RealPath: /home/demo
+i SEND : OpenDir /home/demo
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;而无法传输文件的服务器则是如下日志：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+i Changing state from STATE_CONNECTION to   STATE_TRANSPORT_STOPPING.
+i Changing state from STATE_TRANSPORT_STOPPING to STATE_CLOSING.
+i Changing state from …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Tue, 24 Sep 2013 15:58:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-09-24:/posts/2013-09-24/sshd-sftp-securefx.html</guid><category>sftp</category><category>secureFX</category><category>sshd</category></item><item><title>Django Admin 使用 filter_horizontal 不生效</title><link>http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html</link><description>&lt;p&gt;Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用&lt;code&gt;filter_horizontal&lt;/code&gt;进行显示的时候，我们碰到了一些问题。&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Mon, 23 Sep 2013 15:25:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-09-23:/posts/2013-09-23/django-filter_horizontal.html</guid><category>django</category><category>python</category></item></channel></rss>
