@@ -155,37 +155,36 @@
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
 You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
-&lt;/pre&gt;&lt;/div&gt;
+```
 
-
-&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+尝试按说明执行 `pip …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
 You are using pip version 8.1.1, however version 8.1.2 is available.
 You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
+```
+
+尝试按说明执行 `pip install --upgrade pip` ，没有任何报错，但一直升级不成功，百思不得解，
+在查看 `man pip` 的时候，找到如下选项：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;尝试按说明执行 &lt;code&gt;pip install --upgrade pip&lt;/code&gt; ，没有任何报错，但一直升级不成功，百思不得解，
-在查看 &lt;code&gt;man pip&lt;/code&gt; 的时候，找到如下选项：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;-v, --verbose
-    Give more output. Option is additive, and can be used up to 3 times.
+&lt;p&gt;-v, --verbose
+    Give more output. Option is additive, and can be used up to 3 times.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;尝试执行 `pip install --upgrade pip -vvv` 终于有更多提示：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;尝试执行 &lt;code&gt;pip install --upgrade pip -vvv&lt;/code&gt; 终于有更多提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;1 location(s) to search for versions of pip:
+&lt;p&gt;1 location(s) to search for versions of pip:
 * http://example.url/simple/pip/
 Getting page http://example.url/simple/pip/
 Starting new HTTP connection (1): example.url
-&amp;quot;GET /simple/pip/ HTTP/1.1&amp;quot; 403 247
+"GET /simple/pip/ HTTP/1.1" 403 247
 Could not fetch URL http://example.url/simple/pip/: 403 Client Error: Forbidden for url: http://example.url/simple/pip/ - skipping
 Installed version (8.1.2) is most up-to-date (past versions: none)
 Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages/pip-8.1.2-py2.7.egg
 Cleaning up...
-&lt;/pre&gt;&lt;/div&gt;
-
-
+```&lt;/p&gt;
 &lt;p&gt;这时才发现，原来在我的 &lt;code&gt;~/.pip/pip.conf&lt;/code&gt; 配置文件里，&lt;code&gt;index-url&lt;/code&gt; 使用了一个已经废弃的地址，删除文件后重新升级，一切恢复正常。&lt;/p&gt;
 &lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</content><category term="python"></category><category term="pip"></category></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><published>2014-11-17T14:35:00+08:00</published><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
@@ -216,24 +215,27 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 NetworkInterfaces.plist             com.apple.smb.server.plist
 com.apple.airport.preferences.plist com.apple.wifi.message-tracer.plist
 com.apple.captive.probe.plist       preferences.plist
+&lt;span class="sb"&gt;```&lt;/span&gt;
+
+把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
+注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。
+
+后来在网上看到 &lt;span class="o"&gt;[&lt;/span&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;span class="o"&gt;](&lt;/span&gt;http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/&lt;span class="o"&gt;)&lt;/span&gt;
+这编文章，其实只要删除：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
-注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
-&lt;p&gt;后来在网上看到 &lt;a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/"&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;/a&gt;
-这编文章，其实只要删除：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;com.apple.airport.preferences.plist
+&lt;p&gt;com.apple.airport.preferences.plist
 com.apple.network.identification.plist
 com.apple.wifi.message-tracer.plist 
 NetworkInterfaces.plist 
-preferences.plist
+preferences.plist&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s s-Atom"&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
-&lt;/pre&gt;&lt;/div&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+&lt;p&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
+```&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
