@@ -107,7 +107,7 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。</p>
 <p>重启电脑无效，网上搜到这么一编文章：<a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault">别忙升级，苹果 Yosemite 频现 WiFi 断线综合症</a></p>
 <p>虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：</p>
-<div class="highlight"><pre><span></span><span class="o">/</span><span class="n">Library</span><span class="o">/</span><span class="n">Preferences</span><span class="o">/</span><span class="n">SystemConfiguration</span>
+<div class="highlight"><pre><span></span>/Library/Preferences/SystemConfiguration
 </pre></div>
 
 
@@ -116,31 +116,34 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 NetworkInterfaces.plist             com.apple.smb.server.plist
 com.apple.airport.preferences.plist com.apple.wifi.message-tracer.plist
 com.apple.captive.probe.plist       preferences.plist
+<span class="sb">```</span>
+
+把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
+注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。
+
+后来在网上看到 <span class="o">[</span>Fix Wi-Fi Problems in OS X Yosemite<span class="o">](</span>http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/<span class="o">)</span>
+这编文章，其实只要删除：
 </pre></div>
 
 
-<p>把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
-注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。</p>
-<p>后来在网上看到 <a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/">Fix Wi-Fi Problems in OS X Yosemite</a>
-这编文章，其实只要删除：</p>
-<div class="highlight"><pre><span></span><span class="n">com</span><span class="p">.</span><span class="n">apple</span><span class="p">.</span><span class="n">airport</span><span class="p">.</span><span class="n">preferences</span><span class="p">.</span><span class="n">plist</span>
-<span class="n">com</span><span class="p">.</span><span class="n">apple</span><span class="p">.</span><span class="n">network</span><span class="p">.</span><span class="n">identification</span><span class="p">.</span><span class="n">plist</span>
-<span class="n">com</span><span class="p">.</span><span class="n">apple</span><span class="p">.</span><span class="n">wifi</span><span class="p">.</span><span class="n">message</span><span class="o">-</span><span class="n">tracer</span><span class="p">.</span><span class="n">plist</span><span class="err"> </span>
-<span class="n">NetworkInterfaces</span><span class="p">.</span><span class="n">plist</span><span class="err"> </span>
-<span class="n">preferences</span><span class="p">.</span><span class="n">plist</span>
+<p>com.apple.airport.preferences.plist
+com.apple.network.identification.plist
+com.apple.wifi.message-tracer.plist 
+NetworkInterfaces.plist 
+preferences.plist</p>
+<div class="highlight"><pre><span></span><span class="s s-Atom">这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-</span><span class="p">)</span>
 </pre></div>
 
 
-<p>这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)</p>
-<div class="highlight"><pre><span></span><span class="mi">2014</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">18</span> <span class="err">昨天折腾完，今天收到</span><span class="n">Apple</span> <span class="n">Store</span><span class="err">的更新提醒，</span><span class="mi">10</span><span class="p">.</span><span class="mi">10</span><span class="p">.</span><span class="mi">1</span> <span class="n">fix</span><span class="err">了</span><span class="n">wifi</span><span class="err">这个问题了</span>
-</pre></div>
+<p>2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
+```</p>
                 <h4 class="icon-hand-right"> 您可能还喜欢以下文章</h4>
                 <ul>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html">在 Mac 中对 iPhone 手机网络进行抓包的方法</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html">sshd无法使用secureFX传输文件</a></li>
                   <li><a href="http://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html">Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</a></li>
-                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html">Windows OpenVPN GUI记住用户名和密码</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html">在 Mac 中对 iPhone 手机网络进行抓包的方法</a></li>
                   <li><a href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html">查询 dns server 使用的bind版本</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html">pelican增加自定义jinja template filters</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html">pip 升级 pip 失败</a></li>
                 </ul>
                 <div class="panel-about row">
                   <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
@@ -191,7 +194,7 @@ com.apple.captive.probe.plist       preferences.plist
             <!-- NOTIFICATION START -->
             <div class="bs-callout bs-callout-info">
               <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@<a href="http://www.zhihu.com" target="blank">知乎</a></p>
-              <p>系统最后一次生成时间：2019-06-12 12:09:06</p>
+              <p>系统最后一次生成时间：2019-06-12 12:16:01</p>
             </div>
             <!-- NOTIFICATION END -->
             <!-- SOCIAL START -->
@@ -213,48 +216,48 @@ com.apple.captive.probe.plist       preferences.plist
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
-                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
                 <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
-                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
-                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
                 <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
             <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=8&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
@@ -286,23 +289,13 @@ com.apple.captive.probe.plist       preferences.plist
                     </a>
                 </li>
                 <li class="list-group-item tag-2">
-                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
-                        java
-                    </a>
-                </li>
-                <li class="list-group-item tag-2">
                     <a href="http://blog.chenxiaosheng.com/tag/mac.html">
                         mac
                     </a>
                 </li>
-                <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
-                        ssl
-                    </a>
-                </li>
-                <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
-                        bind
+                <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
+                        java
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
@@ -311,8 +304,13 @@ com.apple.captive.probe.plist       preferences.plist
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/mongodb.html">
-                        mongodb
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/debian.html">
+                        debian
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
@@ -321,33 +319,13 @@ com.apple.captive.probe.plist       preferences.plist
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
-                    <a href="http://blog.chenxiaosheng.com/tag/debian.html">
-                        debian
+                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
+                        ssl
                     </a>
                 </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/okr.html">
-                        okr
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/netease.html">
-                        netease
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
-                        ssh
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
-                        linux
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/dns.html">
-                        dns
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/mongodb.html">
+                        mongodb
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -356,18 +334,23 @@ com.apple.captive.probe.plist       preferences.plist
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
-                        proxy
+                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
+                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
+                        post
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/wireshark.html">
+                        wireshark
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -376,8 +359,28 @@ com.apple.captive.probe.plist       preferences.plist
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ios.html">
+                        ios
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
                     <a href="http://blog.chenxiaosheng.com/tag/named.html">
                         named
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dig.html">
+                        dig
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
+                        crontab
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -386,23 +389,28 @@ com.apple.captive.probe.plist       preferences.plist
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/yosemite.html">
-                        yosemite
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/redis.html">
-                        redis
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/mysql.html">
-                        mysql
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
                     <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
                         pelican
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -416,68 +424,18 @@ com.apple.captive.probe.plist       preferences.plist
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/pip.html">
-                        pip
+                    <a href="http://blog.chenxiaosheng.com/tag/redis.html">
+                        redis
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
-                        openvpn
+                    <a href="http://blog.chenxiaosheng.com/tag/dns.html">
+                        dns
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/lxc.html">
-                        lxc
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/ios.html">
-                        ios
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
-                        iterm2
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
-                        http
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
-                        arp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
-                        crontab
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
-                        sftp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/dig.html">
-                        dig
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/wireshark.html">
-                        wireshark
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -486,8 +444,53 @@ com.apple.captive.probe.plist       preferences.plist
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
-                        post
+                    <a href="http://blog.chenxiaosheng.com/tag/lxc.html">
+                        lxc
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/okr.html">
+                        okr
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/yosemite.html">
+                        yosemite
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
+                        http
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/pip.html">
+                        pip
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/mysql.html">
+                        mysql
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/netease.html">
+                        netease
                     </a>
                 </li>
             -->

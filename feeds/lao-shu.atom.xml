@@ -151,37 +151,40 @@
 &lt;li&gt;了解 TCP/IP 网络，有一定的故障排查和处理能力；&lt;/li&gt;
 &lt;li&gt;熟悉 DNS 协议、BIND，有相关运维经验，并能够快速实施部署、配置和排障；&lt;/li&gt;
 &lt;/ol&gt;</content><category term="netease"></category><category term="dba"></category><category term="mysql"></category><category term="mongodb"></category></entry><entry><title>pip 升级 pip 失败</title><link href="http://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html" rel="alternate"></link><published>2016-05-19T12:11:00+08:00</published><updated>2016-05-19T12:11:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</id><summary type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;#&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="c1"&gt;--upgrade pip&lt;/span&gt;
-&lt;span class="n"&gt;Requirement&lt;/span&gt; &lt;span class="n"&gt;already&lt;/span&gt; &lt;span class="n"&gt;up&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;date&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;python2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;dist&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;packages&lt;/span&gt;
-&lt;span class="n"&gt;You&lt;/span&gt; &lt;span class="k"&gt;are&lt;/span&gt; &lt;span class="k"&gt;using&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;however&lt;/span&gt; &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;available&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;You&lt;/span&gt; &lt;span class="n"&gt;should&lt;/span&gt; &lt;span class="n"&gt;consider&lt;/span&gt; &lt;span class="n"&gt;upgrading&lt;/span&gt; &lt;span class="n"&gt;via&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;pip install --upgrade pip …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;#&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="c1"&gt;--upgrade pip&lt;/span&gt;
-&lt;span class="n"&gt;Requirement&lt;/span&gt; &lt;span class="n"&gt;already&lt;/span&gt; &lt;span class="n"&gt;up&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;date&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;python2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;dist&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;packages&lt;/span&gt;
-&lt;span class="n"&gt;You&lt;/span&gt; &lt;span class="k"&gt;are&lt;/span&gt; &lt;span class="k"&gt;using&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;however&lt;/span&gt; &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;available&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;You&lt;/span&gt; &lt;span class="n"&gt;should&lt;/span&gt; &lt;span class="n"&gt;consider&lt;/span&gt; &lt;span class="n"&gt;upgrading&lt;/span&gt; &lt;span class="n"&gt;via&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;pip install --upgrade pip&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;command&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+You are using pip version 8.1.1, however version 8.1.2 is available.
+You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
+```
+
+尝试按说明执行 `pip …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;# pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+You are using pip version 8.1.1, however version 8.1.2 is available.
+You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
+```
+
+尝试按说明执行 `pip install --upgrade pip` ，没有任何报错，但一直升级不成功，百思不得解，
+在查看 `man pip` 的时候，找到如下选项：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;尝试按说明执行 &lt;code&gt;pip install --upgrade pip&lt;/code&gt; ，没有任何报错，但一直升级不成功，百思不得解，
-在查看 &lt;code&gt;man pip&lt;/code&gt; 的时候，找到如下选项：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="c1"&gt;--verbose&lt;/span&gt;
-    &lt;span class="n"&gt;Give&lt;/span&gt; &lt;span class="k"&gt;more&lt;/span&gt; &lt;span class="k"&gt;output&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="k"&gt;Option&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;additive&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;and&lt;/span&gt; &lt;span class="n"&gt;can&lt;/span&gt; &lt;span class="n"&gt;be&lt;/span&gt; &lt;span class="n"&gt;used&lt;/span&gt; &lt;span class="n"&gt;up&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="n"&gt;times&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;p&gt;-v, --verbose
+    Give more output. Option is additive, and can be used up to 3 times.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;尝试执行 `pip install --upgrade pip -vvv` 终于有更多提示：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;尝试执行 &lt;code&gt;pip install --upgrade pip -vvv&lt;/code&gt; 终于有更多提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="nv"&gt;location&lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;s&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;to&lt;/span&gt; &lt;span class="nv"&gt;search&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;versions&lt;/span&gt; &lt;span class="nv"&gt;of&lt;/span&gt; &lt;span class="nv"&gt;pip&lt;/span&gt;:
-&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;simple&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
-&lt;span class="nv"&gt;Getting&lt;/span&gt; &lt;span class="nv"&gt;page&lt;/span&gt; &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;simple&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
-&lt;span class="nv"&gt;Starting&lt;/span&gt; &lt;span class="nv"&gt;new&lt;/span&gt; &lt;span class="nv"&gt;HTTP&lt;/span&gt; &lt;span class="nv"&gt;connection&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;: &lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;
-&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;GET /simple/pip/ HTTP/1.1&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="mi"&gt;403&lt;/span&gt; &lt;span class="mi"&gt;247&lt;/span&gt;
-&lt;span class="nv"&gt;Could&lt;/span&gt; &lt;span class="nv"&gt;not&lt;/span&gt; &lt;span class="nv"&gt;fetch&lt;/span&gt; &lt;span class="nv"&gt;URL&lt;/span&gt; &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;simple&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;: &lt;span class="mi"&gt;403&lt;/span&gt; &lt;span class="nv"&gt;Client&lt;/span&gt; &lt;span class="nv"&gt;Error&lt;/span&gt;: &lt;span class="nv"&gt;Forbidden&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;url&lt;/span&gt;: &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;simple&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="nv"&gt;skipping&lt;/span&gt;
-&lt;span class="nv"&gt;Installed&lt;/span&gt; &lt;span class="nv"&gt;version&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;.&lt;span class="mi"&gt;1&lt;/span&gt;.&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;is&lt;/span&gt; &lt;span class="nv"&gt;most&lt;/span&gt; &lt;span class="nv"&gt;up&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;date&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;past&lt;/span&gt; &lt;span class="nv"&gt;versions&lt;/span&gt;: &lt;span class="nv"&gt;none&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;
-&lt;span class="nv"&gt;Requirement&lt;/span&gt; &lt;span class="nv"&gt;already&lt;/span&gt; &lt;span class="nv"&gt;up&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;date&lt;/span&gt;: &lt;span class="nv"&gt;pip&lt;/span&gt; &lt;span class="nv"&gt;in&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;python2&lt;/span&gt;.&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;dist&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;packages&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;.&lt;span class="mi"&gt;1&lt;/span&gt;.&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;py2&lt;/span&gt;.&lt;span class="mi"&gt;7&lt;/span&gt;.&lt;span class="nv"&gt;egg&lt;/span&gt;
-&lt;span class="nv"&gt;Cleaning&lt;/span&gt; &lt;span class="nv"&gt;up&lt;/span&gt;...
-&lt;/pre&gt;&lt;/div&gt;
-
-
+&lt;p&gt;1 location(s) to search for versions of pip:
+* http://example.url/simple/pip/
+Getting page http://example.url/simple/pip/
+Starting new HTTP connection (1): example.url
+"GET /simple/pip/ HTTP/1.1" 403 247
+Could not fetch URL http://example.url/simple/pip/: 403 Client Error: Forbidden for url: http://example.url/simple/pip/ - skipping
+Installed version (8.1.2) is most up-to-date (past versions: none)
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages/pip-8.1.2-py2.7.egg
+Cleaning up...
+```&lt;/p&gt;
 &lt;p&gt;这时才发现，原来在我的 &lt;code&gt;~/.pip/pip.conf&lt;/code&gt; 配置文件里，&lt;code&gt;index-url&lt;/code&gt; 使用了一个已经废弃的地址，删除文件后重新升级，一切恢复正常。&lt;/p&gt;
 &lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</content><category term="python"></category><category term="pip"></category></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="http://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><published>2014-11-17T14:35:00+08:00</published><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
@@ -190,7 +193,7 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
 &lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Library&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Preferences&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;SystemConfiguration&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/Library/Preferences/SystemConfiguration
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -203,7 +206,7 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
 &lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Library&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Preferences&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;SystemConfiguration&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/Library/Preferences/SystemConfiguration
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -212,44 +215,48 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 NetworkInterfaces.plist             com.apple.smb.server.plist
 com.apple.airport.preferences.plist com.apple.wifi.message-tracer.plist
 com.apple.captive.probe.plist       preferences.plist
+&lt;span class="sb"&gt;```&lt;/span&gt;
+
+把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
+注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。
+
+后来在网上看到 &lt;span class="o"&gt;[&lt;/span&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;span class="o"&gt;](&lt;/span&gt;http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/&lt;span class="o"&gt;)&lt;/span&gt;
+这编文章，其实只要删除：
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
-注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
-&lt;p&gt;后来在网上看到 &lt;a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/"&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;/a&gt;
-这编文章，其实只要删除：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;airport&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;preferences&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
-&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;identification&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
-&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;wifi&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;message&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;tracer&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;&lt;span class="err"&gt; &lt;/span&gt;
-&lt;span class="n"&gt;NetworkInterfaces&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;&lt;span class="err"&gt; &lt;/span&gt;
-&lt;span class="n"&gt;preferences&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
+&lt;p&gt;com.apple.airport.preferences.plist
+com.apple.network.identification.plist
+com.apple.wifi.message-tracer.plist 
+NetworkInterfaces.plist 
+preferences.plist&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s s-Atom"&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;2014&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;18&lt;/span&gt; &lt;span class="err"&gt;昨天折腾完，今天收到&lt;/span&gt;&lt;span class="n"&gt;Apple&lt;/span&gt; &lt;span class="n"&gt;Store&lt;/span&gt;&lt;span class="err"&gt;的更新提醒，&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="n"&gt;fix&lt;/span&gt;&lt;span class="err"&gt;了&lt;/span&gt;&lt;span class="n"&gt;wifi&lt;/span&gt;&lt;span class="err"&gt;这个问题了&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+&lt;p&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
+```&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="http://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt; &lt;span class="n"&gt;neigh&lt;/span&gt; &lt;span class="n"&gt;flush&lt;/span&gt; &lt;span class="n"&gt;dev&lt;/span&gt; &lt;span class="n"&gt;eth0&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;其次向网关发送本机的ip/mac地址&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;arping&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;c&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;S&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;144&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="mi"&gt;00&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;17&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;a4&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;98&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;1.1.1.144 为本机IP …&lt;/p&gt;</summary><content type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+&lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
+&lt;p&gt;00:17 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt; &lt;span class="n"&gt;neigh&lt;/span&gt; &lt;span class="n"&gt;flush&lt;/span&gt; &lt;span class="n"&gt;dev&lt;/span&gt; &lt;span class="n"&gt;eth0&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/ip neigh flush dev eth0
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;其次向网关发送本机的ip/mac地址&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;arping&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;c&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;S&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;144&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="mi"&gt;00&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;17&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;a4&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;98&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -307,7 +314,7 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
 &lt;p&gt;不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch&lt;/p&gt;
 &lt;p&gt;当然，更幸运的是在&lt;code&gt;github&lt;/code&gt;找到了此commit:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;github&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;getpelican&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pelican&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pull&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;96&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;https://github.com/getpelican/pelican/pull/96
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -321,7 +328,7 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
 &lt;p&gt;不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch&lt;/p&gt;
 &lt;p&gt;当然，更幸运的是在&lt;code&gt;github&lt;/code&gt;找到了此commit:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;github&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;getpelican&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pelican&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pull&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;96&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;https://github.com/getpelican/pelican/pull/96
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -349,80 +356,80 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;dns&lt;/span&gt; &lt;span class="k"&gt;DEFAULT&lt;/span&gt; &lt;span class="n"&gt;CHARSET&lt;/span&gt; &lt;span class="n"&gt;UTF8&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;使用 &lt;code&gt;use dns&lt;/code&gt; 切换进 &lt;code&gt;dns&lt;/code&gt; 数据库后，使用如下命令创建一张 &lt;code&gt;dns_records&lt;/code&gt; 表：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="ss"&gt;`dns_records`&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
-&lt;span class="ss"&gt;`zone`&lt;/span&gt; &lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="ss"&gt;`host`&lt;/span&gt; &lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="ss"&gt;`type`&lt;/span&gt; &lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="no"&gt;NULL …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE TABLE `dns_records` (
+`zone` varchar(255) NOT NULL,
+`host` varchar(255) NOT NULL,
+`type` varchar(12) NOT NULL …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;dns&lt;/span&gt; &lt;span class="k"&gt;DEFAULT&lt;/span&gt; &lt;span class="n"&gt;CHARSET&lt;/span&gt; &lt;span class="n"&gt;UTF8&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;使用 &lt;code&gt;use dns&lt;/code&gt; 切换进 &lt;code&gt;dns&lt;/code&gt; 数据库后，使用如下命令创建一张 &lt;code&gt;dns_records&lt;/code&gt; 表：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="ss"&gt;`dns_records`&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
-&lt;span class="ss"&gt;`zone`&lt;/span&gt; &lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="ss"&gt;`host`&lt;/span&gt; &lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="ss"&gt;`type`&lt;/span&gt; &lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="ss"&gt;`data`&lt;/span&gt; &lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="ss"&gt;`ttl`&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;DEFAULT&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;600&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="ss"&gt;`id`&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="no"&gt;NULL&lt;/span&gt; &lt;span class="kp"&gt;AUTO_INCREMENT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;span class="k"&gt;PRIMARY&lt;/span&gt; &lt;span class="k"&gt;KEY&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="ss"&gt;`id`&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
-&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="kp"&gt;ENGINE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;InnoDB&lt;/span&gt; &lt;span class="k"&gt;DEFAULT&lt;/span&gt; &lt;span class="kp"&gt;CHARSET&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;utf8&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;CREATE TABLE `dns_records` (
+`zone` varchar(255) NOT NULL,
+`host` varchar(255) NOT NULL,
+`type` varchar(12) NOT NULL,
+`data` varchar(255) NOT NULL,
+`ttl` int(11) DEFAULT &amp;#39;600&amp;#39;,
+`id` int(11) NOT NULL AUTO_INCREMENT,
+PRIMARY KEY (`id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;这里以域 &lt;code&gt;example.com&lt;/code&gt; 为例，说明如上字段意义，假设我需要有一条 &lt;code&gt;www.example.com&lt;/code&gt; 的记录指向 &lt;code&gt;1.1.1.1&lt;/code&gt; 这个IP，应该增加哪些内容：&lt;/p&gt;
 &lt;p&gt;zone:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域，这里指&lt;/span&gt; &lt;span class="n"&gt;example&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;域，这里指 example.com
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;host:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;主机名（名字），这里为&lt;/span&gt; &lt;span class="n"&gt;www&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;主机名（名字），这里为 www
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;type:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;记录类型，这里为&lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;记录类型，这里为A
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;data:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域名资源数据，这里为&lt;/span&gt;&lt;span class="n"&gt;IP&lt;/span&gt;&lt;span class="err"&gt;地址&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;域名资源数据，这里为IP地址 1.1.1.1
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;ttl:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域名&lt;/span&gt;&lt;span class="n"&gt;TTL&lt;/span&gt;&lt;span class="err"&gt;，为任意整数（建议不要低于&lt;/span&gt;&lt;span class="mi"&gt;120&lt;/span&gt;&lt;span class="err"&gt;，即&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="err"&gt;分钟）&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;域名TTL，为任意整数（建议不要低于120，即2分钟）
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;将该数据库授权给某用户（后续bind-dlz配置需要用到）：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;grant&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;select&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;on&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;dns&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;to&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;dns&lt;/span&gt;&lt;span class="nv"&gt;@localhost&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;identified&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;by&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;dns&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;grant select on dns.* to dns@localhost identified by &amp;#39;dns&amp;#39;;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;用户名为 &lt;code&gt;dns&lt;/code&gt; ，密码也为 &lt;code&gt;dns&lt;/code&gt; ，只允许本地主机 &lt;code&gt;localhost&lt;/code&gt; 访问，并只给予了 &lt;code&gt;select&lt;/code&gt; 权限。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; Bind-dlz配置 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;这里只涉及dlz的配置，其它named.conf的配置不涉及&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;dlz&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;your custom description&amp;quot;&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
-    &lt;span class="k"&gt;database&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;mysql&lt;/span&gt;
-&lt;span class="ss"&gt;        {host=localhost dbname=dns user=dns pass=dns}&lt;/span&gt;
-&lt;span class="ss"&gt;        {select zone from dns_records where zone = &amp;#39;$zone$&amp;#39;}&lt;/span&gt;
-&lt;span class="ss"&gt;        {select ttl, type, data from dns_records where host = &amp;#39;$record$&amp;#39; and zone=&amp;#39;$zone$&amp;#39;}&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;dlz &amp;quot;your custom description&amp;quot; {
+    database &amp;quot;mysql
+        {host=localhost dbname=dns user=dns pass=dns}
+        {select zone from dns_records where zone = &amp;#39;$zone$&amp;#39;}
+        {select ttl, type, data from dns_records where host = &amp;#39;$record$&amp;#39; and zone=&amp;#39;$zone$&amp;#39;}&amp;quot;;
+};
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;your custom description:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;管理员自行添加的描述&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;管理员自行添加的描述
 &lt;/pre&gt;&lt;/div&gt;
 
 
