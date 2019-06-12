@@ -60,12 +60,12 @@
 &lt;p&gt;首要事件是保证服务可用，我们第一时间回退配置，重启后 redis 服务恢复正常。&lt;/p&gt;
 &lt;h3&gt;问题回放&lt;/h3&gt;
 &lt;p&gt;开启 Debug 模式，发现有大量的 createing socket: invalid argument 怀疑是 redis 拿了 bind 中的第一个 IP 为节点 IP，导致集群中所有节点的 IP 为 127.0.0.1，因此集群的通信出现问题（事后 review 代码确认跟第一个 IP 有关系，但不是导致所有节点的 IP 为 127.0.0.1）。&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;1616&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;25.407&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;changed&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;ok&lt;/span&gt;
-&lt;span class="o"&gt;......&lt;/span&gt;
-&lt;span class="mi"&gt;13236&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;27.104&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="n"&gt;Unable&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;connect&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;Node&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;]:&lt;/span&gt;&lt;span class="mi"&gt;16379&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;creating&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Invalid&lt;/span&gt; &lt;span class="n"&gt;argument&lt;/span&gt;
-&lt;span class="mi"&gt;13236&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;27.104&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="n"&gt;Unable&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;connect&lt;/span&gt; &lt;span class="n"&gt;to&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;Node&lt;/span&gt; &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="na"&gt;x&lt;/span&gt;&lt;span class="o"&gt;]:&lt;/span&gt;&lt;span class="mi"&gt;16379&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;creating&lt;/span&gt; &lt;span class="n"&gt;socket&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Invalid&lt;/span&gt; &lt;span class="n"&gt;argument&lt;/span&gt;
-&lt;span class="o"&gt;......&lt;/span&gt;
-&lt;span class="mi"&gt;1616&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="n"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;02&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;38.438&lt;/span&gt; &lt;span class="err"&gt;#&lt;/span&gt; &lt;span class="n"&gt;Cluster&lt;/span&gt; &lt;span class="n"&gt;state&lt;/span&gt; &lt;span class="n"&gt;changed&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;fail&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;1616&lt;/span&gt;:&lt;span class="nv"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="nv"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;:&lt;span class="mi"&gt;02&lt;/span&gt;:&lt;span class="mi"&gt;25&lt;/span&gt;.&lt;span class="mi"&gt;407&lt;/span&gt; # &lt;span class="nv"&gt;Cluster&lt;/span&gt; &lt;span class="nv"&gt;state&lt;/span&gt; &lt;span class="nv"&gt;changed&lt;/span&gt;: &lt;span class="nv"&gt;ok&lt;/span&gt;
+......
+&lt;span class="mi"&gt;13236&lt;/span&gt;:&lt;span class="nv"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="nv"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;:&lt;span class="mi"&gt;02&lt;/span&gt;:&lt;span class="mi"&gt;27&lt;/span&gt;.&lt;span class="mi"&gt;104&lt;/span&gt; . &lt;span class="nv"&gt;Unable&lt;/span&gt; &lt;span class="nv"&gt;to&lt;/span&gt; &lt;span class="k"&gt;connect&lt;/span&gt; &lt;span class="nv"&gt;to&lt;/span&gt; &lt;span class="nv"&gt;Cluster&lt;/span&gt; &lt;span class="nv"&gt;Node&lt;/span&gt; [&lt;span class="mi"&gt;10&lt;/span&gt;.&lt;span class="nv"&gt;x&lt;/span&gt;.&lt;span class="nv"&gt;x&lt;/span&gt;.&lt;span class="nv"&gt;x&lt;/span&gt;]:&lt;span class="mi"&gt;16379&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;creating&lt;/span&gt; &lt;span class="nv"&gt;socket&lt;/span&gt;: &lt;span class="nv"&gt;Invalid&lt;/span&gt; &lt;span class="nv"&gt;argument&lt;/span&gt;
+&lt;span class="mi"&gt;13236&lt;/span&gt;:&lt;span class="nv"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="nv"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;:&lt;span class="mi"&gt;02&lt;/span&gt;:&lt;span class="mi"&gt;27&lt;/span&gt;.&lt;span class="mi"&gt;104&lt;/span&gt; . &lt;span class="nv"&gt;Unable&lt;/span&gt; &lt;span class="nv"&gt;to&lt;/span&gt; &lt;span class="k"&gt;connect&lt;/span&gt; &lt;span class="nv"&gt;to&lt;/span&gt; &lt;span class="nv"&gt;Cluster&lt;/span&gt; &lt;span class="nv"&gt;Node&lt;/span&gt; [&lt;span class="mi"&gt;10&lt;/span&gt;.&lt;span class="nv"&gt;x&lt;/span&gt;.&lt;span class="nv"&gt;x&lt;/span&gt;.&lt;span class="nv"&gt;x&lt;/span&gt;]:&lt;span class="mi"&gt;16379&lt;/span&gt; &lt;span class="o"&gt;-&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;creating&lt;/span&gt; &lt;span class="nv"&gt;socket&lt;/span&gt;: &lt;span class="nv"&gt;Invalid&lt;/span&gt; &lt;span class="nv"&gt;argument&lt;/span&gt;
+......
+&lt;span class="mi"&gt;1616&lt;/span&gt;:&lt;span class="nv"&gt;M&lt;/span&gt; &lt;span class="mi"&gt;02&lt;/span&gt; &lt;span class="nv"&gt;Jul&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;:&lt;span class="mi"&gt;02&lt;/span&gt;:&lt;span class="mi"&gt;38&lt;/span&gt;.&lt;span class="mi"&gt;438&lt;/span&gt; # &lt;span class="nv"&gt;Cluster&lt;/span&gt; &lt;span class="nv"&gt;state&lt;/span&gt; &lt;span class="nv"&gt;changed&lt;/span&gt;: &lt;span class="nv"&gt;fail&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -96,25 +96,25 @@
      ...
     }&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* If we are in a minority partition, change the cluster state&lt;/span&gt;
-&lt;span class="cm"&gt; * to FAIL. */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;int&lt;span class="w"&gt; &lt;/span&gt;needed_quorum&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;size&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="cm"&gt; * to FAIL. */&lt;/span&gt;
+{
+    &lt;span class="nv"&gt;int&lt;/span&gt; &lt;span class="nv"&gt;needed_quorum&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;gt&lt;/span&gt;&lt;span class="c1"&gt;;size / 2) + 1;&lt;/span&gt;
 
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="kr"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;reachable_masters&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;lt&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;needed_quorum&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;        &lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;CLUSTER_FAIL&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;        &lt;/span&gt;among_minority_time&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;mstime&lt;span class="o"&gt;()&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;reachable_masters&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;lt&lt;/span&gt;&lt;span class="c1"&gt;; needed_quorum) {&lt;/span&gt;
+        &lt;span class="nv"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;CLUSTER_FAIL&lt;/span&gt;&lt;span class="c1"&gt;;&lt;/span&gt;
+        &lt;span class="nv"&gt;among_minority_time&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;mstime&lt;/span&gt;&lt;span class="ss"&gt;()&lt;/span&gt;&lt;span class="c1"&gt;;&lt;/span&gt;
+    }
+}
 
-&lt;span class="cm"&gt;/* Log a state change */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="kr"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;(&lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;!&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;state&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;....&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="cm"&gt;/* Change the state and log the event. */&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;serverLog&lt;span class="o"&gt;(&lt;/span&gt;LL_WARNING&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Cluster state changed: %s&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;        &lt;/span&gt;new_state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;CLUSTER_OK&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;?&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;ok&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;fail&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;server&lt;span class="o"&gt;.&lt;/span&gt;cluster&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;gt&lt;span class="err"&gt;;&lt;/span&gt;state&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;new_state&lt;span class="err"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;...&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="cm"&gt;/* Log a state change */&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;gt&lt;/span&gt;&lt;span class="c1"&gt;;state) {&lt;/span&gt;
+    ....
+    &lt;span class="cm"&gt;/* Change the state and log the event. */&lt;/span&gt;
+    &lt;span class="nv"&gt;serverLog&lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;LL_WARNING&lt;/span&gt;,&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;Cluster state changed: %s&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;,
+        &lt;span class="nv"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nv"&gt;CLUSTER_OK&lt;/span&gt; ? &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;ok&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; : &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;fail&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;&lt;/span&gt;
+    &lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;gt&lt;/span&gt;&lt;span class="c1"&gt;;state = new_state;&lt;/span&gt;
+    ...
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -195,26 +195,26 @@
 &lt;p&gt;$sample (aggregation)&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;具体应该如何操作，官方也给出了一个示例，假设 Collection users 有如下记录：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;{ &amp;quot;_id&amp;quot; : 1, &amp;quot;name&amp;quot; : &amp;quot;dave123&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
-{ &amp;quot;_id&amp;quot; : 2, &amp;quot;name&amp;quot; : &amp;quot;dave2&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : false  }
-{ &amp;quot;_id&amp;quot; : 3, &amp;quot;name&amp;quot; : &amp;quot;ahn&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
-{ &amp;quot;_id&amp;quot; : 4, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : false  }
-{ &amp;quot;_id&amp;quot; : 5, &amp;quot;name&amp;quot; : &amp;quot;annT&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
-{ &amp;quot;_id&amp;quot; : 6, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true  }
-{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true  }
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;dave123&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;dave2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;  &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;ahn&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;  &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;li&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;  &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;annT&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;  &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;li&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;  &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;ty&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;  &lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;那么可以通过命令 &lt;code&gt;db.users.aggregate( [ { $sample: { size: N } } ] )&lt;/code&gt; 获取随机的 N 条记录，如：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
-{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true }
-{ &amp;quot;_id&amp;quot; : 4, &amp;quot;name&amp;quot; : &amp;quot;li&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : false }
-{ &amp;quot;_id&amp;quot; : 1, &amp;quot;name&amp;quot; : &amp;quot;dave123&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
-mongos&amp;gt; db.users.aggregate( [ { $sample: { size: 3 } } ] )
-{ &amp;quot;_id&amp;quot; : 7, &amp;quot;name&amp;quot; : &amp;quot;ty&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : true }
-{ &amp;quot;_id&amp;quot; : 3, &amp;quot;name&amp;quot; : &amp;quot;ahn&amp;quot;, &amp;quot;q1&amp;quot; : true, &amp;quot;q2&amp;quot; : true }
-{ &amp;quot;_id&amp;quot; : 2, &amp;quot;name&amp;quot; : &amp;quot;dave2&amp;quot;, &amp;quot;q1&amp;quot; : false, &amp;quot;q2&amp;quot; : false }
-mongos&amp;gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;mongos&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;users&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;aggregate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;sample&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="k"&gt;size&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;ty&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;li&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;dave123&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="n"&gt;mongos&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;db&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;users&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;aggregate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="n"&gt;sample&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="k"&gt;size&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;ty&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;ahn&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;{&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;_id&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;dave2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q1&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;q2&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt; &lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="n"&gt;mongos&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -252,7 +252,7 @@ mongos&amp;gt;
 &lt;ol&gt;
 &lt;li&gt;MaxRequestsPerChild&lt;/li&gt;
 &lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;The MaxRequestsPerChild directive sets the limit on the number of requests that an individual child server process will handle. After MaxRequestsPerChild requests, the child process will die. If MaxRequestsPerChild is 0, then the process will never expire.
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;The&lt;/span&gt; &lt;span class="nv"&gt;MaxRequestsPerChild&lt;/span&gt; &lt;span class="nv"&gt;directive&lt;/span&gt; &lt;span class="nv"&gt;sets&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;limit&lt;/span&gt; &lt;span class="nv"&gt;on&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;number&lt;/span&gt; &lt;span class="nv"&gt;of&lt;/span&gt; &lt;span class="nv"&gt;requests&lt;/span&gt; &lt;span class="nv"&gt;that&lt;/span&gt; &lt;span class="nv"&gt;an&lt;/span&gt; &lt;span class="nv"&gt;individual&lt;/span&gt; &lt;span class="nv"&gt;child&lt;/span&gt; &lt;span class="nv"&gt;server&lt;/span&gt; &lt;span class="nv"&gt;process&lt;/span&gt; &lt;span class="nv"&gt;will&lt;/span&gt; &lt;span class="nv"&gt;handle&lt;/span&gt;. &lt;span class="nv"&gt;After&lt;/span&gt; &lt;span class="nv"&gt;MaxRequestsPerChild&lt;/span&gt; &lt;span class="nv"&gt;requests&lt;/span&gt;, &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;child&lt;/span&gt; &lt;span class="nv"&gt;process&lt;/span&gt; &lt;span class="nv"&gt;will&lt;/span&gt; &lt;span class="nv"&gt;die&lt;/span&gt;. &lt;span class="k"&gt;If&lt;/span&gt; &lt;span class="nv"&gt;MaxRequestsPerChild&lt;/span&gt; &lt;span class="nv"&gt;is&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;, &lt;span class="k"&gt;then&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;process&lt;/span&gt; &lt;span class="nv"&gt;will&lt;/span&gt; &lt;span class="nv"&gt;never&lt;/span&gt; &lt;span class="nv"&gt;expire&lt;/span&gt;.
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -260,7 +260,7 @@ mongos&amp;gt;
 &lt;ol&gt;
 &lt;li&gt;MaxSpareThreads&lt;/li&gt;
 &lt;/ol&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;For worker, the default is MaxSpareThreads 250. These MPMs deal with idle threads on a server-wide basis. If there are too many idle threads in the server then child processes are killed until the number of idle threads is less than this number.
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;For&lt;/span&gt; &lt;span class="nv"&gt;worker&lt;/span&gt;, &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;default&lt;/span&gt; &lt;span class="nv"&gt;is&lt;/span&gt; &lt;span class="nv"&gt;MaxSpareThreads&lt;/span&gt; &lt;span class="mi"&gt;250&lt;/span&gt;. &lt;span class="nv"&gt;These&lt;/span&gt; &lt;span class="nv"&gt;MPMs&lt;/span&gt; &lt;span class="nv"&gt;deal&lt;/span&gt; &lt;span class="nv"&gt;with&lt;/span&gt; &lt;span class="nv"&gt;idle&lt;/span&gt; &lt;span class="nv"&gt;threads&lt;/span&gt; &lt;span class="nv"&gt;on&lt;/span&gt; &lt;span class="nv"&gt;a&lt;/span&gt; &lt;span class="nv"&gt;server&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;wide&lt;/span&gt; &lt;span class="nv"&gt;basis&lt;/span&gt;. &lt;span class="k"&gt;If&lt;/span&gt; &lt;span class="nv"&gt;there&lt;/span&gt; &lt;span class="nv"&gt;are&lt;/span&gt; &lt;span class="nv"&gt;too&lt;/span&gt; &lt;span class="nv"&gt;many&lt;/span&gt; &lt;span class="nv"&gt;idle&lt;/span&gt; &lt;span class="nv"&gt;threads&lt;/span&gt; &lt;span class="nv"&gt;in&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;server&lt;/span&gt; &lt;span class="k"&gt;then&lt;/span&gt; &lt;span class="nv"&gt;child&lt;/span&gt; &lt;span class="nv"&gt;processes&lt;/span&gt; &lt;span class="nv"&gt;are&lt;/span&gt; &lt;span class="nv"&gt;killed&lt;/span&gt; &lt;span class="k"&gt;until&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;number&lt;/span&gt; &lt;span class="nv"&gt;of&lt;/span&gt; &lt;span class="nv"&gt;idle&lt;/span&gt; &lt;span class="nv"&gt;threads&lt;/span&gt; &lt;span class="nv"&gt;is&lt;/span&gt; &lt;span class="nv"&gt;less&lt;/span&gt; &lt;span class="nv"&gt;than&lt;/span&gt; &lt;span class="nv"&gt;this&lt;/span&gt; &lt;span class="nv"&gt;number&lt;/span&gt;.
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -294,9 +294,9 @@ mongos&amp;gt;
 
 &lt;p&gt;其实通常情况下出于安全考虑，大多数我们是查询不到版本信息的（系统管理员禁用了）&lt;/p&gt;
 &lt;p&gt;bind 可以通过如下设置禁用版本号查询：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;options {
-    version none;
-}
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;options&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="k"&gt;none&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -312,32 +312,32 @@ mongos&amp;gt;
 
 &lt;p&gt;其实通常情况下出于安全考虑，大多数我们是查询不到版本信息的（系统管理员禁用了）&lt;/p&gt;
 &lt;p&gt;bind 可以通过如下设置禁用版本号查询：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;options {
-    version none;
-}
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;options&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="k"&gt;none&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</content><category term="bind"></category><category term="dns"></category><category term="dig"></category><category term="named"></category></entry><entry><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html" rel="alternate"></link><published>2014-05-09T13:31:00+08:00</published><updated>2014-05-09T13:31:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</id><summary type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
-           -----         --------------
-           minute        0-59
-           hour          0-23
-           day of month  1-31
-           month         1-12 (or names, see below)
-           day of week   0-7 (0 or 7 is Sun, or use names)
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           &lt;span class="n"&gt;field&lt;/span&gt;         &lt;span class="n"&gt;allowed&lt;/span&gt; &lt;span class="k"&gt;values&lt;/span&gt;
+           &lt;span class="c1"&gt;-----         --------------&lt;/span&gt;
+           &lt;span class="k"&gt;minute&lt;/span&gt;        &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;59&lt;/span&gt;
+           &lt;span class="n"&gt;hour&lt;/span&gt;          &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;23&lt;/span&gt;
+           &lt;span class="k"&gt;day&lt;/span&gt; &lt;span class="k"&gt;of&lt;/span&gt; &lt;span class="k"&gt;month&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;31&lt;/span&gt;
+           &lt;span class="k"&gt;month&lt;/span&gt;         &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="k"&gt;names&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;see&lt;/span&gt; &lt;span class="n"&gt;below&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+           &lt;span class="k"&gt;day&lt;/span&gt; &lt;span class="k"&gt;of&lt;/span&gt; &lt;span class="n"&gt;week&lt;/span&gt;   &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;Sun&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="n"&gt;use&lt;/span&gt; &lt;span class="k"&gt;names&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;blockquote&gt;
-&lt;p&gt;Note: The day of a command's execution can be specified by two fields -- day of month, and day …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
-           -----         --------------
-           minute        0-59
-           hour          0-23
-           day of month  1-31
-           month         1-12 (or names, see below)
-           day of week   0-7 (0 or 7 is Sun, or use names)
+&lt;p&gt;Note: The day of a command's execution can be specified by two fields …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           &lt;span class="n"&gt;field&lt;/span&gt;         &lt;span class="n"&gt;allowed&lt;/span&gt; &lt;span class="k"&gt;values&lt;/span&gt;
+           &lt;span class="c1"&gt;-----         --------------&lt;/span&gt;
+           &lt;span class="k"&gt;minute&lt;/span&gt;        &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;59&lt;/span&gt;
+           &lt;span class="n"&gt;hour&lt;/span&gt;          &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;23&lt;/span&gt;
+           &lt;span class="k"&gt;day&lt;/span&gt; &lt;span class="k"&gt;of&lt;/span&gt; &lt;span class="k"&gt;month&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;31&lt;/span&gt;
+           &lt;span class="k"&gt;month&lt;/span&gt;         &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="k"&gt;names&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;see&lt;/span&gt; &lt;span class="n"&gt;below&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+           &lt;span class="k"&gt;day&lt;/span&gt; &lt;span class="k"&gt;of&lt;/span&gt; &lt;span class="n"&gt;week&lt;/span&gt;   &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;Sun&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="n"&gt;use&lt;/span&gt; &lt;span class="k"&gt;names&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -349,9 +349,9 @@ For example, ''30 4 1,15 * 5'' would cause a command to be run
 at 4:30 am on the 1st and 15th of each month, plus every Fri-day.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;来自wikipedia的说明（&lt;a href="http://en.wikipedia.org/wiki/Crontab"&gt;http://en.wikipedia.org/wiki/Crontab&lt;/a&gt;）：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;While normally the job is executed when the time/date specification fields all match the current time and date,
-there is one exception: if both &amp;quot;day of month&amp;quot; and &amp;quot;day of week&amp;quot; are restricted (not &amp;quot;*&amp;quot;),
-then either the &amp;quot;day of month&amp;quot; field (3) or the &amp;quot;day of week&amp;quot; field (5) must match the current day.
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;While&lt;/span&gt; &lt;span class="nv"&gt;normally&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;job&lt;/span&gt; &lt;span class="nv"&gt;is&lt;/span&gt; &lt;span class="nv"&gt;executed&lt;/span&gt; &lt;span class="nv"&gt;when&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;time&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;date&lt;/span&gt; &lt;span class="nv"&gt;specification&lt;/span&gt; &lt;span class="nv"&gt;fields&lt;/span&gt; &lt;span class="nv"&gt;all&lt;/span&gt; &lt;span class="nv"&gt;match&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;current&lt;/span&gt; &lt;span class="nv"&gt;time&lt;/span&gt; &lt;span class="nv"&gt;and&lt;/span&gt; &lt;span class="nv"&gt;date&lt;/span&gt;,
+&lt;span class="nv"&gt;there&lt;/span&gt; &lt;span class="nv"&gt;is&lt;/span&gt; &lt;span class="nv"&gt;one&lt;/span&gt; &lt;span class="nv"&gt;exception&lt;/span&gt;: &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="nv"&gt;both&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;day of month&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;and&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;day of week&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;are&lt;/span&gt; &lt;span class="nv"&gt;restricted&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;not&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;*&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;,
+&lt;span class="k"&gt;then&lt;/span&gt; &lt;span class="nv"&gt;either&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;day of month&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;field&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;or&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;day of week&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="nv"&gt;field&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;must&lt;/span&gt; &lt;span class="nv"&gt;match&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;current&lt;/span&gt; &lt;span class="nv"&gt;day&lt;/span&gt;.
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -647,7 +647,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 
 
 &lt;p&gt;如：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39; 8.8.8.8
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;ssh&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;o&lt;/span&gt; &lt;span class="n"&gt;ProxyCommand&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39;&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -659,52 +659,52 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 
 
 &lt;p&gt;如：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39; 8.8.8.8
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;ssh&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;o&lt;/span&gt; &lt;span class="n"&gt;ProxyCommand&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39;&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;需要注意的是，nc需要使用 OpenBSD 版本，非 Linux 默认版本（该版本不支持）
 通常，类 Debian 的衍生版本，都可以通过如下命令直接安装：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;apt-get install netcat-openbsd
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;apt&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;get&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="n"&gt;netcat&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;openbsd&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;非OpenBSD 可能报如下错误：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;/bin/nc: invalid option -- &amp;#39;x&amp;#39;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;nc&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;invalid&lt;/span&gt; &lt;span class="k"&gt;option&lt;/span&gt; &lt;span class="c1"&gt;-- &amp;#39;x&amp;#39;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;</content><category term="ssh"></category><category term="proxy"></category></entry><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><published>2013-09-24T15:58:00+08:00</published><updated>2013-09-24T15:58:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:/posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
-i RECV : Server Sftp Version: 3
-i SEND : RealPath(raw) .
-i Resolved RealPath: /home/demo
-i SEND : OpenDir /home/demo
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;RECV&lt;/span&gt; : &lt;span class="nv"&gt;AUTH_SUCCESS&lt;/span&gt;
+&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;RECV&lt;/span&gt; : &lt;span class="nv"&gt;Server&lt;/span&gt; &lt;span class="nv"&gt;Sftp&lt;/span&gt; &lt;span class="nv"&gt;Version&lt;/span&gt;: &lt;span class="mi"&gt;3&lt;/span&gt;
+&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="k"&gt;SEND&lt;/span&gt; : &lt;span class="nv"&gt;RealPath&lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;raw&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; .
+&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;Resolved&lt;/span&gt; &lt;span class="nv"&gt;RealPath&lt;/span&gt;: &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;demo&lt;/span&gt;
+&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="k"&gt;SEND&lt;/span&gt; : &lt;span class="nv"&gt;OpenDir&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;demo&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;而无法传输文件的服务器则是如下日志：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
-i Changing state from STATE_CONNECTION to   STATE_TRANSPORT_STOPPING.
-i Changing state from STATE_TRANSPORT_STOPPING to STATE_CLOSING.
-i Changing state from …&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AUTH_SUCCESS&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_CONNECTION&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt;   &lt;span class="n"&gt;STATE_TRANSPORT_STOPPING&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_TRANSPORT_STOPPING&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt; &lt;span class="n"&gt;STATE_CLOSING&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
-i RECV : Server Sftp Version: 3
-i SEND : RealPath(raw) .
-i Resolved RealPath: /home/demo
-i SEND : OpenDir /home/demo
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;RECV&lt;/span&gt; : &lt;span class="nv"&gt;AUTH_SUCCESS&lt;/span&gt;
+&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;RECV&lt;/span&gt; : &lt;span class="nv"&gt;Server&lt;/span&gt; &lt;span class="nv"&gt;Sftp&lt;/span&gt; &lt;span class="nv"&gt;Version&lt;/span&gt;: &lt;span class="mi"&gt;3&lt;/span&gt;
+&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="k"&gt;SEND&lt;/span&gt; : &lt;span class="nv"&gt;RealPath&lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;raw&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; .
+&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;Resolved&lt;/span&gt; &lt;span class="nv"&gt;RealPath&lt;/span&gt;: &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;demo&lt;/span&gt;
+&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="k"&gt;SEND&lt;/span&gt; : &lt;span class="nv"&gt;OpenDir&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;demo&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;而无法传输文件的服务器则是如下日志：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
-i Changing state from STATE_CONNECTION to   STATE_TRANSPORT_STOPPING.
-i Changing state from STATE_TRANSPORT_STOPPING to STATE_CLOSING.
-i Changing state from STATE_CLOSING to STATE_CLOSED.
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AUTH_SUCCESS&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_CONNECTION&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt;   &lt;span class="n"&gt;STATE_TRANSPORT_STOPPING&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_TRANSPORT_STOPPING&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt; &lt;span class="n"&gt;STATE_CLOSING&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_CLOSING&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt; &lt;span class="n"&gt;STATE_CLOSED&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;查看&lt;code&gt;/etc/ssh/sshd_config&lt;/code&gt;配置，发现缺少&lt;code&gt;sftp&lt;/code&gt;的相关配置，在该配置文件中增加：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Subsystem   sftp    /usr/libexec/openssh/sftp-server
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;Subsystem&lt;/span&gt;   &lt;span class="n"&gt;sftp&lt;/span&gt;    &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;libexec&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;openssh&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sftp&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
