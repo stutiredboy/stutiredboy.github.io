@@ -26,25 +26,23 @@
 
 &lt;p&gt;其实通常情况下出于安全考虑，大多数我们是查询不到版本信息的（系统管理员禁用了）&lt;/p&gt;
 &lt;p&gt;bind 可以通过如下设置禁用版本号查询：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;options&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
-    &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="k"&gt;none&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;options {
+    version none;
+}
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Mon, 07 Jul 2014 20:21:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</guid><category>bind</category><category>dns</category><category>dig</category><category>named</category></item><item><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link>http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html</link><description>&lt;p&gt;man 5 crontab:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           &lt;span class="n"&gt;field&lt;/span&gt;         &lt;span class="n"&gt;allowed&lt;/span&gt; &lt;span class="k"&gt;values&lt;/span&gt;
-           &lt;span class="c1"&gt;-----         --------------&lt;/span&gt;
-           &lt;span class="k"&gt;minute&lt;/span&gt;        &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;59&lt;/span&gt;
-           &lt;span class="n"&gt;hour&lt;/span&gt;          &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;23&lt;/span&gt;
-           &lt;span class="k"&gt;day&lt;/span&gt; &lt;span class="k"&gt;of&lt;/span&gt; &lt;span class="k"&gt;month&lt;/span&gt;  &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;31&lt;/span&gt;
-           &lt;span class="k"&gt;month&lt;/span&gt;         &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="k"&gt;names&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;see&lt;/span&gt; &lt;span class="n"&gt;below&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-           &lt;span class="k"&gt;day&lt;/span&gt; &lt;span class="k"&gt;of&lt;/span&gt; &lt;span class="n"&gt;week&lt;/span&gt;   &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;Sun&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;or&lt;/span&gt; &lt;span class="n"&gt;use&lt;/span&gt; &lt;span class="k"&gt;names&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;           field         allowed values
+           -----         --------------
+           minute        0-59
+           hour          0-23
+           day of month  1-31
+           month         1-12 (or names, see below)
+           day of week   0-7 (0 or 7 is Sun, or use names)
+```
 
-
-&lt;blockquote&gt;
-&lt;p&gt;Note: The day of a command's execution can be specified by two fields …&lt;/p&gt;&lt;/blockquote&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Java 发起Http Post请求</title><link>http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html</link><description>&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
+&amp;gt; Note: The day of a command&amp;#39;s execution can be specified by two fields -- day of month, and …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Fri, 09 May 2014 13:31:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</guid><category>crontab</category></item><item><title>Java 发起Http Post请求</title><link>http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html</link><description>&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
 &lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/*&lt;/span&gt;
@@ -85,22 +83,22 @@
 
 
 &lt;p&gt;如：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;ssh&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;o&lt;/span&gt; &lt;span class="n"&gt;ProxyCommand&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39;&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;ssh -o ProxyCommand=&amp;#39;nc -x 127.0.0.1:7070 %h %p&amp;#39; 8.8.8.8
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;需要注意的是，nc需要使用 OpenBSD 版本 …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Fri, 20 Dec 2013 12:20:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-12-20:/posts/2013-12-20/ssh-through-socks-proxy.html</guid><category>ssh</category><category>proxy</category></item><item><title>sshd无法使用secureFX传输文件</title><link>http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html</link><description>&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;RECV&lt;/span&gt; : &lt;span class="nv"&gt;AUTH_SUCCESS&lt;/span&gt;
-&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;RECV&lt;/span&gt; : &lt;span class="nv"&gt;Server&lt;/span&gt; &lt;span class="nv"&gt;Sftp&lt;/span&gt; &lt;span class="nv"&gt;Version&lt;/span&gt;: &lt;span class="mi"&gt;3&lt;/span&gt;
-&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="k"&gt;SEND&lt;/span&gt; : &lt;span class="nv"&gt;RealPath&lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;raw&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; .
-&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="nv"&gt;Resolved&lt;/span&gt; &lt;span class="nv"&gt;RealPath&lt;/span&gt;: &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;demo&lt;/span&gt;
-&lt;span class="nv"&gt;i&lt;/span&gt; &lt;span class="k"&gt;SEND&lt;/span&gt; : &lt;span class="nv"&gt;OpenDir&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;demo&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+i RECV : Server Sftp Version: 3
+i SEND : RealPath(raw) .
+i Resolved RealPath: /home/demo
+i SEND : OpenDir /home/demo
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;而无法传输文件的服务器则是如下日志：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AUTH_SUCCESS&lt;/span&gt;
-&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_CONNECTION&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt;   &lt;span class="n"&gt;STATE_TRANSPORT_STOPPING&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;STATE_TRANSPORT_STOPPING&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt; &lt;span class="n"&gt;STATE_CLOSING&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;Changing&lt;/span&gt; &lt;span class="k"&gt;state&lt;/span&gt; &lt;span class="k"&gt;from …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Tue, 24 Sep 2013 15:58:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-09-24:/posts/2013-09-24/sshd-sftp-securefx.html</guid><category>sftp</category><category>secureFX</category><category>sshd</category></item><item><title>Django Admin 使用 filter_horizontal 不生效</title><link>http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html</link><description>&lt;p&gt;Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用&lt;code&gt;filter_horizontal&lt;/code&gt;进行显示的时候，我们碰到了一些问题。&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Mon, 23 Sep 2013 15:25:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-09-23:/posts/2013-09-23/django-filter_horizontal.html</guid><category>django</category><category>python</category></item></channel></rss>
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;i RECV : AUTH_SUCCESS
+i Changing state from STATE_CONNECTION to   STATE_TRANSPORT_STOPPING.
+i Changing state from STATE_TRANSPORT_STOPPING to STATE_CLOSING.
+i Changing state from …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Tue, 24 Sep 2013 15:58:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-09-24:/posts/2013-09-24/sshd-sftp-securefx.html</guid><category>sftp</category><category>secureFX</category><category>sshd</category></item><item><title>Django Admin 使用 filter_horizontal 不生效</title><link>http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html</link><description>&lt;p&gt;Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用&lt;code&gt;filter_horizontal&lt;/code&gt;进行显示的时候，我们碰到了一些问题。&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Mon, 23 Sep 2013 15:25:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2013-09-23:/posts/2013-09-23/django-filter_horizontal.html</guid><category>django</category><category>python</category></item></channel></rss>
