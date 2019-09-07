@@ -49,7 +49,7 @@
 &lt;p&gt;但这里也暴露了几个问题：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;报警平台维护变更出现了一定的问题，导致策略失效；&lt;/li&gt;
-&lt;li&gt;部分 DBA 同学在某些环节对系统的了解并不够完整、也不够专业（我们都需要不断学习积累的，能理解）；&lt;/li&gt;
+&lt;li&gt;部分 DBA 同学在某些环节对系统的了解并不够完整、也不够专业（我们都需要不断学习积累的，我自己也是学习中，能理解）；&lt;/li&gt;
 &lt;li&gt;DBA 同学在做策略变更的时候也没有在团队内部进行同步，存在管理和规范遵守上的问题；&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;以上问题需要我们进行反思，并在团队内进行解决。但是 MySQL Seconds_Behind_Master 是否还有监控的价值呢？对可能导致 &lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 异常的情况这里做个简单的总结：&lt;/p&gt;
