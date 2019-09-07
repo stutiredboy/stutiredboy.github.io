@@ -65,7 +65,10 @@
 &lt;li&gt;Master_Log_file/Read_Master_Log_Pos&lt;/li&gt;
 &lt;li&gt;Relay_Master_Log_File/Exec_Master_Log_Pos&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;进行判断，如果(Relay_Master_Log_File, Exec_Master_Log_Pos) 和 (Relay_Master_Log_File, Read_Master_Log_Pos)位置相等且 Seconds_Behind_Master=0，那么我们可以认为目前的同步是「同步」的。（开启 gtid 的话，比对 &lt;code&gt;Executed_Gtid_Set&lt;/code&gt; 我认为也是没有毛病的）&lt;/p&gt;</content><category term="mysql"></category><category term="replication"></category></entry><entry><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link href="http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html" rel="alternate"></link><published>2018-11-02T19:58:00+08:00</published><updated>2018-11-02T19:58:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-11-02:/posts/2018-11-02/capture-packet-from-ios-through-mac.html</id><summary type="html">&lt;ol&gt;
+&lt;p&gt;进行判断，如果(Relay_Master_Log_File, Exec_Master_Log_Pos) 和 (Relay_Master_Log_File, Read_Master_Log_Pos)位置相等且 Seconds_Behind_Master=0，那么我们可以认为目前的同步是「同步」的。（开启 gtid 的话，比对 &lt;code&gt;Executed_Gtid_Set&lt;/code&gt; 我认为也是没有毛病的）&lt;/p&gt;
+&lt;h3&gt;The End&lt;/h3&gt;
+&lt;p&gt;后续相关技术内容的总结，也会逐步更新至微信平台（微信目前确实也是技术内容流转的一个好渠道），欢迎关注个人公众号（也算给自己立个 flag 吧，希望 flag 永不倒）：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="公众号二维码" src="/static/qrcode.jpg"&gt;&lt;/p&gt;</content><category term="mysql"></category><category term="replication"></category></entry><entry><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link href="http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html" rel="alternate"></link><published>2018-11-02T19:58:00+08:00</published><updated>2018-11-02T19:58:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-11-02:/posts/2018-11-02/capture-packet-from-ios-through-mac.html</id><summary type="html">&lt;ol&gt;
 &lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
 &lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
 &lt;li&gt;
