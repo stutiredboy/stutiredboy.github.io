@@ -38,7 +38,9 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;MySQL Replication 通常情况下有两个工作线程，I/O 线程用于获取 MySQL Master 的 Binlog，SQL 线程用于将获取到的 Binlog Events 在 Slave 从库上进行回放。上面的描述我们通过字面简单进行了理解：当 I/O 线程仍在排队等待一件新事件时，&lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 有可能返回一个较大的随机值，直到 SQL 线程完成该事件的重放。&lt;/p&gt;
+&lt;p&gt;MySQL Replication 通常情况下有两个工作线程，I/O 线程用于获取 MySQL Master 的 Binlog，SQL 线程用于将获取到的 Binlog Events 在 Slave 从库上进行回放。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="MySQL Replication示意图" src="/static/mysql_repl.png"&gt;&lt;/p&gt;
+&lt;p&gt;上面的描述我们通过字面简单进行了理解：当 I/O 线程仍在排队等待一件新事件时，&lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 有可能返回一个较大的随机值，直到 SQL 线程完成该事件的重放。&lt;/p&gt;
 &lt;p&gt;那么这里我们已经可以确认了，MySQL 是会出现这个情况的，并且是正常的，至少这个报警轰炸是不用特别担心了。那为什么忽然就炸出来了呢，在后面几分钟后我们得到了几个信息，确认了原因：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;该报警原先的设置是 X 时间内只发送第 N 条报警：X 时间内并不一定总会出现 &amp;gt;= N 次的随机 &lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 飙升（并且被监控插件获取到）；即使出现 &amp;gt;= N 次，在 X 时间内也只会发送一条报警，所以这个问题一直并没有被注意到；&lt;/li&gt;
