@@ -1,21 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0"><channel><title>碎碎念 - 陈小生</title><link>http://blog.chenxiaosheng.com/</link><description></description><lastBuildDate>Sat, 07 Sep 2019 22:33:00 +0800</lastBuildDate><item><title>MySQL Seconds_Behind_Master 忽大忽小？莫慌</title><link>http://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html</link><description>&lt;p&gt;本周在某次开会的时候，忽然收到了大量的 MySQL Seconds_Behind_Master 落后的报警轰炸（落后时间随机，几百到几万秒不等），但是当我们的值班 DBA 登录 MySQL 通过 &lt;code&gt;show slave status\G&lt;/code&gt; 查看时，发现都是 0，通常我们认为这个时候复制是正常的。那么是什么情况导致了报警的发生呢？&lt;/p&gt;
-&lt;p&gt;DBA 值班同学也比较没有头绪，我们首先做了以下几件事情：&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;确认监控插件是否变更？收到的答复是没有；&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;我们自己是否有变更？收到的答复是没有。&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;blockquote&gt;
-&lt;p&gt;事后打脸了，有一位同学做了报警策略的变更，从原 X 时间内只发送第 N 条报警修改成了 X 时间内只发送第 1 条报警。该策略的变更也会导致该报警的轰炸，但是他变更的时间是在报警轰炸之后，跟此次报警轰炸原因没有正相关；&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;ol&gt;
-&lt;li&gt;登录多个实例确认都是误报后，先通告产品，明确是误报事件，让产品不用担心，等待 DBA 查明原因；&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;接下来我们会议正常进行 …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Sat, 07 Sep 2019 22:33:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2019-09-07:/posts/2019-09-07/mysql-large-seconds_behind_master.html</guid><category>mysql</category><category>replication</category></item><item><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link>http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html</link><description>&lt;ol&gt;
+<rss version="2.0"><channel><title>碎碎念 - 陈小生</title><link>http://blog.chenxiaosheng.com/</link><description></description><lastBuildDate>Sat, 07 Sep 2019 22:33:00 +0800</lastBuildDate><item><title>MySQL Seconds_Behind_Master 忽大忽小？莫慌</title><link>http://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html</link><description>&lt;p&gt;MySQL Slave Seconds_Behind_Master 是否可以直接做为数据复制是否延迟的衡量标准？在日常监控中是否有需要注意或特别避开的坑点？有没有更好的监控方式呢？&lt;img alt="MySQL Replication示意图" src="/static/mysql_repl.png"&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Sat, 07 Sep 2019 22:33:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2019-09-07:/posts/2019-09-07/mysql-large-seconds_behind_master.html</guid><category>mysql</category><category>replication</category></item><item><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link>http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html</link><description>&lt;ol&gt;
 &lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
 &lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
 &lt;li&gt;
