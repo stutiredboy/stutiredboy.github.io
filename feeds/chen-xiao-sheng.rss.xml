@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0"><channel><title>碎碎念 - 陈小生</title><link>https://blog.chenxiaosheng.com/</link><description></description><lastBuildDate>Sat, 07 Sep 2019 22:33:00 +0800</lastBuildDate><item><title>MySQL Seconds_Behind_Master 忽大忽小？莫慌</title><link>https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html</link><description>&lt;p&gt;MySQL Slave Seconds_Behind_Master 是否可以直接做为数据复制是否延迟的衡量标准？在日常监控中是否有需要注意或特别避开的坑点？有没有更好的监控方式呢？&lt;/br&gt; &lt;img alt="MySQL Replication示意图" src="/static/mysql_repl.png"&gt;&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">陈小生</dc:creator><pubDate>Sat, 07 Sep 2019 22:33:00 +0800</pubDate><guid isPermaLink="false">tag:blog.chenxiaosheng.com,2019-09-07:/posts/2019-09-07/mysql-large-seconds_behind_master.html</guid><category>mysql</category><category>replication</category></item><item><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link>https://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html</link><description>&lt;ol&gt;
 &lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
-&lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
+&lt;img alt="" src="/static/iphone_uuid.png"&gt;&lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网络设备，不管手机用的是移动网络还是 WIFI，均可以通过该设备进行抓包。启动虚拟设备的命令如下：&lt;/p&gt;
 &lt;blockquote&gt;
