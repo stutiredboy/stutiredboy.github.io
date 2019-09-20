@@ -143,9 +143,9 @@
 &lt;p&gt;```c
     /&lt;em&gt; Compute the cluster size, that is the number of master nodes
      * serving at least a single slot.
-     &lt;/em&gt;
+     *
      * At the same time count the number of reachable masters having
-     * at least one slot. */
+     * at least one slot. &lt;/em&gt;/
     {
      ...
                 if ((node-&amp;gt;flags &amp;amp; (CLUSTER_NODE_FAIL|CLUSTER_NODE_PFAIL)) == 0)
@@ -155,21 +155,21 @@
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* If we are in a minority partition, change the cluster state&lt;/span&gt;
 &lt;span class="cm"&gt; * to FAIL. */&lt;/span&gt;
 {
-    &lt;span class="nv"&gt;int&lt;/span&gt; &lt;span class="nv"&gt;needed_quorum&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;gt&lt;/span&gt;&lt;span class="c1"&gt;;size / 2) + 1;&lt;/span&gt;
+    &lt;span class="nv"&gt;int&lt;/span&gt; &lt;span class="nv"&gt;needed_quorum&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nv"&gt;size&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="c1"&gt;;&lt;/span&gt;
 
-    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;reachable_masters&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;lt&lt;/span&gt;&lt;span class="c1"&gt;; needed_quorum) {&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;reachable_masters&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="nv"&gt;needed_quorum&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; {
         &lt;span class="nv"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;CLUSTER_FAIL&lt;/span&gt;&lt;span class="c1"&gt;;&lt;/span&gt;
         &lt;span class="nv"&gt;among_minority_time&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;mstime&lt;/span&gt;&lt;span class="ss"&gt;()&lt;/span&gt;&lt;span class="c1"&gt;;&lt;/span&gt;
     }
 }
 
 &lt;span class="cm"&gt;/* Log a state change */&lt;/span&gt;
-&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;gt&lt;/span&gt;&lt;span class="c1"&gt;;state) {&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nv"&gt;state&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; {
     ....
     &lt;span class="cm"&gt;/* Change the state and log the event. */&lt;/span&gt;
     &lt;span class="nv"&gt;serverLog&lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;LL_WARNING&lt;/span&gt;,&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;Cluster state changed: %s&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;,
         &lt;span class="nv"&gt;new_state&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nv"&gt;CLUSTER_OK&lt;/span&gt; ? &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;ok&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; : &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;fail&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;&lt;span class="c1"&gt;;&lt;/span&gt;
-    &lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;amp;&lt;/span&gt;&lt;span class="nv"&gt;gt&lt;/span&gt;&lt;span class="c1"&gt;;state = new_state;&lt;/span&gt;
+    &lt;span class="nv"&gt;server&lt;/span&gt;.&lt;span class="nv"&gt;cluster&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="nv"&gt;state&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;new_state&lt;/span&gt;&lt;span class="c1"&gt;;&lt;/span&gt;
     ...
 }
 &lt;/pre&gt;&lt;/div&gt;
