@@ -22,12 +22,10 @@
 &lt;p&gt;下载 DM 二进制文件：&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
-&lt;blockquote&gt;
 &lt;p&gt;&lt;code&gt;shell
-wget http://download.pingcap.org/dm-latest-linux-amd64.tar.gz
-tar -zxvf dm-latest-linux-amd64.tar.gz
-rsync -avz dm-latest-linux-amd64/bin/ /home/dm/bin/&lt;/code&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
+   wget http://download.pingcap.org/dm-latest-linux-amd64.tar.gz
+   tar -zxvf dm-latest-linux-amd64.tar.gz
+   rsync -avz dm-latest-linux-amd64/bin/ /home/dm/bin/&lt;/code&gt;&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;机器列表，这里我们主要熟悉部署过程，且不需要分库分表合并等功能，只实现 syncer 流程，因此 master 和 worker 均只部署在同一台同器：&lt;/li&gt;
 &lt;/ol&gt;
