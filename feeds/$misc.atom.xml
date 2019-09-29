@@ -1,5 +1,316 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - misc</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/$misc.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2019-09-07T22:33:00+08:00</updated><entry><title>MySQL Seconds_Behind_Master 忽大忽小？莫慌</title><link href="https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html" rel="alternate"></link><published>2019-09-07T22:33:00+08:00</published><updated>2019-09-07T22:33:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2019-09-07:/posts/2019-09-07/mysql-large-seconds_behind_master.html</id><summary type="html">&lt;p&gt;MySQL Slave Seconds_Behind_Master 是否可以直接做为数据复制是否延迟的衡量标准？在日常监控中是否有需要注意或特别避开的坑点？有没有更好的监控方式呢？&lt;/br&gt; &lt;img alt="MySQL Replication示意图" src="/static/mysql_repl.png"&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;本周在某次开会的时候，忽然收到了大量的 MySQL Seconds_Behind_Master 落后的报警轰炸（落后时间随机，几百到几万秒不等），但是当我们的值班 DBA 登录 MySQL 通过 &lt;code&gt;show slave status\G&lt;/code&gt; 查看时，发现都是 0，通常我们认为这个时候复制是正常的。那么是什么情况导致了报警的发生呢？&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - misc</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/$misc.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2019-09-29T13:08:00+08:00</updated><entry><title>TiDB DM 数据库同步 STEP BY STEP</title><link href="https://blog.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html" rel="alternate"></link><published>2019-09-29T13:08:00+08:00</published><updated>2019-09-29T13:08:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2019-09-29:/posts/2019-09-29/tidb-dm-syncer.html</id><summary type="html">&lt;p&gt;前段时间，看到了一篇关于数据库选型的文章（MongoDB/TiDB/CockroachDB），忍不住感慨了一句，TiDB 一看就是大户人家，什么工具都可以有，什么工具都迭代得特别快，没有钱没有人，难以想像如何才能驱动得了。TiDB/TiKV/PD/Mydumper/Loader/Syncer/Data Migration/TiDB Lighting/Pump/Drainer ... 光是弄清楚这些组件是用来做什么的，感觉都可以评个高工了 :-)&lt;/p&gt;
+&lt;p&gt;随着 DM 1.0 GA 的 release，我们也开始考虑将 syncer 迁移至 DM。主要原因还是 syncer 已经太久没有更新了，否则 syncer 这种简易几乎无须部署的工具还是比较对我个人的胃口的，官方很喜欢把工具集群化（可能听起来厉害一点），DM 也是，那就按着最小目标（syncer）折腾一下吧 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;前段时间，看到了一篇关于数据库选型的文章（MongoDB/TiDB/CockroachDB），忍不住感慨了一句，TiDB 一看就是大户人家，什么工具都可以有，什么工具都迭代得特别快，没有钱没有人，难以想像如何才能驱动得了。TiDB/TiKV/PD/Mydumper/Loader/Syncer/Data Migration/TiDB Lighting/Pump/Drainer ... 光是弄清楚这些组件是用来做什么的，感觉都可以评个高工了 :-)&lt;/p&gt;
+&lt;p&gt;随着 DM 1.0 GA 的 release，我们也开始考虑将 syncer 迁移至 DM。主要原因还是 syncer 已经太久没有更新了，否则 syncer 这种简易几乎无须部署的工具还是比较对我个人的胃口的，官方很喜欢把工具集群化（可能听起来厉害一点），DM 也是，那就按着最小目标（syncer）折腾一下吧。&lt;/p&gt;
+&lt;p&gt;DM 的架构文档可以参考&lt;a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/overview/#dm-架构"&gt;官方&lt;/a&gt;，整个集群有三个角色 dmctl/dm-master/dm-worker。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;DM-master 负责管理和调度数据同步任务的各项操作。&lt;/li&gt;
+&lt;li&gt;DM-worker 负责执行具体的数据同步任务。&lt;/li&gt;
+&lt;li&gt;dmctl 是用来控制 DM 集群的命令行工具。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="Data Migration architecture" src="https://pingcap.com/images/docs-cn/dm-architecture.png"&gt;&lt;/p&gt;
+&lt;p&gt;官方也提供了基于 Ansible 的部署工具，如果你不是特别需要了解实际的部署过程，或者你的环境对 ansible 的亲和度比较好的话，可以参考&lt;a href="https://pingcap.com/docs-cn/v3.0/how-to/deploy/data-migration-with-ansible"&gt;使用 DM-Ansible 部署 DM 集群&lt;/a&gt;。在这篇文章里，我们还是希望对于 DM 的部署有一定的了解，另外我们的小目标是实现类似 syncer 功能，因此，让我们 step by step 人肉部署吧。（好吧，吐槽一下，其实本人是很反感什么都要 ansible 再包一层的，无法直接通过文档了解工作方式，还非得去读 ansible 的相关部署文件）。&lt;/p&gt;
+&lt;h2&gt;准备工作&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;确认工作目录，假定这里为 &lt;code&gt;/home/dm&lt;/code&gt;，并确保相关目录已经建立且具备读写权限：&lt;code&gt;mkdir -p /home/dm/log&lt;/code&gt;；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;确保机器上已经具备相应的命令行工具，如：tar、wget、rsync 或 cp 等；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;下载 DM 二进制文件：&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;code&gt;shell
+wget http://download.pingcap.org/dm-latest-linux-amd64.tar.gz
+tar -zxvf dm-latest-linux-amd64.tar.gz
+rsync -avz dm-latest-linux-amd64/bin/ /home/dm/bin/&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;机器列表，这里我们主要熟悉部署过程，且不需要分库分表合并等功能，只实现 syncer 流程，因此 master 和 worker 均只部署在同一台同器：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;角色&lt;/th&gt;
+&lt;th&gt;地址&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;DM-master&lt;/td&gt;
+&lt;td&gt;127.0.0.1:8261&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;DM-worker&lt;/td&gt;
+&lt;td&gt;127.0.0.1:8262&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;配置文件&lt;/h2&gt;
+&lt;h3&gt;dm-worker&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# DM-worker Configuration: worker.toml&lt;/span&gt;
+&lt;span class="c1"&gt;# MySQL Server ID, 注意不要和已有的 ID 冲突&lt;/span&gt;
+&lt;span class="n"&gt;server-id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;8262&lt;/span&gt;
+&lt;span class="c1"&gt;# 可以理解为 worker 的唯一标识&lt;/span&gt;
+&lt;span class="n"&gt;source-id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;worker-8262&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;worker-addr&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;127.0.0.1:8262&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# 支持源为 mysql 或 mariadb&lt;/span&gt;
+&lt;span class="n"&gt;flavor&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;mysql&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# 是否启用 GTID，开启前需要上游 MySQL 开启 GTID 功能&lt;/span&gt;
+&lt;span class="n"&gt;enable-gtid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+&lt;span class="c1"&gt;# MySQL Master/Slave 发生切换时，是否修复 gtid&lt;/span&gt;
+&lt;span class="n"&gt;auto-fix-gtid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;
+&lt;span class="c1"&gt;# 开始同步的位置，我这里使用 GTID，该值为 MySQL Master 上的 Executed_Gtid_Set 值&lt;/span&gt;
+&lt;span class="c1"&gt;# relay-binlog-name = &amp;quot;binlog.000140&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;relay-binlog-gtid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# charset of DSN of source mysql/mariadb instance&lt;/span&gt;
+&lt;span class="n"&gt;charset&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# worker 元数据存储目录，需要提前创建好&lt;/span&gt;
+&lt;span class="n"&gt;meta-dir&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/home/dm/meta/worker-8262&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# relay log 的本地存储目录，需要提前创建好&lt;/span&gt;
+&lt;span class="n"&gt;relay-dir&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/home/dm/relay/worker-8262&amp;quot;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# 源数据库，一个 worker 只能对应一个 MySQL 源&lt;/span&gt;
+&lt;span class="k"&gt;[from]&lt;/span&gt;
+&lt;span class="n"&gt;host&lt;/span&gt;            &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;127.0.0.1&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;user&lt;/span&gt;            &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;dm&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# 该密码为使用 dmctl -encrypt ${你的原始密码} 加密后的字符串&lt;/span&gt;
+&lt;span class="n"&gt;password&lt;/span&gt;    &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;vUYLfdtQlHLF6Kr4IHg8NkDjiPtVig6p&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;port&lt;/span&gt;            &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;3306&lt;/span&gt;
+
+&lt;span class="c1"&gt;# relay log purge strategy&lt;/span&gt;
+&lt;span class="k"&gt;[purge]&lt;/span&gt;
+&lt;span class="n"&gt;interval&lt;/span&gt;            &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;3600&lt;/span&gt;
+&lt;span class="n"&gt;expires&lt;/span&gt;             &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+&lt;span class="n"&gt;remain-space&lt;/span&gt;    &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;15&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;配置不算特别复杂，需要留意的地方都在注释里进行说明了。其中 &lt;code&gt;source-id&lt;/code&gt; 请记下来，接着配置 dm-master 需要用到。&lt;/p&gt;
+&lt;p&gt;再次提醒，MySQL 的密码配置需要使用 dmctl 进行加密处理。&lt;/p&gt;
+&lt;h3&gt;dm-master&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# dm-master Configuration: master.toml&lt;/span&gt;
+&lt;span class="n"&gt;log-level&lt;/span&gt;       &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;info&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;log-file&lt;/span&gt;        &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;/home/dm/log/dm-master.log&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;master-addr&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;127.0.0.1:8261&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;[[deploy]]&lt;/span&gt;
+&lt;span class="n"&gt;source-id&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;worker-8262&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;dm-worker&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;127.0.0.1:8262&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;配置文件比较简单，基本上都不需要解释。其中 &lt;code&gt;[[deploy]]&lt;/code&gt; 对应一个 worker，可以有多个 &lt;code&gt;[[deploy]]&lt;/code&gt; 。目前了解到的，dm-worker 只能通过配置文件并重启 dm-master 进行加载，无法通过 dmctl 进行运行上填加。好在 dm-master 几乎随时都可以重启，所以也不是特别大的问题。&lt;/p&gt;
+&lt;h3&gt;dmctl&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# dmctl Configuration: ctl.toml&lt;/span&gt;
+&lt;span class="n"&gt;master-addr&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;127.0.0.1:8261&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;dmctl 的配置就相当简单了，只需要指定 dm-master 地址。而 dmctl 也是我们与 dm-master 打交道的最直接工作。&lt;/p&gt;
+&lt;h2&gt;集群启动&lt;/h2&gt;
+&lt;p&gt;经过上述的配置（是不是没有想像中复杂），我们已经可以开启集群了：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;启动 master: bin/dm-master -config master.toml&lt;/li&gt;
+&lt;li&gt;启动 worker: bin/dm-worker -config worker.toml&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;除了跟踪日志输出，确认进程是否正常启动。我们还可以借助 dmctl 来检查当前集群的情况，使用 &lt;code&gt;bin/dmctl -config ctl.toml&lt;/code&gt; 连接集群，并通过 &lt;code&gt;query-status&lt;/code&gt; 查询集群状态，返回如下（成功）：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;»&lt;/span&gt; &lt;span class="err"&gt;query-status&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;quot;msg&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;quot;workers&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;worker&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;127.0.0.1:8262&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;msg&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;no sub task started&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;subTaskStatus&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+            &lt;span class="p"&gt;],&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;relayStatus&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;quot;masterBinlog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;(binlog.000172, 234)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;quot;masterBinlogGtid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;quot;relaySubDir&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee.000001&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;quot;relayBinlog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;(, 4)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;quot;relayBinlogGtid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;34204ac9-a157-11e9-bc03-c6e9019f8073:1-2,2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;quot;relayCatchUpMaster&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;quot;stage&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Running&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                &lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;
+            &lt;span class="p"&gt;},&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;sourceID&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;worker-8262&amp;quot;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;»&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个时候，系统还没有配置任何同步任务，所以也可以看到显示的是：&lt;code&gt;no sub task started&lt;/code&gt;。接下来，我们开始来配置一个最基础的同步任务。&lt;/p&gt;
+&lt;h2&gt;配置并应用同步任务&lt;/h2&gt;
+&lt;h3&gt;创建任务配置文件&lt;/h3&gt;
+&lt;p&gt;PingCAP 在任务配置这一块有比较完善的说明了&lt;a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/"&gt;DM 任务配置文件介绍&lt;/a&gt;。这里我们以将源库为 &lt;code&gt;abc&lt;/code&gt; 迁到目标库 &lt;code&gt;abc_dm&lt;/code&gt; 为例子做简单说明：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;---&lt;/span&gt;
+&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;test&lt;/span&gt;
+&lt;span class="n"&gt;task-mode&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;all&lt;/span&gt;
+&lt;span class="n"&gt;is-sharding&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;span class="n"&gt;meta-schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;dm_meta&amp;quot;&lt;/span&gt;
+&lt;span class="n"&gt;remove-meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;span class="n"&gt;enable-heartbeat&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+
+&lt;span class="n"&gt;target-database&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;host&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;192.168.143.41&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;3306&lt;/span&gt;
+  &lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;dm&amp;quot;&lt;/span&gt;
+  &lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;vUYLfdtQlHLF6Kr4IHg8NkDjiPtVig6p&amp;quot;&lt;/span&gt;
+
+&lt;span class="n"&gt;mysql-instances&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="c1"&gt;# 源库及相关的同步规则配置&lt;/span&gt;
+  &lt;span class="err"&gt;-&lt;/span&gt;
+    &lt;span class="n"&gt;source-id&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;worker-8262&amp;quot;&lt;/span&gt;
+
+    &lt;span class="n"&gt;meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="n"&gt;binlog-name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;binlog&lt;/span&gt;&lt;span class="mf"&gt;.000140&lt;/span&gt;
+      &lt;span class="n"&gt;binlog-pos&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;141868&lt;/span&gt;
+    &lt;span class="n"&gt;route-rules&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;[&amp;quot;user-route-rules-schema&amp;quot;]&lt;/span&gt;
+    &lt;span class="n"&gt;black-white-list&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;instance&amp;quot;&lt;/span&gt;
+
+&lt;span class="n"&gt;routes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;user-route-rules-schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;schema-pattern&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;abc&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;target-schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;abc_dm&amp;quot;&lt;/span&gt;
+
+&lt;span class="n"&gt;black-white-list&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;instance&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;do-dbs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="k"&gt;[&amp;quot;abc&amp;quot;]&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;上面参数的说明都可以在官方文档找到，这里对几个重要的参数再做补充说明：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;参数&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;meta-schema&lt;/td&gt;
+&lt;td&gt;DM 会将该 task 对应的  meta 信息，如断点（checkpoint）存储至目标集存中的该数据库&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;remove-meta&lt;/td&gt;
+&lt;td&gt;通常我们希望在重启 worker/task 时可以从上次断点继续同步，需要设置为 false&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;password&lt;/td&gt;
+&lt;td&gt;需要使用 dmctl 加密&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;source-id&lt;/td&gt;
+&lt;td&gt;理解为相应 dm worker 的 source-id&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;routes&lt;/td&gt;
+&lt;td&gt;可以在这里配置数据库表的改名规则，具体参考&lt;a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/"&gt;官方文档&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;filters&lt;/td&gt;
+&lt;td&gt;这里没有用到，可以过滤相应的 binlog events，如 &lt;code&gt;drop table&lt;/code&gt; 操作，具体参考&lt;a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/"&gt;官方文档&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3&gt;应用并启动同步任务&lt;/h3&gt;
+&lt;p&gt;使用 &lt;code&gt;bin/dmctl -config ctl.toml&lt;/code&gt; 登录 dm master，并执行 &lt;code&gt;start-task test.yaml&lt;/code&gt; 即可，确认 &lt;code&gt;test.yaml&lt;/code&gt; 文件在当前目录下，成功的话将收到如下返回：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;quot;msg&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;quot;workers&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+        &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;worker&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;127.0.0.1:8262&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="nt"&gt;&amp;quot;msg&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个时候再执行 &lt;code&gt;query-status&lt;/code&gt; 可以看到相应的 dm worker 有了具体的 subTaskStatus 信息：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;            &lt;span class="s2"&gt;&amp;quot;subTaskStatus&amp;quot;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+                &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;test&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;quot;stage&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Paused&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;quot;unit&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Sync&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;isCanceled&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;errors&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+                        &lt;span class="p"&gt;],&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;detail&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;null&lt;/span&gt;
+                    &lt;span class="p"&gt;},&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;quot;unresolvedDDLLockID&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                    &lt;span class="nt"&gt;&amp;quot;sync&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;totalEvents&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;totalTps&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;recentTps&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;masterBinlog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;(binlog.000176, 234)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;masterBinlogGtid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;syncerBinlog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;(, 4)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;syncerBinlogGtid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;blockingDDLs&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+                        &lt;span class="p"&gt;],&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;unresolvedGroups&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+                        &lt;span class="p"&gt;],&lt;/span&gt;
+                        &lt;span class="nt"&gt;&amp;quot;synced&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+                    &lt;span class="p"&gt;}&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+            &lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="err"&gt;,&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个时候我们通过 mysql 登录目标数据库，可以看到多了 &lt;code&gt;dm_meta&lt;/code&gt; 和 &lt;code&gt;abc_dm&lt;/code&gt; 两个数据库，其中 &lt;code&gt;dm_meta&lt;/code&gt; 里面有两张表：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;test_loader_checkpoint&lt;/code&gt; 其中 test 是任务的名称，这张表存储的是全量同步的 meta 信息；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;code&gt;id: worker-8262
+      filename: abc.t3.sql
+     cp_schema: abc
+      cp_table: t3
+        offset: 156
+       end_pos: 156
+   create_time: 2019-09-29 12:03:59
+   update_time: 2019-09-29 12:04:00&lt;/code&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;test_syncer_checkpint&lt;/code&gt; 其中 test 是任务的名称，这张表存储的是增量同步的 meta 信息；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;code&gt;id: worker-8262
+     cp_schema: abc
+      cp_table: xxy
+   binlog_name: binlog|000001.000176
+    binlog_pos: 538
+     is_global: 0
+   create_time: 2019-09-29 12:11:25
+   update_time: 2019-09-29 12:11:25&lt;/code&gt;&lt;/p&gt;
+&lt;h2&gt;组件升级&lt;/h2&gt;
+&lt;h3&gt;dm-master&lt;/h3&gt;
+&lt;p&gt;dm-master 主要负责 dmctl 的通讯，维护任务及 Sharding DDL lock 信息，重启后会与 dm-worker 重启这些信息，所以除了影响 dmctl 短暂的使用，可以随时重启，升级也就比较简单了：下载新版本 -&amp;gt; 覆盖旧 binary -&amp;gt; 重启。&lt;/p&gt;
+&lt;h3&gt;dm-worker&lt;/h3&gt;
+&lt;p&gt;dm-worker 在本地维护了 meta 信息，在下游（目标）数据库维护了断点（checkpoint）信息，升级也是按：下载新版本 -&amp;gt; 覆盖旧 binary -&amp;gt; 重启即可。唯一需要注意的有：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;尽量避免在 sharding DDL 同步过程中重启 DM-worker。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;当然，本身对数据的敬畏之心，即使没有 sharding，也不推荐在 DDL 的过程中重启 dm-worker。&lt;/p&gt;
+&lt;h3&gt;dmctl&lt;/h3&gt;
+&lt;p&gt;命令行交互工具，直接升级即可：下载新版本 -&amp;gt; 覆盖旧 binary。&lt;/p&gt;
+&lt;h2&gt;问题处理&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;dm-worker 挂了，并且本地的 meta 信息都丢失了怎么办？&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;通常不需要担心，找回按原来的 worker.toml 再启动 worker 即可。其中配置文件中的 &lt;code&gt;relay-binlog-gtid&lt;/code&gt; 或 &lt;code&gt;relay-binlog-name&lt;/code&gt; 的位置信息可能在源数据库已经过期，可以从目标集群的 meta 库找回，或者直接从源数据库集群上使用一个相对靠前的位置信息替换即可。&lt;/p&gt;
+&lt;p&gt;确认新的 worker 已经启动后，再次通过 dmctl 执行 &lt;code&gt;start-task test.yaml&lt;/code&gt; 即可，task 的配置文件不需要修改，断点信息会从目标数据库中的 meta 库直接获取。&lt;/p&gt;
+&lt;h2&gt;总结&lt;/h2&gt;
+&lt;p&gt;官方的组件（概念）特别多，ansible 的包装让用户对相关组件的工作流程了解门槛大大提升。实际部署流程比想像中较为简单。从可靠性来看，还是比较推荐放弃 syncer（较长时间未更新了），并使用 dm 做为替代工具。&lt;/p&gt;</content><category term="dm"></category><category term="mysql"></category><category term="tidb"></category><category term="syncer"></category><category term="pingcap"></category></entry><entry><title>MySQL Seconds_Behind_Master 忽大忽小？莫慌</title><link href="https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html" rel="alternate"></link><published>2019-09-07T22:33:00+08:00</published><updated>2019-09-07T22:33:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2019-09-07:/posts/2019-09-07/mysql-large-seconds_behind_master.html</id><summary type="html">&lt;p&gt;MySQL Slave Seconds_Behind_Master 是否可以直接做为数据复制是否延迟的衡量标准？在日常监控中是否有需要注意或特别避开的坑点？有没有更好的监控方式呢？&lt;/br&gt; &lt;img alt="MySQL Replication示意图" src="/static/mysql_repl.png"&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;本周在某次开会的时候，忽然收到了大量的 MySQL Seconds_Behind_Master 落后的报警轰炸（落后时间随机，几百到几万秒不等），但是当我们的值班 DBA 登录 MySQL 通过 &lt;code&gt;show slave status\G&lt;/code&gt; 查看时，发现都是 0，通常我们认为这个时候复制是正常的。那么是什么情况导致了报警的发生呢？&lt;/p&gt;
 &lt;p&gt;DBA 值班同学也比较没有头绪，我们首先做了以下几件事情：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;
