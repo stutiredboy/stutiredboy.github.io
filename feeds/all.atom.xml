@@ -273,25 +273,31 @@ rsync -avz dm-latest-linux-amd64/bin/ /home/dm/bin/
 &lt;ol&gt;
 &lt;li&gt;&lt;code&gt;test_loader_checkpoint&lt;/code&gt; 其中 test 是任务的名称，这张表存储的是全量同步的 meta 信息；&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;&lt;code&gt;id: worker-8262
-      filename: abc.t3.sql
-     cp_schema: abc
-      cp_table: t3
-        offset: 156
-       end_pos: 156
-   create_time: 2019-09-29 12:03:59
-   update_time: 2019-09-29 12:04:00&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;            &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;worker&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8262&lt;/span&gt;
+      &lt;span class="n"&gt;filename&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;abc&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;t3&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;sql&lt;/span&gt;
+     &lt;span class="n"&gt;cp_schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;abc&lt;/span&gt;
+      &lt;span class="n"&gt;cp_table&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;t3&lt;/span&gt;
+        &lt;span class="k"&gt;offset&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;156&lt;/span&gt;
+       &lt;span class="n"&gt;end_pos&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;156&lt;/span&gt;
+   &lt;span class="n"&gt;create_time&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2019&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;09&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;29&lt;/span&gt; &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;03&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;59&lt;/span&gt;
+   &lt;span class="n"&gt;update_time&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2019&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;09&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;29&lt;/span&gt; &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;04&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;00&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;ol&gt;
 &lt;li&gt;&lt;code&gt;test_syncer_checkpint&lt;/code&gt; 其中 test 是任务的名称，这张表存储的是增量同步的 meta 信息；&lt;/li&gt;
 &lt;/ol&gt;
-&lt;p&gt;&lt;code&gt;id: worker-8262
-     cp_schema: abc
-      cp_table: xxy
-   binlog_name: binlog|000001.000176
-    binlog_pos: 538
-     is_global: 0
-   create_time: 2019-09-29 12:11:25
-   update_time: 2019-09-29 12:11:25&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;            &lt;span class="n"&gt;id&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;worker&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8262&lt;/span&gt;
+     &lt;span class="n"&gt;cp_schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;abc&lt;/span&gt;
+      &lt;span class="n"&gt;cp_table&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;xxy&lt;/span&gt;
+   &lt;span class="n"&gt;binlog_name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;binlog&lt;/span&gt;&lt;span class="o"&gt;|&lt;/span&gt;&lt;span class="mi"&gt;000001&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;000176&lt;/span&gt;
+    &lt;span class="n"&gt;binlog_pos&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;538&lt;/span&gt;
+     &lt;span class="n"&gt;is_global&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+   &lt;span class="n"&gt;create_time&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2019&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;09&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;29&lt;/span&gt; &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;25&lt;/span&gt;
+   &lt;span class="n"&gt;update_time&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2019&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;09&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;29&lt;/span&gt; &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;25&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
 &lt;h2&gt;组件升级&lt;/h2&gt;
 &lt;h3&gt;dm-master&lt;/h3&gt;
 &lt;p&gt;dm-master 主要负责 dmctl 的通讯，维护任务及 Sharding DDL lock 信息，重启后会与 dm-worker 重启这些信息，所以除了影响 dmctl 短暂的使用，可以随时重启，升级也就比较简单了：下载新版本 -&amp;gt; 覆盖旧 binary -&amp;gt; 重启。&lt;/p&gt;
