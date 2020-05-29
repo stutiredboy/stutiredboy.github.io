@@ -54,7 +54,7 @@
 &lt;li&gt;OKR 进度确认（如周会）是一次谈话，而不是汇报（A做了什么B做了什么，这叫流水帐）或指示。&lt;/li&gt;
 &lt;li&gt;&lt;a href="https://www.amazon.cn/dp/B07577T3XS/ref=sr_1_1?ie=UTF8&amp;amp;qid=1517276944&amp;amp;sr=8-1&amp;amp;keywords=okr+%E5%B7%A5%E4%BD%9C%E6%B3%95"&gt;《OKR 工作法》&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href="http://eleganthack.com/wp-content/uploads/2017/05/OKR_Worksheet.pdf"&gt; OKR 练习册&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;</content><category term="okr"></category></entry><entry><title>网易游戏 MySQL-MongoDB 运维及 DBA 招聘</title><link href="https://blog.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html" rel="alternate"></link><published>2017-11-15T22:51:00+08:00</published><updated>2017-11-15T22:51:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2017-11-15:/posts/2017-11-15/ntes-offers.html</id><summary type="html">&lt;p&gt;以下岗位部门均属于&lt;a href="http://hr.game.163.com/about.html"&gt;网易在线游戏事业部&lt;/a&gt;。
+&lt;/ol&gt;</content><category term="misc"></category><category term="okr"></category></entry><entry><title>网易游戏 MySQL-MongoDB 运维及 DBA 招聘</title><link href="https://blog.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html" rel="alternate"></link><published>2017-11-15T22:51:00+08:00</published><updated>2017-11-15T22:51:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2017-11-15:/posts/2017-11-15/ntes-offers.html</id><summary type="html">&lt;p&gt;以下岗位部门均属于&lt;a href="http://hr.game.163.com/about.html"&gt;网易在线游戏事业部&lt;/a&gt;。
 其中 MongoDB 运维及运维开发工程师可选工作地点为广州或杭州。&lt;/p&gt;
 &lt;p&gt;相关数据库产品均服务于如《&lt;a href="http://hy.163.com"&gt;荒野行动&lt;/a&gt;》、《&lt;a href="http://xyq.163.com"&gt;梦幻西游&lt;/a&gt;》、《&lt;a href="http://dhxy.163.com"&gt;大话西游&lt;/a&gt;》、《&lt;a href="http://yys.163.com"&gt;阴阳师&lt;/a&gt;》、《&lt;a href="http://mc.163.com"&gt;我的世界&lt;/a&gt;》、&lt;a href="http://cc.163.com"&gt;CC&lt;/a&gt;等网易游戏海量用户业务。
 如果需要也有更深入了解的，也可以给我留言或者&lt;a href="https://www.dropbox.com/s/fcx2kqf77kmx7zv/wechat_qrcode.jpeg?dl=0"&gt;微信（二维码戳我）&lt;/a&gt;私我。同时欢迎推荐及转发。&lt;/p&gt;
@@ -150,47 +150,51 @@
 &lt;li&gt;熟悉 shell 脚本语言编程，会 Python 者优先；&lt;/li&gt;
 &lt;li&gt;了解 TCP/IP 网络，有一定的故障排查和处理能力；&lt;/li&gt;
 &lt;li&gt;熟悉 DNS 协议、BIND，有相关运维经验，并能够快速实施部署、配置和排障；&lt;/li&gt;
-&lt;/ol&gt;</content><category term="netease"></category><category term="dba"></category><category term="mysql"></category><category term="mongodb"></category></entry><entry><title>pip 升级 pip 失败</title><link href="https://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html" rel="alternate"></link><published>2016-05-19T12:11:00+08:00</published><updated>2016-05-19T12:11:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</id><summary type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;#&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="c1"&gt;--upgrade pip&lt;/span&gt;
-&lt;span class="n"&gt;Requirement&lt;/span&gt; &lt;span class="n"&gt;already&lt;/span&gt; &lt;span class="n"&gt;up&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;date&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;python2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;dist&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;packages&lt;/span&gt;
-&lt;span class="n"&gt;You&lt;/span&gt; &lt;span class="k"&gt;are&lt;/span&gt; &lt;span class="k"&gt;using&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;however&lt;/span&gt; &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;available&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;You&lt;/span&gt; &lt;span class="n"&gt;should&lt;/span&gt; &lt;span class="n"&gt;consider&lt;/span&gt; &lt;span class="n"&gt;upgrading&lt;/span&gt; &lt;span class="n"&gt;via&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;pip install --upgrade pip …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;#&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="n"&gt;install&lt;/span&gt; &lt;span class="c1"&gt;--upgrade pip&lt;/span&gt;
-&lt;span class="n"&gt;Requirement&lt;/span&gt; &lt;span class="n"&gt;already&lt;/span&gt; &lt;span class="n"&gt;up&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nb"&gt;date&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;python2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;dist&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;packages&lt;/span&gt;
-&lt;span class="n"&gt;You&lt;/span&gt; &lt;span class="k"&gt;are&lt;/span&gt; &lt;span class="k"&gt;using&lt;/span&gt; &lt;span class="n"&gt;pip&lt;/span&gt; &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;however&lt;/span&gt; &lt;span class="k"&gt;version&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;available&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
-&lt;span class="n"&gt;You&lt;/span&gt; &lt;span class="n"&gt;should&lt;/span&gt; &lt;span class="n"&gt;consider&lt;/span&gt; &lt;span class="n"&gt;upgrading&lt;/span&gt; &lt;span class="n"&gt;via&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;pip install --upgrade pip&amp;#39;&lt;/span&gt; &lt;span class="n"&gt;command&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="netease"></category><category term="dba"></category><category term="mysql"></category><category term="mongodb"></category></entry><entry><title>pip 升级 pip 失败</title><link href="https://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html" rel="alternate"></link><published>2016-05-19T12:11:00+08:00</published><updated>2016-05-19T12:11:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</id><summary type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;# pip install --upgrade pip&lt;/span&gt;
+&lt;span class="err"&gt;Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages&lt;/span&gt;
+&lt;span class="err"&gt;You are using pip version 8.1.1, however version 8.1.2 is available.&lt;/span&gt;
+&lt;span class="err"&gt;You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;尝试按说明执行 &lt;code&gt;pip …&lt;/code&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;# pip install --upgrade pip&lt;/span&gt;
+&lt;span class="err"&gt;Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages&lt;/span&gt;
+&lt;span class="err"&gt;You are using pip version 8.1.1, however version 8.1.2 is available.&lt;/span&gt;
+&lt;span class="err"&gt;You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;尝试按说明执行 &lt;code&gt;pip install --upgrade pip&lt;/code&gt; ，没有任何报错，但一直升级不成功，百思不得解，
 在查看 &lt;code&gt;man pip&lt;/code&gt; 的时候，找到如下选项：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="c1"&gt;--verbose&lt;/span&gt;
-    &lt;span class="n"&gt;Give&lt;/span&gt; &lt;span class="k"&gt;more&lt;/span&gt; &lt;span class="k"&gt;output&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="k"&gt;Option&lt;/span&gt; &lt;span class="k"&gt;is&lt;/span&gt; &lt;span class="n"&gt;additive&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;and&lt;/span&gt; &lt;span class="n"&gt;can&lt;/span&gt; &lt;span class="n"&gt;be&lt;/span&gt; &lt;span class="n"&gt;used&lt;/span&gt; &lt;span class="n"&gt;up&lt;/span&gt; &lt;span class="k"&gt;to&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="n"&gt;times&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;-v, --verbose&lt;/span&gt;
+&lt;span class="err"&gt;    Give more output. Option is additive, and can be used up to 3 times.&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;尝试执行 &lt;code&gt;pip install --upgrade pip -vvv&lt;/code&gt; 终于有更多提示：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="nv"&gt;location&lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;s&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;to&lt;/span&gt; &lt;span class="nv"&gt;search&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;versions&lt;/span&gt; &lt;span class="nv"&gt;of&lt;/span&gt; &lt;span class="nv"&gt;pip&lt;/span&gt;:
-&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;simple&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
-&lt;span class="nv"&gt;Getting&lt;/span&gt; &lt;span class="nv"&gt;page&lt;/span&gt; &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;simple&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
-&lt;span class="nv"&gt;Starting&lt;/span&gt; &lt;span class="nv"&gt;new&lt;/span&gt; &lt;span class="nv"&gt;HTTP&lt;/span&gt; &lt;span class="nv"&gt;connection&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;: &lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;
-&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="s"&gt;GET /simple/pip/ HTTP/1.1&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="mi"&gt;403&lt;/span&gt; &lt;span class="mi"&gt;247&lt;/span&gt;
-&lt;span class="nv"&gt;Could&lt;/span&gt; &lt;span class="nv"&gt;not&lt;/span&gt; &lt;span class="nv"&gt;fetch&lt;/span&gt; &lt;span class="nv"&gt;URL&lt;/span&gt; &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;simple&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;: &lt;span class="mi"&gt;403&lt;/span&gt; &lt;span class="nv"&gt;Client&lt;/span&gt; &lt;span class="nv"&gt;Error&lt;/span&gt;: &lt;span class="nv"&gt;Forbidden&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;url&lt;/span&gt;: &lt;span class="nv"&gt;http&lt;/span&gt;:&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="nv"&gt;example&lt;/span&gt;.&lt;span class="nv"&gt;url&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;simple&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="nv"&gt;skipping&lt;/span&gt;
-&lt;span class="nv"&gt;Installed&lt;/span&gt; &lt;span class="nv"&gt;version&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;.&lt;span class="mi"&gt;1&lt;/span&gt;.&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt; &lt;span class="nv"&gt;is&lt;/span&gt; &lt;span class="nv"&gt;most&lt;/span&gt; &lt;span class="nv"&gt;up&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;date&lt;/span&gt; &lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;past&lt;/span&gt; &lt;span class="nv"&gt;versions&lt;/span&gt;: &lt;span class="nv"&gt;none&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;
-&lt;span class="nv"&gt;Requirement&lt;/span&gt; &lt;span class="nv"&gt;already&lt;/span&gt; &lt;span class="nv"&gt;up&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;to&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;date&lt;/span&gt;: &lt;span class="nv"&gt;pip&lt;/span&gt; &lt;span class="nv"&gt;in&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;local&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;lib&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;python2&lt;/span&gt;.&lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;dist&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;packages&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;pip&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;.&lt;span class="mi"&gt;1&lt;/span&gt;.&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;py2&lt;/span&gt;.&lt;span class="mi"&gt;7&lt;/span&gt;.&lt;span class="nv"&gt;egg&lt;/span&gt;
-&lt;span class="nv"&gt;Cleaning&lt;/span&gt; &lt;span class="nv"&gt;up&lt;/span&gt;...
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;1 location(s) to search for versions of pip:&lt;/span&gt;
+&lt;span class="err"&gt;* http://example.url/simple/pip/&lt;/span&gt;
+&lt;span class="err"&gt;Getting page http://example.url/simple/pip/&lt;/span&gt;
+&lt;span class="err"&gt;Starting new HTTP connection (1): example.url&lt;/span&gt;
+&lt;span class="err"&gt;&amp;quot;GET /simple/pip/ HTTP/1.1&amp;quot; 403 247&lt;/span&gt;
+&lt;span class="err"&gt;Could not fetch URL http://example.url/simple/pip/: 403 Client Error: Forbidden for url: http://example.url/simple/pip/ - skipping&lt;/span&gt;
+&lt;span class="err"&gt;Installed version (8.1.2) is most up-to-date (past versions: none)&lt;/span&gt;
+&lt;span class="err"&gt;Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages/pip-8.1.2-py2.7.egg&lt;/span&gt;
+&lt;span class="err"&gt;Cleaning up...&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;这时才发现，原来在我的 &lt;code&gt;~/.pip/pip.conf&lt;/code&gt; 配置文件里，&lt;code&gt;index-url&lt;/code&gt; 使用了一个已经废弃的地址，删除文件后重新升级，一切恢复正常。&lt;/p&gt;
-&lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</content><category term="python"></category><category term="pip"></category></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="https://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><published>2014-11-17T14:35:00+08:00</published><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+&lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</content><category term="misc"></category><category term="python"></category><category term="pip"></category></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="https://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"></link><published>2014-11-17T14:35:00+08:00</published><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
 Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
 &lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
 并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
 却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
 &lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Library&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Preferences&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;SystemConfiguration&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;/Library/Preferences/SystemConfiguration&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -203,7 +207,7 @@ Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WI
 却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
 &lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Library&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;Preferences&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;SystemConfiguration&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;/Library/Preferences/SystemConfiguration&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -219,43 +223,44 @@ com.apple.captive.probe.plist       preferences.plist
 注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
 &lt;p&gt;后来在网上看到 &lt;a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/"&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;/a&gt;
 这编文章，其实只要删除：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;airport&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;preferences&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
-&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;network&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;identification&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
-&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apple&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;wifi&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;message&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;tracer&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;&lt;span class="err"&gt; &lt;/span&gt;
-&lt;span class="n"&gt;NetworkInterfaces&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;&lt;span class="err"&gt; &lt;/span&gt;
-&lt;span class="n"&gt;preferences&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plist&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;com.apple.airport.preferences.plist&lt;/span&gt;
+&lt;span class="err"&gt;com.apple.network.identification.plist&lt;/span&gt;
+&lt;span class="err"&gt;com.apple.wifi.message-tracer.plist &lt;/span&gt;
+&lt;span class="err"&gt;NetworkInterfaces.plist &lt;/span&gt;
+&lt;span class="err"&gt;preferences.plist&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;2014&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;18&lt;/span&gt; &lt;span class="err"&gt;昨天折腾完，今天收到&lt;/span&gt;&lt;span class="n"&gt;Apple&lt;/span&gt; &lt;span class="n"&gt;Store&lt;/span&gt;&lt;span class="err"&gt;的更新提醒，&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="n"&gt;fix&lt;/span&gt;&lt;span class="err"&gt;了&lt;/span&gt;&lt;span class="n"&gt;wifi&lt;/span&gt;&lt;span class="err"&gt;这个问题了&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="https://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="mac"></category><category term="osx"></category><category term="yosemite"></category><category term="wifi"></category></entry><entry><title>Linux系统上通知网关更新arp</title><link href="https://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"></link><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt; &lt;span class="n"&gt;neigh&lt;/span&gt; &lt;span class="n"&gt;flush&lt;/span&gt; &lt;span class="n"&gt;dev&lt;/span&gt; &lt;span class="n"&gt;eth0&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;/bin/ip neigh flush dev eth0&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;其次向网关发送本机的ip/mac地址&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;arping&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;c&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;S&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;144&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="mi"&gt;00&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;17&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;a4&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;98&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;1.1.1.144 为本机IP …&lt;/p&gt;</summary><content type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+&lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
+&lt;p&gt;00:17 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
 &lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
 &lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ip&lt;/span&gt; &lt;span class="n"&gt;neigh&lt;/span&gt; &lt;span class="n"&gt;flush&lt;/span&gt; &lt;span class="n"&gt;dev&lt;/span&gt; &lt;span class="n"&gt;eth0&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;/bin/ip neigh flush dev eth0&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;其次向网关发送本机的ip/mac地址&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;usr&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;sbin&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;arping&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;c&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;S&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;144&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="mi"&gt;00&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;17&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="n"&gt;a4&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;98&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;p&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
 &lt;p&gt;00:17:a4:8d:0e:98 为本机MAC地址&lt;/p&gt;
-&lt;p&gt;1.1.1.1 为网关&lt;/p&gt;</content><category term="linux"></category><category term="arp"></category></entry><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="https://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><published>2013-10-29T16:43:00+08:00</published><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+&lt;p&gt;1.1.1.1 为网关&lt;/p&gt;</content><category term="misc"></category><category term="linux"></category><category term="arp"></category></entry><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="https://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"></link><published>2013-10-29T16:43:00+08:00</published><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-10-29:/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
 &lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。&lt;/p&gt;
 &lt;p&gt;好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/iterm2_default_profile.png" /&gt;&lt;/p&gt;
@@ -301,13 +306,13 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;即可&lt;/p&gt;</content><category term="mac"></category><category term="osx"></category><category term="iterm2"></category></entry><entry><title>pelican增加自定义jinja template filters</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"></link><published>2013-09-11T19:46:00+08:00</published><updated>2013-09-11T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-11:/posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
+&lt;p&gt;即可&lt;/p&gt;</content><category term="misc"></category><category term="mac"></category><category term="osx"></category><category term="iterm2"></category></entry><entry><title>pelican增加自定义jinja template filters</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"></link><published>2013-09-11T19:46:00+08:00</published><updated>2013-09-11T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-11:/posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
 &lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
 &lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序&lt;/p&gt;
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
 &lt;p&gt;不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch&lt;/p&gt;
 &lt;p&gt;当然，更幸运的是在&lt;code&gt;github&lt;/code&gt;找到了此commit:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;github&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;getpelican&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pelican&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pull&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;96&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c"&gt;https://github.com/getpelican/pelican/pull/96&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -321,7 +326,7 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
 &lt;p&gt;不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch&lt;/p&gt;
 &lt;p&gt;当然，更幸运的是在&lt;code&gt;github&lt;/code&gt;找到了此commit:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;github&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;getpelican&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pelican&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pull&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;96&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c"&gt;https://github.com/getpelican/pelican/pull/96&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -345,11 +350,11 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;尝试重新编译生成html文件，顺利完成。&lt;/p&gt;</content><category term="python"></category><category term="pelican"></category><category term="jinja"></category></entry><entry><title>配置Bind使用MySQL dlz模式</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html" rel="alternate"></link><published>2013-09-09T16:18:00+08:00</published><updated>2013-09-09T16:18:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/install-bind-mysql-dlz.html</id><summary type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;尝试重新编译生成html文件，顺利完成。&lt;/p&gt;</content><category term="misc"></category><category term="python"></category><category term="pelican"></category><category term="jinja"></category></entry><entry><title>配置Bind使用MySQL dlz模式</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html" rel="alternate"></link><published>2013-09-09T16:18:00+08:00</published><updated>2013-09-09T16:18:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/install-bind-mysql-dlz.html</id><summary type="html">&lt;p&gt;&lt;strong&gt; 安装MySQL/Bind with dlz &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;dns&lt;/span&gt; &lt;span class="k"&gt;DEFAULT&lt;/span&gt; &lt;span class="n"&gt;CHARSET&lt;/span&gt; &lt;span class="n"&gt;UTF8&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -361,7 +366,7 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; 创建 MySQL 数据库 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;dns&lt;/span&gt; &lt;span class="k"&gt;DEFAULT&lt;/span&gt; &lt;span class="n"&gt;CHARSET&lt;/span&gt; &lt;span class="n"&gt;UTF8&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -380,44 +385,44 @@ com.apple.captive.probe.plist       preferences.plist
 
 &lt;p&gt;这里以域 &lt;code&gt;example.com&lt;/code&gt; 为例，说明如上字段意义，假设我需要有一条 &lt;code&gt;www.example.com&lt;/code&gt; 的记录指向 &lt;code&gt;1.1.1.1&lt;/code&gt; 这个IP，应该增加哪些内容：&lt;/p&gt;
 &lt;p&gt;zone:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域，这里指&lt;/span&gt; &lt;span class="n"&gt;example&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域，这里指 example.com&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;host:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;主机名（名字），这里为&lt;/span&gt; &lt;span class="n"&gt;www&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;主机名（名字），这里为 www&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;type:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;记录类型，这里为&lt;/span&gt;&lt;span class="n"&gt;A&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;记录类型，这里为A&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;data:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域名资源数据，这里为&lt;/span&gt;&lt;span class="n"&gt;IP&lt;/span&gt;&lt;span class="err"&gt;地址&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域名资源数据，这里为IP地址 1.1.1.1&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;ttl:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域名&lt;/span&gt;&lt;span class="n"&gt;TTL&lt;/span&gt;&lt;span class="err"&gt;，为任意整数（建议不要低于&lt;/span&gt;&lt;span class="mi"&gt;120&lt;/span&gt;&lt;span class="err"&gt;，即&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="err"&gt;分钟）&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;域名TTL，为任意整数（建议不要低于120，即2分钟）&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;将该数据库授权给某用户（后续bind-dlz配置需要用到）：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;grant&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;select&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;on&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;dns&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;to&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;dns&lt;/span&gt;&lt;span class="nv"&gt;@localhost&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;identified&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;by&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;dns&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;grant select on dns.* to dns@localhost identified by &amp;#39;dns&amp;#39;;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
 &lt;p&gt;用户名为 &lt;code&gt;dns&lt;/code&gt; ，密码也为 &lt;code&gt;dns&lt;/code&gt; ，只允许本地主机 &lt;code&gt;localhost&lt;/code&gt; 访问，并只给予了 &lt;code&gt;select&lt;/code&gt; 权限。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt; Bind-dlz配置 &lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;这里只涉及dlz的配置，其它named.conf的配置不涉及&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;dlz&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;your custom description&amp;quot;&lt;/span&gt; &lt;span class="err"&gt;{&lt;/span&gt;
-    &lt;span class="k"&gt;database&lt;/span&gt; &lt;span class="ss"&gt;&amp;quot;mysql&lt;/span&gt;
-&lt;span class="ss"&gt;        {host=localhost dbname=dns user=dns pass=dns}&lt;/span&gt;
-&lt;span class="ss"&gt;        {select zone from dns_records where zone = &amp;#39;$zone$&amp;#39;}&lt;/span&gt;
-&lt;span class="ss"&gt;        {select ttl, type, data from dns_records where host = &amp;#39;$record$&amp;#39; and zone=&amp;#39;$zone$&amp;#39;}&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
-&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;dlz &amp;quot;your custom description&amp;quot; {&lt;/span&gt;
+&lt;span class="err"&gt;    database &amp;quot;mysql&lt;/span&gt;
+&lt;span class="err"&gt;        {host=localhost dbname=dns user=dns pass=dns}&lt;/span&gt;
+&lt;span class="err"&gt;        {select zone from dns_records where zone = &amp;#39;$zone$&amp;#39;}&lt;/span&gt;
+&lt;span class="err"&gt;        {select ttl, type, data from dns_records where host = &amp;#39;$record$&amp;#39; and zone=&amp;#39;$zone$&amp;#39;}&amp;quot;;&lt;/span&gt;
+&lt;span class="err"&gt;};&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
@@ -426,7 +431,7 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;配置完成。&lt;/p&gt;</content><category term="bind"></category></entry><entry><title>Django multiple select option with title</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html" rel="alternate"></link><published>2013-09-09T15:02:00+08:00</published><updated>2013-09-09T15:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/django-multiple-select-option-with-title.html</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
+&lt;p&gt;配置完成。&lt;/p&gt;</content><category term="misc"></category><category term="bind"></category></entry><entry><title>Django multiple select option with title</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html" rel="alternate"></link><published>2013-09-09T15:02:00+08:00</published><updated>2013-09-09T15:02:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/django-multiple-select-option-with-title.html</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.encoding&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;
 &lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;conditional_escape&lt;/span&gt;
 
@@ -448,7 +453,7 @@ com.apple.captive.probe.plist       preferences.plist
             &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;selected_html&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
             &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
             &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content><category term="python"></category><category term="django"></category></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"></link><published>2013-09-08T13:03:00+08:00</published><updated>2013-09-08T13:03:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="python"></category><category term="django"></category></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"></link><published>2013-09-08T13:03:00+08:00</published><updated>2013-09-08T13:03:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;Debian Squeeze 6.0 amd64&lt;/p&gt;
 &lt;p&gt;thrift: 0.8.0&lt;/p&gt;
@@ -530,14 +535,14 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;p&gt;保存退出后&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;sudo ldconfig&lt;/p&gt;
-&lt;/blockquote&gt;</content><category term="debian"></category><category term="scribe"></category></entry><entry><title>Windows OpenVPN GUI记住用户名和密码</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html" rel="alternate"></link><published>2013-09-08T12:51:00+08:00</published><updated>2013-09-08T12:51:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/windows-openvpn-remember-password.html</id><summary type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。 如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦&lt;/p&gt;</summary><content type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。&lt;/p&gt;
+&lt;/blockquote&gt;</content><category term="misc"></category><category term="debian"></category><category term="scribe"></category></entry><entry><title>Windows OpenVPN GUI记住用户名和密码</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html" rel="alternate"></link><published>2013-09-08T12:51:00+08:00</published><updated>2013-09-08T12:51:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/windows-openvpn-remember-password.html</id><summary type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。 如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦&lt;/p&gt;</summary><content type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。&lt;/p&gt;
 &lt;p&gt;如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦&lt;/p&gt;
 &lt;p&gt;我使用的版本（2.3.1），实际上已经支持保存密码的功能（旧版本可能需要重新编译），在ovpn配置文件里增加:&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;auth-user-pass pass.txt&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;之后在ovpn配置文件所在目录建立一个pass.txt的文件，第一行为用户名，第二行为密码即可。&lt;/p&gt;
-&lt;p&gt;PS：这样对自己电脑的安全性要有足够的保证，否则密码泄露就得不偿失了。&lt;/p&gt;</content><category term="windows"></category><category term="openvpn"></category></entry><entry><title>Debian系统添加全局根证书（CNNIC）</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html" rel="alternate"></link><published>2013-09-08T12:25:00+08:00</published><updated>2013-09-08T12:25:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/debian-add-cnnic-ca.html</id><summary type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。本篇文章介绍了如何将CNNIC CA添加至Debian操作系统全局根证书。&lt;/p&gt;</summary><content type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。&lt;/p&gt;
+&lt;p&gt;PS：这样对自己电脑的安全性要有足够的保证，否则密码泄露就得不偿失了。&lt;/p&gt;</content><category term="misc"></category><category term="windows"></category><category term="openvpn"></category></entry><entry><title>Debian系统添加全局根证书（CNNIC）</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html" rel="alternate"></link><published>2013-09-08T12:25:00+08:00</published><updated>2013-09-08T12:25:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/debian-add-cnnic-ca.html</id><summary type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。本篇文章介绍了如何将CNNIC CA添加至Debian操作系统全局根证书。&lt;/p&gt;</summary><content type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。&lt;/p&gt;
 &lt;p&gt;虽然我也不喜欢cnnic，但没办法，这是反抗不了的事情。&lt;/p&gt;
 &lt;p&gt;过程如下（需要root权限）：&lt;/p&gt;
 &lt;blockquote&gt;
@@ -545,4 +550,4 @@ com.apple.captive.probe.plist       preferences.plist
 &lt;p&gt;mkdir -p /usr/share/ca-certificates/local #建立local目录是为了方便区分这是自己填加的证书，可以自定义，但一定要在/usr/share/ca-certificates目录下&lt;/p&gt;
 &lt;p&gt;将cnnic的证书复制至/usr/share/ca-certificates/local目录，请注意，证书的后缀必须修改为.crt&lt;/p&gt;
 &lt;p&gt;dpkg-reconfigure ca-certificates #选中刚才添加的local/cnnic.crt证中，确定，即可&lt;/p&gt;
-&lt;/blockquote&gt;</content><category term="debian"></category></entry></feed>
+&lt;/blockquote&gt;</content><category term="misc"></category><category term="debian"></category></entry></feed>
