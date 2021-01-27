@@ -1,3 +1,0 @@
-pelican==4.2.0
-pelican-related==0.1
-markdown==3.1.1
