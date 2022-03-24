@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>TiDB DM 数据库同步 STEP BY STEP</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Open Graph tags -->
+
+            <meta property="og:type" content="article"/>
+            <meta property="og:title" content="TiDB DM 数据库同步 STEP BY STEP"/>
+            <meta property="og:url" content="https://blog.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html"/>
+            <meta property="og:description" content="前段时间，看到了一篇关于数据库选型的文章（MongoDB/TiDB/CockroachDB），忍不住感慨了一句，TiDB 一看就是大户人家，什么工具都可以有，什么工 …"/>
+
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
+    <link href="https://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://blog.chenxiaosheng.com/theme/css/style.css">
+    <!--[if lt IE 9]>
+        <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <![endif]-->
+    <!--[if gte IE 9]><!-->
+        <script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
+    <!--<![endif]-->
+
+        <link href="https://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="碎碎念 ATOM Feed"/>
+
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30723232-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+
+    </script>
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <!-- I don't need this //by tiredboy
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>-->
+            <a href="https://blog.chenxiaosheng.com" class="navbar-brand">碎碎念</a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</nav>
+<!-- /.navbar -->
+<div class="container">
+    <div class="row">
+        <div class="col-md-9 col-lg-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>
+                    <a href="https://blog.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html"
+                       rel="bookmark"
+                       title="Permalink to TiDB DM 数据库同步 STEP BY STEP">
+                        TiDB DM 数据库同步 STEP BY STEP
+                    </a>
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="published">
+      <i class="icon-calendar"></i>2019-09-29 13:08
+    </span>
+
+
+
+<i class="icon-tags"></i>
+	<a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a>
+        /
+	<a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a>
+        /
+	<a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a>
+        /
+	<a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a>
+        /
+	<a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a>
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>前段时间，看到了一篇关于数据库选型的文章（MongoDB/TiDB/CockroachDB），忍不住感慨了一句，TiDB 一看就是大户人家，什么工具都可以有，什么工具都迭代得特别快，没有钱没有人，难以想像如何才能驱动得了。TiDB/TiKV/PD/Mydumper/Loader/Syncer/Data Migration/TiDB Lighting/Pump/Drainer ... 光是弄清楚这些组件是用来做什么的，感觉都可以评个高工了 :-)</p>
+<p>随着 DM 1.0 GA 的 release，我们也开始考虑将 syncer 迁移至 DM。主要原因还是 syncer 已经太久没有更新了，否则 syncer 这种简易几乎无须部署的工具还是比较对我个人的胃口的，官方很喜欢把工具集群化（可能听起来厉害一点），DM 也是，那就按着最小目标（syncer）折腾一下吧。</p>
+<p>DM 的架构文档可以参考<a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/overview/#dm-架构">官方</a>，整个集群有三个角色 dmctl/dm-master/dm-worker。</p>
+<ol>
+<li>DM-master 负责管理和调度数据同步任务的各项操作。</li>
+<li>DM-worker 负责执行具体的数据同步任务。</li>
+<li>dmctl 是用来控制 DM 集群的命令行工具。</li>
+</ol>
+<p><img alt="Data Migration architecture" src="https://pingcap.com/images/docs-cn/dm-architecture.png"></p>
+<p>官方也提供了基于 Ansible 的部署工具，如果你不是特别需要了解实际的部署过程，或者你的环境对 ansible 的亲和度比较好的话，可以参考<a href="https://pingcap.com/docs-cn/v3.0/how-to/deploy/data-migration-with-ansible">使用 DM-Ansible 部署 DM 集群</a>。在这篇文章里，我们还是希望对于 DM 的部署有一定的了解，另外我们的小目标是实现类似 syncer 功能，因此，让我们 step by step 人肉部署吧。（好吧，吐槽一下，其实本人是很反感什么都要 ansible 再包一层的，无法直接通过文档了解工作方式，还非得去读 ansible 的相关部署文件）。</p>
+<h2>准备工作</h2>
+<ol>
+<li>
+<p>确认工作目录，假定这里为 <code>/home/dm</code>，并确保相关目录已经建立且具备读写权限：<code>mkdir -p /home/dm/log</code>；</p>
+</li>
+<li>
+<p>确保机器上已经具备相应的命令行工具，如：tar、wget、rsync 或 cp 等；</p>
+</li>
+<li>
+<p>下载 DM 二进制文件：</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code>wget http://download.pingcap.org/dm-latest-linux-amd64.tar.gz
+tar -zxvf dm-latest-linux-amd64.tar.gz
+rsync -avz dm-latest-linux-amd64/bin/ /home/dm/bin/
+</code></pre></div>
+
+<ol>
+<li>机器列表，这里我们主要熟悉部署过程，且不需要分库分表合并等功能，只实现 syncer 流程，因此 master 和 worker 均只部署在同一台同器：</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>地址</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DM-master</td>
+<td>127.0.0.1:8261</td>
+</tr>
+<tr>
+<td>DM-worker</td>
+<td>127.0.0.1:8262</td>
+</tr>
+</tbody>
+</table>
+<h2>配置文件</h2>
+<h3>dm-worker</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># DM-worker Configuration: worker.toml</span><span class="w"></span>
+<span class="c1"># MySQL Server ID, 注意不要和已有的 ID 冲突</span><span class="w"></span>
+<span class="n">server-id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8262</span><span class="w"></span>
+<span class="c1"># 可以理解为 worker 的唯一标识</span><span class="w"></span>
+<span class="n">source-id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;worker-8262&quot;</span><span class="w"></span>
+<span class="n">worker-addr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;127.0.0.1:8262&quot;</span><span class="w"></span>
+<span class="c1"># 支持源为 mysql 或 mariadb</span><span class="w"></span>
+<span class="n">flavor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;mysql&quot;</span><span class="w"></span>
+<span class="c1"># 是否启用 GTID，开启前需要上游 MySQL 开启 GTID 功能</span><span class="w"></span>
+<span class="n">enable-gtid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"></span>
+<span class="c1"># MySQL Master/Slave 发生切换时，是否修复 gtid</span><span class="w"></span>
+<span class="n">auto-fix-gtid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="w"></span>
+<span class="c1"># 开始同步的位置，我这里使用 GTID，该值为 MySQL Master 上的 Executed_Gtid_Set 值</span><span class="w"></span>
+<span class="c1"># relay-binlog-name = &quot;binlog.000140&quot;</span><span class="w"></span>
+<span class="n">relay-binlog-gtid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&quot;</span><span class="w"></span>
+<span class="c1"># charset of DSN of source mysql/mariadb instance</span><span class="w"></span>
+<span class="n">charset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"></span>
+<span class="c1"># worker 元数据存储目录，需要提前创建好</span><span class="w"></span>
+<span class="n">meta-dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/home/dm/meta/worker-8262&quot;</span><span class="w"></span>
+<span class="c1"># relay log 的本地存储目录，需要提前创建好</span><span class="w"></span>
+<span class="n">relay-dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/home/dm/relay/worker-8262&quot;</span><span class="w"></span>
+
+<span class="c1"># 源数据库，一个 worker 只能对应一个 MySQL 源</span><span class="w"></span>
+<span class="k">[from]</span><span class="w"></span>
+<span class="n">host</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;127.0.0.1&quot;</span><span class="w"></span>
+<span class="n">user</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;dm&quot;</span><span class="w"></span>
+<span class="c1"># 该密码为使用 dmctl -encrypt ${你的原始密码} 加密后的字符串</span><span class="w"></span>
+<span class="n">password</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vUYLfdtQlHLF6Kr4IHg8NkDjiPtVig6p&quot;</span><span class="w"></span>
+<span class="n">port</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="mi">3306</span><span class="w"></span>
+
+<span class="c1"># relay log purge strategy</span><span class="w"></span>
+<span class="k">[purge]</span><span class="w"></span>
+<span class="n">interval</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="mi">3600</span><span class="w"></span>
+<span class="n">expires</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="w"></span>
+<span class="n">remain-space</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="mi">15</span><span class="w"></span>
+</code></pre></div>
+
+<p>配置不算特别复杂，需要留意的地方都在注释里进行说明了。其中 <code>source-id</code> 请记下来，接着配置 dm-master 需要用到。</p>
+<p>再次提醒，MySQL 的密码配置需要使用 dmctl 进行加密处理。</p>
+<h3>dm-master</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># dm-master Configuration: master.toml</span><span class="w"></span>
+<span class="n">log-level</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;info&quot;</span><span class="w"></span>
+<span class="n">log-file</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;/home/dm/log/dm-master.log&quot;</span><span class="w"></span>
+<span class="n">master-addr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;127.0.0.1:8261&quot;</span><span class="w"></span>
+
+<span class="k">[[deploy]]</span><span class="w"></span>
+<span class="n">source-id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;worker-8262&quot;</span><span class="w"></span>
+<span class="n">dm-worker</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;127.0.0.1:8262&quot;</span><span class="w"></span>
+</code></pre></div>
+
+<p>配置文件比较简单，基本上都不需要解释。其中 <code>[[deploy]]</code> 对应一个 worker，可以有多个 <code>[[deploy]]</code> 。目前了解到的，dm-worker 只能通过配置文件并重启 dm-master 进行加载，无法通过 dmctl 进行运行上填加。好在 dm-master 几乎随时都可以重启，所以也不是特别大的问题。</p>
+<h3>dmctl</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># dmctl Configuration: ctl.toml</span><span class="w"></span>
+<span class="n">master-addr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;127.0.0.1:8261&quot;</span><span class="w"></span>
+</code></pre></div>
+
+<p>dmctl 的配置就相当简单了，只需要指定 dm-master 地址。而 dmctl 也是我们与 dm-master 打交道的最直接工作。</p>
+<h2>集群启动</h2>
+<p>经过上述的配置（是不是没有想像中复杂），我们已经可以开启集群了：</p>
+<ol>
+<li>启动 master: bin/dm-master -config master.toml</li>
+<li>启动 worker: bin/dm-worker -config worker.toml</li>
+</ol>
+<p>除了跟踪日志输出，确认进程是否正常启动。我们还可以借助 dmctl 来检查当前集群的情况，使用 <code>bin/dmctl -config ctl.toml</code> 连接集群，并通过 <code>query-status</code> 查询集群状态，返回如下（成功）：</p>
+<div class="highlight"><pre><span></span><code><span class="err">»</span><span class="w"> </span><span class="err">query</span><span class="mi">-</span><span class="err">s</span><span class="kc">tatus</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;worker&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;127.0.0.1:8262&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;no sub task started&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;subTaskStatus&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">            </span><span class="p">],</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;relayStatus&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;masterBinlog&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(binlog.000172, 234)&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;masterBinlogGtid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;relaySubDir&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee.000001&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;relayBinlog&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(, 4)&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;relayBinlogGtid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;34204ac9-a157-11e9-bc03-c6e9019f8073:1-2,2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;relayCatchUpMaster&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;stage&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Running&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w"></span>
+<span class="w">            </span><span class="p">},</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;sourceID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;worker-8262&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="err">»</span><span class="w"></span>
+</code></pre></div>
+
+<p>这个时候，系统还没有配置任何同步任务，所以也可以看到显示的是：<code>no sub task started</code>。接下来，我们开始来配置一个最基础的同步任务。</p>
+<h2>配置并应用同步任务</h2>
+<h3>创建任务配置文件</h3>
+<p>PingCAP 在任务配置这一块有比较完善的说明了<a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/">DM 任务配置文件介绍</a>。这里我们以将源库为 <code>abc</code> 迁到目标库 <code>abc_dm</code> 为例子做简单说明：</p>
+<div class="highlight"><pre><span></span><code><span class="err">---</span><span class="w"></span>
+<span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="n">test</span><span class="w"></span>
+<span class="n">task-mode</span><span class="p">:</span><span class="w"> </span><span class="n">all</span><span class="w"></span>
+<span class="n">is-sharding</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
+<span class="n">meta-schema</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;dm_meta&quot;</span><span class="w"></span>
+<span class="n">remove-meta</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
+<span class="n">enable-heartbeat</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
+
+<span class="n">target-database</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="n">host</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;192.168.143.41&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="n">port</span><span class="p">:</span><span class="w"> </span><span class="mi">3306</span><span class="w"></span>
+<span class="w">  </span><span class="n">user</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;dm&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="n">password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;vUYLfdtQlHLF6Kr4IHg8NkDjiPtVig6p&quot;</span><span class="w"></span>
+
+<span class="n">mysql-instances</span><span class="p">:</span><span class="w"> </span><span class="c1"># 源库及相关的同步规则配置</span><span class="w"></span>
+<span class="w">  </span><span class="err">-</span><span class="w"></span>
+<span class="w">    </span><span class="n">source-id</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;worker-8262&quot;</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">meta</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="n">binlog-name</span><span class="p">:</span><span class="w"> </span><span class="n">binlog</span><span class="mf">.000140</span><span class="w"></span>
+<span class="w">      </span><span class="n">binlog-pos</span><span class="p">:</span><span class="w"> </span><span class="mi">141868</span><span class="w"></span>
+<span class="w">    </span><span class="n">route-rules</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;user-route-rules-schema&quot;</span><span class="p">]</span><span class="w"></span>
+<span class="w">    </span><span class="n">black-white-list</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;instance&quot;</span><span class="w"></span>
+
+<span class="n">routes</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="n">user-route-rules-schema</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="n">schema-pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;abc&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="n">target-schema</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;abc_dm&quot;</span><span class="w"></span>
+
+<span class="n">black-white-list</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="n">instance</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="n">do-dbs</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;abc&quot;</span><span class="p">]</span><span class="w"></span>
+</code></pre></div>
+
+<p>上面参数的说明都可以在官方文档找到，这里对几个重要的参数再做补充说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>meta-schema</td>
+<td>DM 会将该 task 对应的  meta 信息，如断点（checkpoint）存储至目标集存中的该数据库</td>
+</tr>
+<tr>
+<td>remove-meta</td>
+<td>通常我们希望在重启 worker/task 时可以从上次断点继续同步，需要设置为 false</td>
+</tr>
+<tr>
+<td>password</td>
+<td>需要使用 dmctl 加密</td>
+</tr>
+<tr>
+<td>source-id</td>
+<td>理解为相应 dm worker 的 source-id</td>
+</tr>
+<tr>
+<td>routes</td>
+<td>可以在这里配置数据库表的改名规则，具体参考<a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/">官方文档</a></td>
+</tr>
+<tr>
+<td>filters</td>
+<td>这里没有用到，可以过滤相应的 binlog events，如 <code>drop table</code> 操作，具体参考<a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/">官方文档</a></td>
+</tr>
+</tbody>
+</table>
+<h3>应用并启动同步任务</h3>
+<p>使用 <code>bin/dmctl -config ctl.toml</code> 登录 dm master，并执行 <code>start-task test.yaml</code> 即可，确认 <code>test.yaml</code> 文件在当前目录下，成功的话将收到如下返回：</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;workers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;worker&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;127.0.0.1:8262&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<p>这个时候再执行 <code>query-status</code> 可以看到相应的 dm worker 有了具体的 subTaskStatus 信息：</p>
+<div class="highlight"><pre><span></span><code><span class="w">            </span><span class="nt">&quot;subTaskStatus&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">                </span><span class="p">{</span><span class="w"></span>
+<span class="w">                    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="nt">&quot;stage&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Paused&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sync&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="nt">&quot;result&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;isCanceled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;errors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">                        </span><span class="p">],</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;detail&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w"></span>
+<span class="w">                    </span><span class="p">},</span><span class="w"></span>
+<span class="w">                    </span><span class="nt">&quot;unresolvedDDLLockID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                    </span><span class="nt">&quot;sync&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;totalEvents&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;totalTps&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;recentTps&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;masterBinlog&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(binlog.000176, 234)&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;masterBinlogGtid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;syncerBinlog&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;(, 4)&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;syncerBinlogGtid&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;blockingDDLs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">                        </span><span class="p">],</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;unresolvedGroups&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">                        </span><span class="p">],</span><span class="w"></span>
+<span class="w">                        </span><span class="nt">&quot;synced&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w"></span>
+<span class="w">                    </span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="p">}</span><span class="w"></span>
+<span class="w">            </span><span class="p">],</span><span class="w"></span>
+</code></pre></div>
+
+<p>这个时候我们通过 mysql 登录目标数据库，可以看到多了 <code>dm_meta</code> 和 <code>abc_dm</code> 两个数据库，其中 <code>dm_meta</code> 里面有两张表：</p>
+<ol>
+<li><code>test_loader_checkpoint</code> 其中 test 是任务的名称，这张表存储的是全量同步的 meta 信息；</li>
+</ol>
+<div class="highlight"><pre><span></span><code>            id: worker-8262
+      filename: abc.t3.sql
+     cp_schema: abc
+      cp_table: t3
+        offset: 156
+       end_pos: 156
+   create_time: 2019-09-29 12:03:59
+   update_time: 2019-09-29 12:04:00
+</code></pre></div>
+
+<ol>
+<li><code>test_syncer_checkpint</code> 其中 test 是任务的名称，这张表存储的是增量同步的 meta 信息；</li>
+</ol>
+<div class="highlight"><pre><span></span><code>            id: worker-8262
+     cp_schema: abc
+      cp_table: xxy
+   binlog_name: binlog|000001.000176
+    binlog_pos: 538
+     is_global: 0
+   create_time: 2019-09-29 12:11:25
+   update_time: 2019-09-29 12:11:25
+</code></pre></div>
+
+<h2>组件升级</h2>
+<h3>dm-master</h3>
+<p>dm-master 主要负责 dmctl 的通讯，维护任务及 Sharding DDL lock 信息，重启后会与 dm-worker 重启这些信息，所以除了影响 dmctl 短暂的使用，可以随时重启，升级也就比较简单了：下载新版本 -&gt; 覆盖旧 binary -&gt; 重启。</p>
+<h3>dm-worker</h3>
+<p>dm-worker 在本地维护了 meta 信息，在下游（目标）数据库维护了断点（checkpoint）信息，升级也是按：下载新版本 -&gt; 覆盖旧 binary -&gt; 重启即可。唯一需要注意的有：</p>
+<blockquote>
+<p>尽量避免在 sharding DDL 同步过程中重启 DM-worker。</p>
+</blockquote>
+<p>当然，本身对数据的敬畏之心，即使没有 sharding，也不推荐在 DDL 的过程中重启 dm-worker。</p>
+<h3>dmctl</h3>
+<p>命令行交互工具，直接升级即可：下载新版本 -&gt; 覆盖旧 binary。</p>
+<h2>问题处理</h2>
+<ol>
+<li>dm-worker 挂了，并且本地的 meta 信息都丢失了怎么办？</li>
+</ol>
+<p>通常不需要担心，找回按原来的 worker.toml 再启动 worker 即可。其中配置文件中的 <code>relay-binlog-gtid</code> 或 <code>relay-binlog-name</code> 的位置信息可能在源数据库已经过期，可以从目标集群的 meta 库找回，或者直接从源数据库集群上使用一个相对靠前的位置信息替换即可。</p>
+<p>确认新的 worker 已经启动后，再次通过 dmctl 执行 <code>start-task test.yaml</code> 即可，task 的配置文件不需要修改，断点信息会从目标数据库中的 meta 库直接获取。</p>
+<h2>总结</h2>
+<p>官方的组件（概念）特别多，ansible 的包装让用户对相关组件的工作流程了解门槛大大提升。实际部署流程比想像中较为简单。从可靠性来看，还是比较推荐放弃 syncer（较长时间未更新了），并使用 dm 做为替代工具。</p>
+                    <h3 class="icon-hand-right"> 您可能还喜欢以下文章</h3>
+                    </br>
+                    <ul>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html">一次「安全」的变更将 redis cluster 送进了孤岛</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html">网易游戏 MySQL-MongoDB 运维及 DBA 招聘</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html">记一次 TiDB 时区设置异常问题排查</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html">MySQL Seconds_Behind_Master 忽大忽小？莫慌</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html">在 Mac 中对 iPhone 手机网络进行抓包的方法</a></li>
+                    </ul>
+                <div class="panel-about row">
+                  <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
+                    <img src="/static/avatar.gif" class="img-circle">
+                  </div>
+                  <div class="panel-author-description col-md-7">
+                    <h4 class="icon-user"> 关于我</h4></br>
+                    热爱开源、分享。目前主要从事 MongoDB、MySQL、Redis 等数据库私有云 SaaS 相关运维、开发工作。</br>
+                    <br/>
+                    <a href="https://www.vultr.com/?ref=6820888" class="hidden-xs hidden-sm"><img src="https://www.vultr.com/media/banner_2.png" width="468" height="60"></a>
+                  </div>
+                  <div class="panel-author-description col-md-3 hidden-xs hidden-sm">
+                    <img src="/static/qrcode.jpg" width="160" height="160"></a>
+                  </div>
+                </div>
+            </div>
+            <!-- /.entry-content -->
+    <hr />
+    <section class="comments hidden-xs hidden-sm well well-sm" id="comments">
+        <h2>相关评论</h2>
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
+            var disqus_identifier = 'https://blog.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html';
+            var disqus_url = 'https://blog.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html';
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-md-3 col-lg-3 hidden-xs hidden-sm well well-sm" id="sidebar">
+<aside>
+    <section>
+        <ul class="list-group list-group-flush">
+            <!-- NOTIFICATION START -->
+            <div class="bs-callout bs-callout-info">
+              <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@<a href="http://www.zhihu.com" target="blank">知乎</a></p>
+              <p>系统最后一次生成时间：2022-03-24 13:34:27</p>
+            </div>
+            <!-- NOTIFICATION END -->
+            <!-- SOCIAL START -->
+            <!--
+                <li class="list-group-item">
+                <span class="span-group-item"><a href="http://weibo.com/stutiredboy"><i class="icon-weibo icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
+                </li>
+            -->
+            <!-- SOCIAL END -->
+            <!-- CONTACT START -->
+            <li class="list-group-item"><h4><i class="icon-envelope icon-large"></i>微信公众号</h4></li>
+            <div class="text-center"><img src="/static/qrcode.jpg" alt="欢迎关注个人微信公众号" class="img-rounded"></div>
+            <!-- CONTACT END -->
+            <!-- TAGS CLOUD START -->
+            <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+            <!-- TAGS CLOUD END -->
+            <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
+            <script type="text/javascript" src="https://stutiredboy.disqus.com/recent_comments_widget.js?num_items=8&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
+            <!-- Uncomment if you want to show Social
+                <li class="list-group-item"><h4><i class="icon-home icon-large"></i>Social</h4></li>
+                    <li class="list-group-item"><a href="http://weibo.com/stutiredboy"><i
+                            class="icon-weibo-sign icon-large"></i>weibo
+                    </a></li>
+                    <li class="list-group-item"><a href="https://www.facebook.com/stutiredboy"><i
+                            class="icon-facebook-sign icon-large"></i>facebook
+                    </a></li>
+                    <li class="list-group-item"><a href="https://twitter.com/stutiredboy"><i
+                            class="icon-twitter-sign icon-large"></i>twitter
+                    </a></li>
+                    <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
+                            class="icon-github-sign icon-large"></i>github
+                    </a></li>
+                    <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
+                            class="icon-rss-sign icon-large"></i>rss
+                    </a></li>
+            -->
+
+
+
+            <!-- 使用上面的标签云，这里不需要了
+                <li class="list-group-item tag-1">
+                    <a href="https://blog.chenxiaosheng.com/tag/mysql.html">
+                        mysql
+                    </a>
+                </li>
+                <li class="list-group-item tag-1">
+                    <a href="https://blog.chenxiaosheng.com/tag/python.html">
+                        python
+                    </a>
+                </li>
+                <li class="list-group-item tag-2">
+                    <a href="https://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
+                    </a>
+                </li>
+                <li class="list-group-item tag-2">
+                    <a href="https://blog.chenxiaosheng.com/tag/java.html">
+                        java
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/mongodb.html">
+                        mongodb
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/ssl.html">
+                        ssl
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/dm.html">
+                        dm
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/debian.html">
+                        debian
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/pingcap.html">
+                        pingcap
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/django.html">
+                        django
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/tidb.html">
+                        tidb
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/post.html">
+                        post
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/redis.html">
+                        redis
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/dns.html">
+                        dns
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/dig.html">
+                        dig
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/replication.html">
+                        replication
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/okr.html">
+                        okr
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/http.html">
+                        http
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">
+                        tcpdump
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/dba.html">
+                        dba
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/lxc.html">
+                        lxc
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/netease.html">
+                        netease
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/pip.html">
+                        pip
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/syncer.html">
+                        syncer
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/named.html">
+                        named
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/apache.html">
+                        apache
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/crontab.html">
+                        crontab
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/wifi.html">
+                        wifi
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/openid.html">
+                        openid
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/ios.html">
+                        ios
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/wireshark.html">
+                        wireshark
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/yosemite.html">
+                        yosemite
+                    </a>
+                </li>
+            -->
+        </ul>
+    </section>
+</aside>
+</script>        </div>
+    </div>
+</div>
+
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="https://blog.chenxiaosheng.com/theme/js/respond.min.js"></script>
+<!-- Footer Start -->
+<footer class="footer">
+  <div class="container">
+    <p class="text-right visible-xs">&copy; 2018 ChenXiaosheng</p>
+    <p class="text-right hidden-xs">&copy; 2018 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://github.com">Github</a> - MarkDown 构建</p>
+    <p class="text-right hidden-xs">除非另有声明，本网站采用<a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh">署名-非商业性使用-禁止演绎 4.0 国际 (CC BY-NC-ND 4.0)</a>授权</p>
+  </div>
+</footer>
+<!-- Footer End -->
+</body>
+</html>

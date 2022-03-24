@@ -1,0 +1,209 @@
+body {
+    font: 14px/21px Microsoft YaHei,Helvetica,Tahoma,Arial;
+    padding-top: 70px;
+}
+
+#sidebar .list-group, #sidebar .list-group-item {
+    background-color: transparent;
+}
+
+.list-group-item {
+    border: none;
+}
+
+.span-group-item {
+    font-size: 16px;
+}
+
+.span-group-item a:hover {
+    text-decoration: none;
+}
+
+.tag-1 {
+    font-size: 28pt;
+    color: #609E27;
+}
+
+.tag-2 {
+    font-size: 24pt;
+    color: #AA5DA8;
+}
+
+.tag-3 {
+    font-size: 20pt;
+    color: #f0ad4e;
+}
+
+.tag-4 {
+    font-size: 18pt;
+    color: #7D3F20;
+}
+
+.tag-5 {
+    font-size: 16px;
+    color: #6F6B6A;
+}
+
+.tag-6 {
+    font-size: 14px;
+    color: #84E3FA;
+}
+
+.tag-7 {
+    font-size: 12px;
+    color: #122DCD;
+}
+
+.tag-8 {
+    font-size: 10px;
+    color: #666666;
+}
+
+.tag-large {
+    font-size: 24pt;
+    color: #7D3F20;
+}
+
+#sidebar {
+    padding-top: 0px;
+}
+
+#sidebar a {
+    color: inherit;
+}
+
+i {
+    margin-right: 10px;
+}
+
+a, a:hover {
+    color: inherit;
+}
+
+.entry-content a {
+    text-decoration: none;
+    border-bottom: 1px dotted;
+}
+
+.entry-content a:hover {
+    text-decoration: none;
+    border-bottom: 1px solid;
+}
+
+.entry-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.highlight pre {
+    background-color: #202020;
+    color: #777;
+}
+
+#categories ul, #tags ul {
+    list-style: none;
+    padding: 0;
+    margin-left: 0;
+}
+
+/* added by tiredboy below */
+
+.page-header {
+    margin: 20px 0 10px 0;
+}   
+.panel-body {
+    padding: 0px;
+}  
+
+.footer a {
+    color: #428bca;
+    text-decoration: none;
+}
+.footer a:hover {
+    color: #2a6496;
+    text-decoration: underline;
+}
+
+.navbar-brand {
+    font-size: 24px;
+}
+
+.navbar-nav>li>a {
+    font-size: 18px;
+}
+
+.panel-author-avatar>img {
+    vertical-align:middle;
+    width: 100px;
+    height: 100px;
+}
+
+.panel-about {
+    margin: 20px 0px 10px 0px;
+    background-color:#F2F7FC;
+    border-top:4px solid #999999;
+    /*
+    border-radius:4px;
+    -webkit-box-shadow:0 1px 1px rgba(0,0,0,0.05);
+    box-shadow:0 1px 1px rgba(0,0,0,0.05)
+    */
+}
+
+.panel-author-avatar {
+    padding: 5px;
+}
+
+.panel-about-body {
+}
+
+.center-img {
+    margin: 10px auto;
+}
+
+/*
+ * Callouts
+ *
+ * Not quite alerts, but custom and helpful notes for folks reading the docs.
+ * Requires a base and modifier class.
+ */
+
+/* Common styles for all types */
+.bs-callout {
+  margin: 20px 0;
+  padding: 20px;
+  border-left: 3px solid #eee;
+}
+.bs-callout h4 {
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+.bs-callout p:last-child {
+  margin-bottom: 0;
+}
+.bs-callout code {
+  background-color: #fff;
+  border-radius: 3px;
+}
+
+/* Variations */
+.bs-callout-danger {
+  background-color: #fdf7f7;
+  border-color: #d9534f;
+}
+.bs-callout-danger h4 {
+  color: #d9534f;
+}
+.bs-callout-warning {
+  background-color: #fcf8f2;
+  border-color: #f0ad4e;
+}
+.bs-callout-warning h4 {
+  color: #f0ad4e;
+}
+.bs-callout-info {
+  background-color: #f4f8fa;
+  border-color: #5bc0de;
+}
+.bs-callout-info h4 {
+  color: #5bc0de;
+}
