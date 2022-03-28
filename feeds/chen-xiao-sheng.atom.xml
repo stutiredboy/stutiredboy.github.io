@@ -33,6 +33,7 @@
 &lt;p&gt;&lt;img alt="image-20220328154213560" src="/static/sliding_window.png"&gt;&lt;/p&gt;
 &lt;p style="text-align:center"&gt; 图 3. 滑动窗口算法图例&lt;/p&gt;
 
+&lt;p&gt;注：算法可以进一步简化，假设当前时间窗口已经过去 25%，目前的请求数为CurrentN，上一次时间窗口共接受 PreN 次请求（权重为 100%-25%=75%），如果 &lt;code&gt;(PreN * 0.75 + CurrentN) &amp;gt; 预设请求阈值&lt;/code&gt; 则丢弃本次请求，反之放行本次请求。&lt;/p&gt;
 &lt;h2&gt;参考文档&lt;/h2&gt;
 &lt;ol&gt;
 &lt;li&gt;[How to Design a Scalable Rate Limiting Algorithm with Kong API&lt;/li&gt;
