@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title>
+    <title>速率限制算法：固定窗口与滑动窗口</title>
     <!-- Using the latest rendering mode for IE -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -10,9 +10,9 @@
     <!-- Open Graph tags -->
 
             <meta property="og:type" content="article"/>
-            <meta property="og:title" content="在 Mac 中对 iPhone 手机网络进行抓包的方法"/>
-            <meta property="og:url" content="https://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html"/>
-            <meta property="og:description" content="通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网 …"/>
+            <meta property="og:title" content="速率限制算法：固定窗口与滑动窗口"/>
+            <meta property="og:url" content="https://blog.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html"/>
+            <meta property="og:description" content="在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况 …"/>
 
     <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
     <link href="https://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
@@ -73,10 +73,10 @@
         <article>
             <header class="page-header">
                 <h1>
-                    <a href="https://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html"
+                    <a href="https://blog.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html"
                        rel="bookmark"
-                       title="Permalink to 在 Mac 中对 iPhone 手机网络进行抓包的方法">
-                        在 Mac 中对 iPhone 手机网络进行抓包的方法
+                       title="Permalink to 速率限制算法：固定窗口与滑动窗口">
+                        速率限制算法：固定窗口与滑动窗口
                     </a>
                 </h1>
             </header>
@@ -85,60 +85,61 @@
                     <div class="panel-body">
 <footer class="post-info">
     <span class="published">
-      <i class="icon-calendar"></i>2018-11-02 19:58
+      <i class="icon-calendar"></i>2022-03-28 15:59
     </span>
 
 
 
 <i class="icon-tags"></i>
-	<a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a>
-        /
-	<a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a>
-        /
-	<a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a>
-        /
-	<a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a>
+	<a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a>
 </footer><!-- /.post-info -->                    </div>
                 </div>
-                <ol>
-<li>通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
-<img alt="" src="/static/iphone_uuid.png"></li>
-<li>
-<p>Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网络设备，不管手机用的是移动网络还是 WIFI，均可以通过该设备进行抓包。启动虚拟设备的命令如下：</p>
-<blockquote>
-<p>rvictl -s ${uuid}</p>
-</blockquote>
-<p>如果成功启动，将返回：</p>
-<blockquote>
-<p>Starting device xxxxxxxx [SUCCEEDED] with interface rvi0</p>
-</blockquote>
-<p>其中的 rvi0 即为可用于抓包的虚拟设备。</p>
-<p>如果操作失败，并返回 <code>bootstrap_look_up(): 1102</code> 错误，请通过如下命令启动服务，并重复 <code>rvictl -s ${uuid}</code> 的操作即可：</p>
-<blockquote>
-<p>sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.rpmuxd.plist</p>
-</blockquote>
-</li>
-<li>
-<p>之后就可以通过 tcpdump 命令进行抓包了，如：</p>
-<blockquote>
-<p>tcpdump -i rvi0 -s 0 -vvv dst host x.x.x.x -w test.pcap</p>
-</blockquote>
-</li>
-<li>
-<p>之后可以通过 wireshark 打开 test.pcap 进行查看。通常你可以使用 <code>brew cask install wireshark</code> 安装 wireshark.</p>
-</li>
+                <p>在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况下，我们还需要对系统进行适度的降级，以确保系统的可用性。速率限制（rate limit）有助于自动化该过程（有时候也会称为流量控制）。</p>
+<p>这里我们主要介绍固定窗口计数算法和滑动窗口计数算法。</p>
+<h2>固定窗口 Fixed Window</h2>
+<p>固定窗口算法比较好理解，大致的概念如下：</p>
+<ol>
+<li>时间被切分成固定大小的窗口，比如 60 秒或 5 分钟等；</li>
+<li>每个时间窗口允许通过的请求阈值固定，假定为 N；</li>
+<li>每一次请求进来，对当前时间窗口的计数器加 1， 假设为 n；</li>
+<li>当当前时间窗口的请求计数超过阈值时（n&gt;N），丢弃当前时间窗口进来的所有请求；</li>
 </ol>
-<h4>怎么通过 iTunes 往手机上安装 ipa 包？</h4>
-<p>旧版本的 iTunes，在设备信息里有个「应用」入口，并可以在这里安装 ipa 文件。这次顺便发现 iTunes 没有了这个入口，刚拿到 ipa 包时，有点不知道怎么办。原来，只要将将文件拖到 iTunes 对应的设备里，就会自动安装了。（拖到下面截图红色框框部份）</p>
-<p><img alt="" src="/static/iphone_drop.png"></p>
+<p>整体的理解可以参考下述图例 1（固定时间窗口 1 秒，每秒钟允许通过 3 个请求）：</p>
+<p><img alt="image-20220328142057442" src="/static/fixed_window.png"></p>
+<p style="text-align:center"> 图 1. 固定窗口算法图例</p>
+
+<p>看起来好像没有什么毛病，在允许的时间窗口内只允许通过预设的请求。为什么还会需要滑动窗口算法，我们看一下固定窗口算法的问题：</p>
+<ol>
+<li>以上图为例，假定  14:00:02 秒的 3 个请求是在后 500ms 到达，14:00:03 分的 3 个请求是在前 500ms 到达，实际上一秒内可能通过了超过预设的 3 个请求，系统被击穿（参考下图 2）；</li>
+<li>如果这是一个高并发系统，那么有可能存在大量请求等待时间窗口重置的情况，还是以上图为例，一切换新的时间窗口，系统可能马上在短时间内被击穿不可用（踩踏）；</li>
+</ol>
+<p><img alt="图2" src="/static/fixed_window_cons.png"></p>
+<p style="text-align:center"> 图 2. 固定窗口算法问题</p>
+
+<h2>滑动窗口 Sliding Window</h2>
+<p>为了解决固定窗口在时间窗口切换边界的流量尖峰问题，引入了滑动窗口计数算法。该算法在固定窗口的基础上，将固定窗口进行更细粒度的切分：</p>
+<ol>
+<li>将时间划分为多个固定区间，如 200ms；</li>
+<li>在每个区间内每有一次请求则计数加 1，并维持固定的时间窗口，如固定时间窗口为 1 秒，则占用 5 个时间区间；</li>
+<li>每经过一个区间的时间，抛弃最早的区间，并纳入最新的时间区间；</li>
+<li>如果当前时间窗口的请求数量超过了预设限制，则本时间窗口内的后续请求都会被丢弃；</li>
+</ol>
+<p>基本算法通过下图 3 概要说明，可以直观发现滑动窗口计算方法可以有效避免窗口切换的边界流量尖峰及踩踏问题。并且在我们需要提高流控精度的时候，可以通过划分更细的时间区间来实现。</p>
+<p><img alt="image-20220328154213560" src="/static/sliding_window.png"></p>
+<p style="text-align:center"> 图 3. 滑动窗口算法图例</p>
+
+<h2>参考文档</h2>
+<ol>
+<li>[How to Design a Scalable Rate Limiting Algorithm with Kong API</li>
+</ol>
                     <h3 class="icon-hand-right"> 您可能还喜欢以下文章</h3>
                     </br>
                     <ul>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html">Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html">速率限制算法：固定窗口与滑动窗口</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html">记一次 TiDB 时区设置异常问题排查</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html">Mac OSX Yosemite 10.10 WIFI 掉线修复</a></li>
                             <li><a href="https://blog.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html">TiDB DM 数据库同步 STEP BY STEP</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html">MySQL Seconds_Behind_Master 忽大忽小？莫慌</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html">记一次 TiDB 时区设置异常问题排查</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html">一次「安全」的变更将 redis cluster 送进了孤岛</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html">在 Mac 中对 iPhone 手机网络进行抓包的方法</a></li>
                     </ul>
                 <div class="panel-about row">
                   <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
@@ -163,8 +164,8 @@
         <script type="text/javascript">
             /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
             var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
-            var disqus_identifier = 'https://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html';
-            var disqus_url = 'https://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html';
+            var disqus_identifier = 'https://blog.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html';
+            var disqus_url = 'https://blog.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html';
 
             /* * * DON'T EDIT BELOW THIS LINE * * */
             (function () {
@@ -211,54 +212,54 @@
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
-                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
-                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
             <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
             <script type="text/javascript" src="https://stutiredboy.disqus.com/recent_comments_widget.js?num_items=8&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
@@ -285,18 +286,13 @@
 
             <!-- 使用上面的标签云，这里不需要了
                 <li class="list-group-item tag-1">
-                    <a href="https://blog.chenxiaosheng.com/tag/mysql.html">
-                        mysql
-                    </a>
-                </li>
-                <li class="list-group-item tag-1">
                     <a href="https://blog.chenxiaosheng.com/tag/python.html">
                         python
                     </a>
                 </li>
-                <li class="list-group-item tag-2">
-                    <a href="https://blog.chenxiaosheng.com/tag/mac.html">
-                        mac
+                <li class="list-group-item tag-1">
+                    <a href="https://blog.chenxiaosheng.com/tag/mysql.html">
+                        mysql
                     </a>
                 </li>
                 <li class="list-group-item tag-2">
@@ -304,24 +300,24 @@
                         java
                     </a>
                 </li>
-                <li class="list-group-item tag-4">
-                    <a href="https://blog.chenxiaosheng.com/tag/django.html">
-                        django
-                    </a>
-                </li>
-                <li class="list-group-item tag-4">
-                    <a href="https://blog.chenxiaosheng.com/tag/debian.html">
-                        debian
-                    </a>
-                </li>
-                <li class="list-group-item tag-4">
-                    <a href="https://blog.chenxiaosheng.com/tag/tidb.html">
-                        tidb
+                <li class="list-group-item tag-2">
+                    <a href="https://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
                     <a href="https://blog.chenxiaosheng.com/tag/bind.html">
                         bind
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/pingcap.html">
+                        pingcap
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/tidb.html">
+                        tidb
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
@@ -335,13 +331,13 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
-                    <a href="https://blog.chenxiaosheng.com/tag/pingcap.html">
-                        pingcap
+                    <a href="https://blog.chenxiaosheng.com/tag/dm.html">
+                        dm
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
-                    <a href="https://blog.chenxiaosheng.com/tag/dm.html">
-                        dm
+                    <a href="https://blog.chenxiaosheng.com/tag/django.html">
+                        django
                     </a>
                 </li>
                 <li class="list-group-item tag-4">
@@ -349,124 +345,9 @@
                         ssl
                     </a>
                 </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/arp.html">
-                        arp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/yosemite.html">
-                        yosemite
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/sftp.html">
-                        sftp
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/http.html">
-                        http
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/pip.html">
-                        pip
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/windows.html">
-                        windows
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/linux.html">
-                        linux
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/apache.html">
-                        apache
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/proxy.html">
-                        proxy
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/crontab.html">
-                        crontab
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/post.html">
-                        post
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/dig.html">
-                        dig
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/named.html">
-                        named
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/ssh.html">
-                        ssh
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/dns.html">
-                        dns
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">
-                        rate limit
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/wifi.html">
-                        wifi
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/redis.html">
-                        redis
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/openid.html">
-                        openid
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/okr.html">
-                        okr
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/netease.html">
-                        netease
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/scribe.html">
-                        scribe
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/dba.html">
-                        dba
-                    </a>
-                </li>
-                <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">
-                        tcpdump
+                <li class="list-group-item tag-4">
+                    <a href="https://blog.chenxiaosheng.com/tag/debian.html">
+                        debian
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -475,8 +356,8 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/iterm2.html">
-                        iterm2
+                    <a href="https://blog.chenxiaosheng.com/tag/yosemite.html">
+                        yosemite
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -485,18 +366,38 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/replication.html">
+                        replication
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
                     <a href="https://blog.chenxiaosheng.com/tag/syncer.html">
                         syncer
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/sshd.html">
-                        sshd
+                    <a href="https://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/securefx.html">
-                        secureFX
+                    <a href="https://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">
+                        tcpdump
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/openid.html">
+                        openid
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -510,8 +411,78 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/replication.html">
-                        replication
+                    <a href="https://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/okr.html">
+                        okr
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/dba.html">
+                        dba
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/apache.html">
+                        apache
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/named.html">
+                        named
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/crontab.html">
+                        crontab
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/netease.html">
+                        netease
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/redis.html">
+                        redis
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/post.html">
+                        post
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
@@ -520,8 +491,38 @@
                     </a>
                 </li>
                 <li class="list-group-item tag-8">
-                    <a href="https://blog.chenxiaosheng.com/tag/jinja.html">
-                        jinja
+                    <a href="https://blog.chenxiaosheng.com/tag/http.html">
+                        http
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/pip.html">
+                        pip
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/dns.html">
+                        dns
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/dig.html">
+                        dig
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">
+                        rate limit
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="https://blog.chenxiaosheng.com/tag/wifi.html">
+                        wifi
                     </a>
                 </li>
             -->

@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2019-10-12T22:27:00+08:00</updated><entry><title>记一次 TiDB 时区设置异常问题排查</title><link href="https://blog.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html" rel="alternate"></link><published>2019-10-12T22:27:00+08:00</published><updated>2019-10-12T22:27:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2019-10-12:/posts/2019-10-12/tidb-time_zone-settings.html</id><summary type="html">&lt;p&gt;两个配置一模一样的 TiDB 集群，在执行 &lt;code&gt;SELECT NOW();&lt;/code&gt; 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。OS、TiDB 配置是统一管理的，究竟是什么原因导致的呢？&lt;/p&gt;</summary><content type="html">&lt;p&gt;收到同事的反馈，两个配置一模一样的 TiDB 集群，在执行 &lt;code&gt;SELECT NOW();&lt;/code&gt; 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/all.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2022-03-28T15:59:00+08:00</updated><entry><title>速率限制算法：固定窗口与滑动窗口</title><link href="https://blog.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html" rel="alternate"></link><published>2022-03-28T15:59:00+08:00</published><updated>2022-03-28T15:59:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2022-03-28:/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html</id><summary type="html">&lt;p&gt;在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况下，我们还需要对系统进行适度的降级，以确保系统的可用性。速率限制（rate limit）有助于自动化该过程（有时候也会称为流量控制）。&lt;/p&gt;
+&lt;p&gt;这里我们主要介绍固定窗口计数算法和滑动窗口计数算法。&lt;/p&gt;
+&lt;h2&gt;固定窗口 Fixed Window&lt;/h2&gt;
+&lt;p&gt;固定窗口算法比较好理解，大致的概念如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;时间被切分成固定大小的窗口，比如 60 秒或 5 分钟等；&lt;/li&gt;
+&lt;li&gt;每个时间窗口允许通过的请求阈值固定，假定为 N；&lt;/li&gt;
+&lt;li&gt;每一次请求进来，对当前时间窗口的计数器加 1， 假设为 n；&lt;/li&gt;
+&lt;li&gt;当当前时间窗口的请求计数超过阈值时（n&amp;gt;N），丢弃当前时间窗口进来的所有请求；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;整体的理解可以参考下述图例 1（固定时间窗口 1 秒，每秒钟允许通过 3 个请求）：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image-20220328142057442" src="/static/fixed_window.png"&gt;&lt;/p&gt;
+&lt;p style="text-align:center"&gt; 图 1. 固定窗口算法图例&lt;/p&gt;
+
+&lt;p&gt;看起来好像没有什么毛病，在允许的时间窗口内只允许通过预设的请求。为什么还会需要滑动窗口算法，我们看一下固定窗口算法的问题：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;以上图为例，假定  14:00:02 秒的 3 个请求是在后 500ms 到达，14:00:03 分的 3 个请求是在前 500ms 到达，实际上一秒内可能通过了超过预设的 3 个请求，系统被击穿（参考下图 2）；&lt;/li&gt;
+&lt;li&gt;如果这是一个高并发系统，那么有可能存在大量请求等待时间窗口重置的情况，还是以上图为例，一切换新的时间窗口，系统可能马上在短时间内被击穿不可用（踩踏）；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="图2" src="/static/fixed_window_cons.png"&gt;&lt;/p&gt;
+&lt;p style="text-align:center"&gt; 图 2. 固定窗口算法问题&lt;/p&gt;
+
+&lt;h2&gt;滑动窗口 Sliding Window&lt;/h2&gt;
+&lt;p&gt;为了解决固定窗口在时间窗口切换边界的流量尖峰问题，引入了滑动窗口计数算法。该算法在固定窗口的基础上，将固定窗口进行更细粒度的切分：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;将时间划分为多个固定区间，如 200ms；&lt;/li&gt;
+&lt;li&gt;在每个区间内每有一次请求则计数加 1，并维持固定的时间窗口，如固定时间窗口为 1 秒，则占用 5 个时间区间；&lt;/li&gt;
+&lt;li&gt;每经过一个区间的时间，抛弃最早的区间，并纳入最新的时间区间；&lt;/li&gt;
+&lt;li&gt;如果当前时间窗口的请求数量超过了预设限制，则本时间窗口内的后续请求都会被丢弃；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;基本算法通过下图 3 概要说明，可以直观发现滑动窗口计算方法可以有效避免窗口切换的边界流量尖峰及踩踏问题。并且在我们需要提高流控精度的时候，可以通过划分更细的时间区间来实现。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image-20220328154213560" src="/static/sliding_window.png"&gt;&lt;/p&gt;
+&lt;p style="text-align:center"&gt; 图 3. 滑动窗口算法图例&lt;/p&gt;
+
+&lt;h2&gt;参考文档&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;[How to Design a Scalable Rate Limiting Algorithm with Kong API&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="rate limit"></category></entry><entry><title>记一次 TiDB 时区设置异常问题排查</title><link href="https://blog.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html" rel="alternate"></link><published>2019-10-12T22:27:00+08:00</published><updated>2019-10-12T22:27:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2019-10-12:/posts/2019-10-12/tidb-time_zone-settings.html</id><summary type="html">&lt;p&gt;两个配置一模一样的 TiDB 集群，在执行 &lt;code&gt;SELECT NOW();&lt;/code&gt; 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。OS、TiDB 配置是统一管理的，究竟是什么原因导致的呢？&lt;/p&gt;</summary><content type="html">&lt;p&gt;收到同事的反馈，两个配置一模一样的 TiDB 集群，在执行 &lt;code&gt;SELECT NOW();&lt;/code&gt; 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。&lt;/p&gt;
 &lt;p&gt;&lt;img alt="请在这里输入图片描述" src="/static/20191012150952.png"&gt;&lt;/p&gt;
 &lt;p&gt;由于我们的 OS、TiDB 配置是统一管理的，所以我并不怀疑是因为两个集群当前配置不一样导致的。第一反应肯定是因为在 TiDB 启动之前用了错误的时区（UTC），然后 TiDB 引用了错误的时区导致的这个时间问题。根据常规经验，重启一下 TiDB 进程问题应该能解决。&lt;/p&gt;
 &lt;p&gt;然而这一次失望了，重启 TiDB 之后，并没有发生什么变化。跟同事要了服务器信息，直接登录到机器上看一下吧。以下是整体的排查过程。&lt;/p&gt;
