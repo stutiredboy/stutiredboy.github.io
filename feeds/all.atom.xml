@@ -15,7 +15,7 @@
 &lt;p&gt;为了业务的可用性考虑，我们的 CPU 分配还是比较充份的，通常 50% 是我们的一个相对安全水位。&lt;strong&gt;所以大多数情况下，上面的按序分配并不会带来什么问题&lt;/strong&gt;。本文主要是探讨极端情况下上述 cpu 分配方式可能造成的问题。&lt;/p&gt;
 &lt;h3&gt;问题&lt;/h3&gt;
 &lt;ol&gt;
-&lt;li&gt;由于共用了物理 CPU，容器之间可能存在 CPU 争取；&lt;/li&gt;
+&lt;li&gt;由于共用了物理 CPU，容器之间可能存在 CPU 争抢：&lt;/li&gt;
 &lt;/ol&gt;
 &lt;blockquote&gt;
 &lt;p&gt;以数据库为例，明明 A 实例的负载并不高，但有时候会忽然「卡」那么一下或者刷个慢查询，但业务并没有发生变化，DBA 也无法追踪到不合理的 SQL 或索引缺失等情况&lt;/p&gt;
@@ -24,7 +24,7 @@
 &lt;p&gt;&lt;center&gt;图 3. 逻辑 CPU 分配案例一&lt;/center&gt;&lt;/p&gt;
 &lt;p&gt;以上图 3 为例，假设我们给 Container A 绑定了 2, 3, 4 共 3 个 CPU，给 Container B 绑定了 26, 27, 28 共三个 CPU，可以看到 2-26, 4-28, 3-27 分别共享了一个物理核心（core id 相同）。根据对超线程的理解：&lt;code&gt;当两个线程都同时需要某一个资源时，其中一个要暂时停止，并让出资源，直到这些资源闲置后才能继续&lt;/code&gt;，假设 Container A 的负载较高，则 Container B 是有可能受到影响并导致出现 cpu 等待的情况的，反映到业务，则是：&lt;strong&gt;不知道为什么抽风了&lt;/strong&gt;。&lt;/p&gt;
 &lt;ol&gt;
-&lt;li&gt;高负载情况下，隔离资源的实际性能表示与标称值不符；&lt;/li&gt;
+&lt;li&gt;高负载情况下，隔离资源的实际性能表示与标称值不符：&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;&lt;center&gt;&lt;img alt="image-20210901150436639" src="/static/cpu_arch_ex2.png"&gt;&lt;/center&gt;&lt;/p&gt;
 &lt;p&gt;&lt;center&gt;图 4. 逻辑 CPU 分配案例二&lt;/center&gt;&lt;/p&gt;
