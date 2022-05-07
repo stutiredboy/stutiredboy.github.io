@@ -12,9 +12,7 @@
 &lt;li&gt;通过命令 &lt;code&gt;grep -e 'menuentry ' -e 'subm' /boot/grub/grub.cfg | awk -F'--' '{print $1}'&lt;/code&gt; 找到需要启动的内核菜单名称：&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;&lt;img alt="image-20220507113012323" src="/static/debian-grub-cfg.png"&gt;&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;假设上图中的 `Debian GNU/Linux, with Linux 5.10.0-13-amd64` 是我们期望使用的内核，则需要引用图示 1 和 2 修改 `/etc/default/grub`。
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
+&lt;p&gt;假设上图中的 &lt;code&gt;Debian GNU/Linux, with Linux 5.10.0-13-amd64&lt;/code&gt; 是我们期望使用的内核，则需要引用图示 1 和 2 修改 &lt;code&gt;/etc/default/grub&lt;/code&gt;。&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;修改 &lt;code&gt;/etc/default/grub&lt;/code&gt; 中的 &lt;code&gt;GRUB_DEFAULT=0&lt;/code&gt; 为如下值：&lt;/li&gt;
 &lt;/ol&gt;
