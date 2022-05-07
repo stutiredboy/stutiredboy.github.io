@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - misc</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/$misc.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2022-03-29T11:24:00+08:00</updated><entry><title>当 cgroups 碰上超线程</title><link href="https://blog.chenxiaosheng.com/posts/2022-03-29/cgroups-hyperthreading.html" rel="alternate"></link><published>2022-03-29T11:24:00+08:00</published><updated>2022-03-29T11:24:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2022-03-29:/posts/2022-03-29/cgroups-hyperthreading.html</id><summary type="html">&lt;p&gt;cgroups 是 Linux 内核提供的一种可以限制单个进程或者多个进程所使用资源的机制，可以对 cpu，内存等资源实现精细化的控制。当英特尔® 超线程技术处于激活状态时，CPU 会在每个物理内核上公开两个执行上下文。这意味着，一个物理内核现在就像两个“逻辑内核”一样。这个时候使用 cgroups 进行 cpu 资源隔离会出现什么情况呢？ &lt;/br&gt;&lt;center&gt;&lt;img alt="" src="/static/cpu_arch_ex2.png"&gt;&lt;/center&gt;&lt;/p&gt;</summary><content type="html">&lt;h2&gt;超线程&lt;/h2&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - misc</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/$misc.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2022-05-07T12:59:00+08:00</updated><entry><title>Debian 指定内核启动</title><link href="https://blog.chenxiaosheng.com/posts/2022-05-07/debian-switch-kernel-boot.html" rel="alternate"></link><published>2022-05-07T12:59:00+08:00</published><updated>2022-05-07T12:59:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2022-05-07:/posts/2022-05-07/debian-switch-kernel-boot.html</id><summary type="html">&lt;p&gt;升级完内核发现有一些问题需要回退，但是因为不能直接接触机器终端，需要通过 grub 配置指定内核版本重新启动。&lt;/p&gt;
+&lt;p&gt;操作系 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;升级完内核发现有一些问题需要回退，但是因为不能直接接触机器终端，需要通过 grub 配置指定内核版本重新启动。&lt;/p&gt;
+&lt;p&gt;操作系统：Debian 11&lt;/p&gt;
+&lt;p&gt;涉及文件：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;/etc/default/grub&lt;/li&gt;
+&lt;li&gt;/boot/grub/grub.cfg&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;操作步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;通过命令 &lt;code&gt;grep -e 'menuentry ' -e 'subm' /boot/grub/grub.cfg | awk -F'--' '{print $1}'&lt;/code&gt; 找到需要启动的内核菜单名称：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="image-20220507113012323" src="/static/debian-grub-cfg.png"&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;假设上图中的 `Debian GNU/Linux, with Linux 5.10.0-13-amd64` 是我们期望使用的内核，则需要引用图示 1 和 2 修改 `/etc/default/grub`。
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ol&gt;
+&lt;li&gt;修改 &lt;code&gt;/etc/default/grub&lt;/code&gt; 中的 &lt;code&gt;GRUB_DEFAULT=0&lt;/code&gt; 为如下值：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;GRUB_DEFAULT="Advanced options for Debian GNU/Linux&amp;gt;Debian GNU/Linux, with Linux 5.10.0-13-amd64"&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;执行命令 &lt;code&gt;update-grub&lt;/code&gt;，成功后重启即可。&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="debian"></category><category term="grub"></category><category term="kernel"></category></entry><entry><title>当 cgroups 碰上超线程</title><link href="https://blog.chenxiaosheng.com/posts/2022-03-29/cgroups-hyperthreading.html" rel="alternate"></link><published>2022-03-29T11:24:00+08:00</published><updated>2022-03-29T11:24:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2022-03-29:/posts/2022-03-29/cgroups-hyperthreading.html</id><summary type="html">&lt;p&gt;cgroups 是 Linux 内核提供的一种可以限制单个进程或者多个进程所使用资源的机制，可以对 cpu，内存等资源实现精细化的控制。当英特尔® 超线程技术处于激活状态时，CPU 会在每个物理内核上公开两个执行上下文。这意味着，一个物理内核现在就像两个“逻辑内核”一样。这个时候使用 cgroups 进行 cpu 资源隔离会出现什么情况呢？ &lt;/br&gt;&lt;center&gt;&lt;img alt="" src="/static/cpu_arch_ex2.png"&gt;&lt;/center&gt;&lt;/p&gt;</summary><content type="html">&lt;h2&gt;超线程&lt;/h2&gt;
 &lt;p&gt;当英特尔® 超线程技术处于激活状态时，CPU 会在每个物理内核上公开两个执行上下文。这意味着，一个物理内核现在就像两个“逻辑内核”一样。超线程技术就是利用特殊的硬件指令，把两个逻辑内核模拟成两个物理芯片，让单个处理器都能使用线程级并行计算，进而兼容多线程操作系统和软件，&lt;strong&gt;减少了 CPU 的闲置时间&lt;/strong&gt;，提高的 CPU 的运行效率。&lt;/p&gt;
 &lt;p&gt;虽然采用超线程技术能同时执行两个线程，但它并不象两个真正的 CPU 那样，每个 CPU 都具有独立的资源。当两个线程都同时需要某一个资源时，其中一个要暂时停止，并让出资源，直到这些资源闲置后才能继续。因此&lt;strong&gt;超线程的性能并不等于两颗 CPU 的性能&lt;/strong&gt;。根据 Intel 官方文档反馈，&lt;strong&gt;理论情况下在服务器应用程序中可提升 30% 的性能&lt;/strong&gt;。&lt;/p&gt;
 &lt;h3&gt;怎么确认机器是否开启超线程&lt;/h3&gt;
