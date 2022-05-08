@@ -207,3 +207,7 @@ a, a:hover {
 .bs-callout-info h4 {
   color: #5bc0de;
 }
+blockquote p {
+  font-size: 14px;
+  color: #777;
+}
