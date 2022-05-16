@@ -117,7 +117,10 @@ a, a:hover {
 
 .page-header {
     margin: 20px 0 10px 0;
-}   
+}
+.page-header {
+    color: #73afcb;
+}
 .panel-body {
     padding: 0px;
 }  
