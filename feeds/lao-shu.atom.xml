@@ -1,5 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - 老树</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/lao-shu.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2022-05-07T12:59:00+08:00</updated><entry><title>Debian 指定内核启动</title><link href="https://blog.chenxiaosheng.com/posts/2022-05-07/debian-switch-kernel-boot.html" rel="alternate"></link><published>2022-05-07T12:59:00+08:00</published><updated>2022-05-07T12:59:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2022-05-07:/posts/2022-05-07/debian-switch-kernel-boot.html</id><summary type="html">&lt;p&gt;升级完内核发现有一些问题需要回退，但是因为不能直接接触机器终端，需要通过 grub 配置指定内核版本重新启动。&lt;/br&gt;&lt;center&gt;&lt;img alt="" src="/static/debian-bullseye.png"&gt;&lt;/center&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;升级完内核发现有一些问题需要回退，但是因为不能直接接触机器终端，需要通过 grub 配置指定内核版本重新启动。&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - 老树</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/lao-shu.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2022-05-15T17:07:00+08:00</updated><entry><title>WireGuard 浅显体验</title><link href="https://blog.chenxiaosheng.com/posts/2022-05-15/wireguard-tutorial.html" rel="alternate"></link><published>2022-05-15T17:07:00+08:00</published><updated>2022-05-15T17:07:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2022-05-15:/posts/2022-05-15/wireguard-tutorial.html</id><summary type="html">&lt;p&gt;WireGuard® 是一个极其简单、快速且现代的 VPN，它利用了最先进的加密技术。目的是提供一种更快、更易配置、更精简的通用 VPN。最初是为 Linux 开发（并且已经合并至 Linux Kernel），底层是 VPN，现在支持 Windows、macOS、BSD、iOS、Android 等跨平台。目前还处于活跃的开发当中，但仍不失为一个简易友好，且性能、安全性和兼容性都很棒的 VPN 解决方案。&lt;/p&gt;</summary><content type="html">&lt;p&gt;WireGuard® 是一个极其简单、快速且现代的 VPN，它利用了最先进的加密技术。目的是提供一种更快、更易配置、更精简的通用 VPN。最初是为 Linux 开发（并且已经合并至 Linux Kernel），底层是 VPN，现在支持 Windows、macOS、BSD、iOS、Android 等跨平台。目前还处于活跃的开发当中，但仍不失为一个简易友好，且性能、安全性和兼容性都很棒的 VPN 解决方案。&lt;/p&gt;
+&lt;p&gt;Linus Torvalds 给予 WireGuard 很高的评价（work of art）：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Can I just once again state my love for it and hope it gets merged soon? Maybe the code isn't perfect, but I've skimmed it, and compared to the horrors that are OpenVPN and IPSec, it's a work of art.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2&gt;安装篇&lt;/h2&gt;
+&lt;p&gt;具体的安装可参考 &lt;a href="https://www.wireguard.com/install/"&gt;Installation&lt;/a&gt;，笔者使用的操作系统为 Debian bullseye，官方源已经自带，仅需要 root 用户 &lt;code&gt;apt-get install wireguard&lt;/code&gt; 一条命令搞定。&lt;/p&gt;
+&lt;h2&gt;配置篇&lt;/h2&gt;
+&lt;p&gt;安装过程比较简单，没有打脸官方所宣传的简单，具体也可以参考官方文档 &lt;a href="https://www.wireguard.com/quickstart/"&gt;QuickStart&lt;/a&gt;。&lt;/p&gt;
+&lt;h3&gt;场景一：Peer-To-Peer，两台服务器可互通&lt;/h3&gt;
+&lt;p&gt;笔者这里有两台机器，其中服务器 A 为腾讯云的机器，系统内看到的地址为内网地址，在腾讯云配置了公网 eip。&lt;/p&gt;
+&lt;p&gt;服务器 B 为一台公网的机器，有直接的公网 IP。（这里留下了一个坑点）&lt;/p&gt;
+&lt;h4&gt;生成 WireGuard 公私钥&lt;/h4&gt;
+&lt;p&gt;以下命令需要在服务 A 和 服务器 B 执行：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# 生成私钥&lt;/span&gt;
+wg genkey &amp;gt; wg.private
+&lt;span class="c1"&gt;# 生成公钥&lt;/span&gt;
+wg pubkey &amp;lt; wg.private &amp;gt; wg.pubkey
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4&gt;生成 WireGuard 配置&lt;/h4&gt;
+&lt;p&gt;分别在两台机器上创建 &lt;code&gt;/etc/wireguard/wg0.conf&lt;/code&gt; 文件。&lt;/p&gt;
+&lt;p&gt;服务器 A 腾讯云机器配置如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Interface]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;ListenPort&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;57259&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# UDP 端口，根据自己的需要设定即可&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;Address&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16.1.1&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# WireGuard 网络设备 IP 地址，这里使用 172.16.1.1&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PrivateKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;uJj&lt;/span&gt;&lt;span class="err"&gt;+&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 在这台服务器上生成的 wg.private 文件内容&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;[Peer]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PublicKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;W72b9l&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 在服务器 B 生成的 wg.pubkey 文件内容&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;AllowedIPs&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16.1.2&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;32&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 服务器 B WireGuard 网络设备 IP 地址，也可以开放 /24 网段&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;Endpoint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;108.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;34101&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 服务器 B 的公网 IP 地址及 ListenPort&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;服务器 B 公网机器配置如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Interface]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;ListenPort&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;34101&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# UDP 端口，根据自己的需要设定即可&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;Address&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16.1.2&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# WireGuard 网络设备 IP 地址，这里使用 172.16.1.2&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PrivateKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;kETG3&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 在这台服务器上生成的 wg.private 文件内容&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;[Peer]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PublicKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;hTfx29g&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 在服务器 A 生成的 wg.pubkey 文件内容&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;AllowedIPs&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16.1.0&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 参考服务器 A，这里开放 /24 网段&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;Endpoint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;118.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;57259&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 服务器 A 的公网 IP 地址及 ListenPort&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;之后分别在两台机器上使用命令 &lt;code&gt;wg-quick up wg0&lt;/code&gt; 后隧道就建议好了，可以通过 ping 来检查。&lt;/p&gt;
+&lt;p&gt;到这里还比较顺利，确实非常简单。笔者就转移注意力去开展其他的工作了，过了几分钟回来发现&lt;strong&gt;网络断开&lt;/strong&gt;了，从服务器 A 腾讯云机器单向无法 ping 通 B 服务器，此时从 B 服务器 ping A 服务器后网络恢复（第一个问题）。&lt;/p&gt;
+&lt;p&gt;为什么呢？&lt;/p&gt;
+&lt;p&gt;怀疑是腾讯云服务器系统内只能看到内网 IP 的问题，毕竟这里是通过网关转发，在我之前其他的网络试验中已经多次踩中这个坑。继续往下翻 &lt;a href="https://www.wireguard.com/quickstart/"&gt;QuickStart&lt;/a&gt; 找到答案：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;if a peer behind NAT or a firewall wishes to receive incoming packets, he must keep the NAT/firewall mapping valid, by periodically sending keepalive packets. This is called &lt;em&gt;persistent keepalives&lt;/em&gt;. &lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;解法也比较简单，在上面两台机器的 wg0.conf 配置文件中的 &lt;code&gt;[Peer]&lt;/code&gt; 部份分别加上 keepalive 相关的配置即可（默认是 0，也就是不开启，这里我们设置为 25 秒）：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;PersistentKeepalive = 25&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3&gt;场景二：能不能内网穿透呢？&lt;/h3&gt;
+&lt;p&gt;再找了一台纯内网的服务器 C，该服务器可以访问外网，但外部网络无法访问该服务器。且不清楚该服务器 C 的外网出口 IP 是什么。&lt;/p&gt;
+&lt;h4&gt;配置内网服务器&lt;/h4&gt;
+&lt;p&gt;参考场景一的内容进行 WireGuard 安装和配置，假设服务器 C 的 WiredGuard 设备地址设置为 172.16.1.3，则配置如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Interface]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;Address&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16.1.3&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PrivateKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;aHebd&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;[Peer]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PublicKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;hTfx29g&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;AllowedIPs&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16.1.0&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;Endpoint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;118.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;57259&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PersistentKeepalive&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;25&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 处于 NAT 环境的设备需要加上 keepalive 配置&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;主要差异：&lt;/strong&gt; &lt;code&gt;ListenPort&lt;/code&gt; 的配置取消了，因为这台机器纯内网，我们无法判定最终映射的公网 IP 和端口分别是什么。上述配置保存后，通过 &lt;code&gt;wg-quick up wg0&lt;/code&gt; 启动设备即可。&lt;/p&gt;
+&lt;p&gt;在服务器 A 腾讯云的机器上 &lt;code&gt;/etc/wireguard/wg0.conf&lt;/code&gt; 增加该服务器 C 的 peer 配置：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Peer]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PublicKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;hESH&lt;/span&gt;&lt;span class="err"&gt;+&lt;/span&gt;&lt;span class="n"&gt;Md6&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 服务器 C 的 wg.pubkey 内容&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;AllowedIPs&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16.1.0&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="mi"&gt;24&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;PersistentKeepalive&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;25&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;主要差异：&lt;/strong&gt; &lt;code&gt;Endpoint&lt;/code&gt; 配置取消了，毕竟 A 不知道 C 用的会是哪个公网 IP 和端口。保存配置后，分别执行 &lt;code&gt;wg-quick down wg0&lt;/code&gt; 和 &lt;code&gt;wg-quick up wg0&lt;/code&gt; 即可。&lt;/p&gt;
+&lt;p&gt;本以为到这里已经完成配置了，结果第二个问题来了。两台服务器 ping 不通。再次检查配置确认无误，陷入深深的思考~&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;解决办法&lt;/strong&gt;：网络不决问防火墙。想到这里因为服务器 C 是在内网，WireGuard 能互通的前提肯定是服务器 C 要先访问服务器 A 的 ListenPort，检查防火墙配置，服务器 A 的 57259 UDP 端口没有对外开放。通过以下命令开放 57259 端口访问：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;iptables -I INPUT 1 -p udp -m udp --dport 57259 -j ACCEPT&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;端口开放后，两台机器之间的互联果然正常了。&lt;/p&gt;
+&lt;h2&gt;一些结论&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;如果 wg 两端设备都有公网地址可达，分别配置 Address 和 ListenPort 后，两台机器隧道可以互通，通常无需特殊配置；&lt;/li&gt;
+&lt;li&gt;如果设备位于防火墙或网关后面，需要打开 keepalive 配置；&lt;/li&gt;
+&lt;li&gt;内网穿透时，做为网关的机器（公网那台）需要开放 ListenPort 的防火墙访问；&lt;/li&gt;
+&lt;li&gt;根据需要，你可能需要打开设备的数据包转发（net.ipv4.ip_forward = 1）和网络地址转换功能（NAT/MASQUERADE），这里不展开；&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="wireguard"></category><category term="vpn"></category></entry><entry><title>Debian 指定内核启动</title><link href="https://blog.chenxiaosheng.com/posts/2022-05-07/debian-switch-kernel-boot.html" rel="alternate"></link><published>2022-05-07T12:59:00+08:00</published><updated>2022-05-07T12:59:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2022-05-07:/posts/2022-05-07/debian-switch-kernel-boot.html</id><summary type="html">&lt;p&gt;升级完内核发现有一些问题需要回退，但是因为不能直接接触机器终端，需要通过 grub 配置指定内核版本重新启动。&lt;/br&gt;&lt;center&gt;&lt;img alt="" src="/static/debian-bullseye.png"&gt;&lt;/center&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;升级完内核发现有一些问题需要回退，但是因为不能直接接触机器终端，需要通过 grub 配置指定内核版本重新启动。&lt;/p&gt;
 &lt;p&gt;操作系统：Debian 11&lt;/p&gt;
 &lt;p&gt;涉及文件：&lt;/p&gt;
 &lt;ol&gt;
