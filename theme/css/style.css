@@ -225,3 +225,7 @@ blockquote p {
   align: center;
   max-width: 100%;
 }
+
+.wxqrcode {
+  max-width: 100%;
+}
