@@ -221,6 +221,7 @@ blockquote p {
   font-size: 14px;
   color: #777;
 }
-.summary center>img {
+.summary img {
+  align: center;
   max-width: 100%;
 }
