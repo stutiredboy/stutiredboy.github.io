@@ -5,8 +5,15 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.chenxiaosheng.com/</loc>
-<lastmod>2022-05-20T13:31:58-00:00</lastmod>
+<lastmod>2022-06-11T22:24:33-00:00</lastmod>
 <changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html</loc>
+<lastmod>2022-06-11T22:21:00+08:00</lastmod>
+<changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
@@ -236,7 +243,21 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.chenxiaosheng.com/category/misc.html</loc>
-<lastmod>2022-05-15T17:07:00+07:37</lastmod>
+<lastmod>2022-06-11T22:21:00+07:37</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.chenxiaosheng.com/tag/mongodb.html</loc>
+<lastmod>2022-06-11T22:21:00+07:37</lastmod>
+<changefreq>daily</changefreq>
+<priority>0.5</priority>
+</url>
+
+<url>
+<loc>https://blog.chenxiaosheng.com/tag/flowcontrol.html</loc>
+<lastmod>2022-06-11T22:21:00+07:37</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -363,13 +384,6 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://blog.chenxiaosheng.com/tag/redis.html</loc>
 <lastmod>2018-07-16T00:51:00+07:37</lastmod>
-<changefreq>daily</changefreq>
-<priority>0.5</priority>
-</url>
-
-<url>
-<loc>https://blog.chenxiaosheng.com/tag/mongodb.html</loc>
-<lastmod>2018-05-24T12:14:13+07:37</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -621,7 +635,7 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://blog.chenxiaosheng.com/author/lao-shu.html</loc>
-<lastmod>2022-05-15T17:07:00+07:37</lastmod>
+<lastmod>2022-06-11T22:21:00+07:37</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
