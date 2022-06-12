@@ -146,13 +146,14 @@
 <p>threshold 为配置的可容忍最达延迟，请特别留意，该值分别由两个参数控制 <code>flowControlTargetLagSeconds</code> 与 <code>flowControlThresholdLagPercentage</code> 默认值分别为 10 和 0.5，可以理解为当多数提交延迟大于 5 秒时，即触发流控；</p>
 </li>
 </ul>
-<p>```c++
-  // src/mongo/db/storage/flow_control.cpp</p>
-<p>std::uint64_t getThresholdLagMillis() {
-      return static_cast<std::uint64_t>(1000.0 *                          gFlowControlThresholdLagPercentage.load() *
-                                        gFlowControlTargetLagSeconds.load());
-  }
-  ```</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/mongo/db/storage/flow_control.cpp</span>
+
+<span class="n">std</span><span class="o">::</span><span class="kt">uint64_t</span><span class="w"> </span><span class="nf">getThresholdLagMillis</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint64_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mf">1000.0</span><span class="w"> </span><span class="o">*</span><span class="w">                        </span><span class="n">gFlowControlThresholdLagPercentage</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"></span>
+<span class="w">                                      </span><span class="n">gFlowControlTargetLagSeconds</span><span class="p">.</span><span class="n">load</span><span class="p">());</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
 <ul>
 <li>fudge 因子：比 1 略小的值，主要是为了控制当 lag 与 threshold 接近时，分配略低于 base 数量的票证。默认值为 0.95，可通过参数 <code>flowControlFudgeFactor</code> 进行配置，该值要求设置为大于 0， 小于 1，尽量接近 1；</li>
 </ul>
@@ -188,16 +189,17 @@
 <ul>
 <li><code>flowControlSamplePeriod</code> 这个参数的命名比较容易让人困惑，会容易误认为是时间，实际理解是每 N 次采样一次，N 即为 <code>flowControlSamplePeriod</code> 设置的值，值越小的精度越高，所以可能更容易触发流控导致业务降级；</li>
 </ul>
-<p>```c++
-  // src/mongo/db/storage/flow_control.cpp</p>
-<p>void FlowControl::sample(Timestamp timestamp, std::uint64_t opsApplied) {
-      ...
-      if (_numOpsSinceStartup - _lastSample &lt;
-          static_cast<std::size_t>(gFlowControlSamplePeriod.load())) {
-          // Naively sample once every 1000 or so operations.
-          return;
-      }
-  ```</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/mongo/db/storage/flow_control.cpp</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">FlowControl::sample</span><span class="p">(</span><span class="n">Timestamp</span><span class="w"> </span><span class="n">timestamp</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">opsApplied</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_numOpsSinceStartup</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">_lastSample</span><span class="w"> </span><span class="o">&lt;</span><span class="w"></span>
+<span class="w">        </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">gFlowControlSamplePeriod</span><span class="p">.</span><span class="n">load</span><span class="p">()))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Naively sample once every 1000 or so operations.</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
 <ul>
 <li><code>flowControlMaxSamples</code>，内存中保存的样本数，默认值为 1000000， 每个样本数约为 24 bytes大小，保存 100000 样本数约需 24MB 内存；</li>
 </ul>
@@ -288,45 +290,49 @@
 </tbody>
 </table>
 <p><strong>需留意</strong>，MongoDB 启动时，默认的 ticket 数量为 <code>_kMaxTickets = 1000 * 1000 * 1000</code> 即 10 亿，而不是 <code>flowControlMinTicketsPerSecond</code> 的值。通过如下命令可以查看当前的票据情况：</p>
-<blockquote>
-<p>// MongoDB 刚启动时</p>
-<p>tmongo40:PRIMARY&gt; db.serverStatus()["flowControl"].targetRateLimit
-1000000000</p>
-<p>tmongo40:PRIMARY&gt; db.serverStatus()["flowControl"]
+<div class="highlight"><pre><span></span><code>// MongoDB 刚启动时
+
+tmongo40:PRIMARY&gt; db.serverStatus()[&quot;flowControl&quot;].targetRateLimit
+1000000000
+
+tmongo40:PRIMARY&gt; db.serverStatus()[&quot;flowControl&quot;]
 {
-  "enabled" : true,
-  "targetRateLimit" : 1000000000,
-  "timeAcquiringMicros" : NumberLong(76),
-  "locksPerOp" : 0,
-  "sustainerRate" : 0,
-  "isLagged" : false,
-  "isLaggedCount" : 0,
-  "isLaggedTimeMicros" : NumberLong(0)
-}</p>
-<p>// 触发流控后</p>
-<p>tmongo40:PRIMARY&gt; db.serverStatus()["flowControl"]
-{
-  "enabled" : true,
-  "targetRateLimit" : 2015,
-  "timeAcquiringMicros" : NumberLong(12064),
-  "locksPerOp" : 1,
-  "sustainerRate" : 2196,
-  "isLagged" : true,
-  "isLaggedCount" : 1,
-  "isLaggedTimeMicros" : NumberLong(0)
+    &quot;enabled&quot; : true,
+    &quot;targetRateLimit&quot; : 1000000000,
+    &quot;timeAcquiringMicros&quot; : NumberLong(76),
+    &quot;locksPerOp&quot; : 0,
+    &quot;sustainerRate&quot; : 0,
+    &quot;isLagged&quot; : false,
+    &quot;isLaggedCount&quot; : 0,
+    &quot;isLaggedTimeMicros&quot; : NumberLong(0)
 }
-tmongo40:PRIMARY&gt; db.serverStatus()["flowControl"]
+
+// 触发流控后
+
+tmongo40:PRIMARY&gt; db.serverStatus()[&quot;flowControl&quot;]
 {
-  "enabled" : true,
-  "targetRateLimit" : 1014,
-  "timeAcquiringMicros" : NumberLong(38346),
-  "locksPerOp" : 1,
-  "sustainerRate" : 1924,
-  "isLagged" : true,
-  "isLaggedCount" : 1,
-  "isLaggedTimeMicros" : NumberLong(0)
-}</p>
-</blockquote>
+    &quot;enabled&quot; : true,
+    &quot;targetRateLimit&quot; : 2015,
+    &quot;timeAcquiringMicros&quot; : NumberLong(12064),
+    &quot;locksPerOp&quot; : 1,
+    &quot;sustainerRate&quot; : 2196,
+    &quot;isLagged&quot; : true,
+    &quot;isLaggedCount&quot; : 1,
+    &quot;isLaggedTimeMicros&quot; : NumberLong(0)
+}
+tmongo40:PRIMARY&gt; db.serverStatus()[&quot;flowControl&quot;]
+{
+    &quot;enabled&quot; : true,
+    &quot;targetRateLimit&quot; : 1014,
+    &quot;timeAcquiringMicros&quot; : NumberLong(38346),
+    &quot;locksPerOp&quot; : 1,
+    &quot;sustainerRate&quot; : 1924,
+    &quot;isLagged&quot; : true,
+    &quot;isLaggedCount&quot; : 1,
+    &quot;isLaggedTimeMicros&quot; : NumberLong(0)
+}
+</code></pre></div>
+
 <h2>日志</h2>
 <p>触发限流时，可以在 MongoDB 的日志里找到 flowControl 相关的日志。</p>
 <p><img alt="image-20220609174333655" src="/static/mongodb-flowcontrol-log.png"></p>
@@ -343,11 +349,11 @@ tmongo40:PRIMARY&gt; db.serverStatus()["flowControl"]
                     <h3><i class="fa fa-hand-o-right"></i> 您可能还喜欢以下文章</h3>
                     </br>
                     <ul>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-15/wireguard-tutorial.html">WireGuard 浅显体验</a></li>
                             <li><a href="https://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html">MongoDB 随机查询获取一条或 N 条记录的方法</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-07/debian-switch-kernel-boot.html">Debian 指定内核启动</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-15/wireguard-tutorial.html">WireGuard 浅显体验</a></li>
                             <li><a href="https://blog.chenxiaosheng.com/posts/2022-03-29/cgroups-hyperthreading.html">当 cgroups 碰上超线程</a></li>
                             <li><a href="https://blog.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html">网易游戏 MySQL-MongoDB 运维及 DBA 招聘</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-07/debian-switch-kernel-boot.html">Debian 指定内核启动</a></li>
                     </ul>
                 <div class="panel-about row">
                   <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
@@ -400,7 +406,7 @@ tmongo40:PRIMARY&gt; db.serverStatus()["flowControl"]
             <!-- NOTIFICATION START -->
             <div class="bs-callout bs-callout-info">
               <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@<a href="http://www.zhihu.com" target="blank">知乎</a></p>
-              <p>系统最后一次生成时间：2022-06-11 22:30:55</p>
+              <p>系统最后一次生成时间：2022-06-12 20:17:45</p>
             </div>
             <!-- NOTIFICATION END -->
             <!-- SOCIAL START -->
@@ -420,60 +426,60 @@ tmongo40:PRIMARY&gt; db.serverStatus()["flowControl"]
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/tags.html"><h4><i class="fa fa-tags fa-lg"></i>Tags</h4></a></li>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/grub.html">grub</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/kernel.html">kernel</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/flowcontrol.html">flowcontrol</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
-                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
-                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireguard.html">wireguard</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/vpn.html">vpn</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/cgroups.html">cgroups</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/grub.html">grub</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireguard.html">wireguard</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/cgroups.html">cgroups</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/flowcontrol.html">flowcontrol</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/vpn.html">vpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/kernel.html">kernel</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
             <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="fa fa-comments fa-lg"></i>最新评论</h4></li>
             <script type="text/javascript" src="https://stutiredboy.disqus.com/recent_comments_widget.js?num_items=6&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>

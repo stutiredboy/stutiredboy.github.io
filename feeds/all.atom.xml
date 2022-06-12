@@ -53,13 +53,14 @@
 &lt;p&gt;threshold 为配置的可容忍最达延迟，请特别留意，该值分别由两个参数控制 &lt;code&gt;flowControlTargetLagSeconds&lt;/code&gt; 与 &lt;code&gt;flowControlThresholdLagPercentage&lt;/code&gt; 默认值分别为 10 和 0.5，可以理解为当多数提交延迟大于 5 秒时，即触发流控；&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;```c++
-  // src/mongo/db/storage/flow_control.cpp&lt;/p&gt;
-&lt;p&gt;std::uint64_t getThresholdLagMillis() {
-      return static_cast&lt;std::uint64_t&gt;(1000.0 *                          gFlowControlThresholdLagPercentage.load() *
-                                        gFlowControlTargetLagSeconds.load());
-  }
-  ```&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// src/mongo/db/storage/flow_control.cpp&lt;/span&gt;
+
+&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;uint64_t&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;getThresholdLagMillis&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;static_cast&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;uint64_t&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;1000.0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="n"&gt;gFlowControlThresholdLagPercentage&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                                      &lt;/span&gt;&lt;span class="n"&gt;gFlowControlTargetLagSeconds&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;());&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;ul&gt;
 &lt;li&gt;fudge 因子：比 1 略小的值，主要是为了控制当 lag 与 threshold 接近时，分配略低于 base 数量的票证。默认值为 0.95，可通过参数 &lt;code&gt;flowControlFudgeFactor&lt;/code&gt; 进行配置，该值要求设置为大于 0， 小于 1，尽量接近 1；&lt;/li&gt;
 &lt;/ul&gt;
@@ -95,16 +96,17 @@
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;flowControlSamplePeriod&lt;/code&gt; 这个参数的命名比较容易让人困惑，会容易误认为是时间，实际理解是每 N 次采样一次，N 即为 &lt;code&gt;flowControlSamplePeriod&lt;/code&gt; 设置的值，值越小的精度越高，所以可能更容易触发流控导致业务降级；&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;```c++
-  // src/mongo/db/storage/flow_control.cpp&lt;/p&gt;
-&lt;p&gt;void FlowControl::sample(Timestamp timestamp, std::uint64_t opsApplied) {
-      ...
-      if (_numOpsSinceStartup - _lastSample &amp;lt;
-          static_cast&lt;std::size_t&gt;(gFlowControlSamplePeriod.load())) {
-          // Naively sample once every 1000 or so operations.
-          return;
-      }
-  ```&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// src/mongo/db/storage/flow_control.cpp&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;FlowControl::sample&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Timestamp&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;timestamp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;uint64_t&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;opsApplied&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;_numOpsSinceStartup&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;_lastSample&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;static_cast&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gFlowControlSamplePeriod&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="c1"&gt;// Naively sample once every 1000 or so operations.&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;flowControlMaxSamples&lt;/code&gt;，内存中保存的样本数，默认值为 1000000， 每个样本数约为 24 bytes大小，保存 100000 样本数约需 24MB 内存；&lt;/li&gt;
 &lt;/ul&gt;
@@ -195,45 +197,49 @@
 &lt;/tbody&gt;
 &lt;/table&gt;
 &lt;p&gt;&lt;strong&gt;需留意&lt;/strong&gt;，MongoDB 启动时，默认的 ticket 数量为 &lt;code&gt;_kMaxTickets = 1000 * 1000 * 1000&lt;/code&gt; 即 10 亿，而不是 &lt;code&gt;flowControlMinTicketsPerSecond&lt;/code&gt; 的值。通过如下命令可以查看当前的票据情况：&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;// MongoDB 刚启动时&lt;/p&gt;
-&lt;p&gt;tmongo40:PRIMARY&amp;gt; db.serverStatus()["flowControl"].targetRateLimit
-1000000000&lt;/p&gt;
-&lt;p&gt;tmongo40:PRIMARY&amp;gt; db.serverStatus()["flowControl"]
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;// MongoDB 刚启动时
+
+tmongo40:PRIMARY&amp;gt; db.serverStatus()[&amp;quot;flowControl&amp;quot;].targetRateLimit
+1000000000
+
+tmongo40:PRIMARY&amp;gt; db.serverStatus()[&amp;quot;flowControl&amp;quot;]
 {
-  "enabled" : true,
-  "targetRateLimit" : 1000000000,
-  "timeAcquiringMicros" : NumberLong(76),
-  "locksPerOp" : 0,
-  "sustainerRate" : 0,
-  "isLagged" : false,
-  "isLaggedCount" : 0,
-  "isLaggedTimeMicros" : NumberLong(0)
-}&lt;/p&gt;
-&lt;p&gt;// 触发流控后&lt;/p&gt;
-&lt;p&gt;tmongo40:PRIMARY&amp;gt; db.serverStatus()["flowControl"]
-{
-  "enabled" : true,
-  "targetRateLimit" : 2015,
-  "timeAcquiringMicros" : NumberLong(12064),
-  "locksPerOp" : 1,
-  "sustainerRate" : 2196,
-  "isLagged" : true,
-  "isLaggedCount" : 1,
-  "isLaggedTimeMicros" : NumberLong(0)
+    &amp;quot;enabled&amp;quot; : true,
+    &amp;quot;targetRateLimit&amp;quot; : 1000000000,
+    &amp;quot;timeAcquiringMicros&amp;quot; : NumberLong(76),
+    &amp;quot;locksPerOp&amp;quot; : 0,
+    &amp;quot;sustainerRate&amp;quot; : 0,
+    &amp;quot;isLagged&amp;quot; : false,
+    &amp;quot;isLaggedCount&amp;quot; : 0,
+    &amp;quot;isLaggedTimeMicros&amp;quot; : NumberLong(0)
 }
-tmongo40:PRIMARY&amp;gt; db.serverStatus()["flowControl"]
+
+// 触发流控后
+
+tmongo40:PRIMARY&amp;gt; db.serverStatus()[&amp;quot;flowControl&amp;quot;]
 {
-  "enabled" : true,
-  "targetRateLimit" : 1014,
-  "timeAcquiringMicros" : NumberLong(38346),
-  "locksPerOp" : 1,
-  "sustainerRate" : 1924,
-  "isLagged" : true,
-  "isLaggedCount" : 1,
-  "isLaggedTimeMicros" : NumberLong(0)
-}&lt;/p&gt;
-&lt;/blockquote&gt;
+    &amp;quot;enabled&amp;quot; : true,
+    &amp;quot;targetRateLimit&amp;quot; : 2015,
+    &amp;quot;timeAcquiringMicros&amp;quot; : NumberLong(12064),
+    &amp;quot;locksPerOp&amp;quot; : 1,
+    &amp;quot;sustainerRate&amp;quot; : 2196,
+    &amp;quot;isLagged&amp;quot; : true,
+    &amp;quot;isLaggedCount&amp;quot; : 1,
+    &amp;quot;isLaggedTimeMicros&amp;quot; : NumberLong(0)
+}
+tmongo40:PRIMARY&amp;gt; db.serverStatus()[&amp;quot;flowControl&amp;quot;]
+{
+    &amp;quot;enabled&amp;quot; : true,
+    &amp;quot;targetRateLimit&amp;quot; : 1014,
+    &amp;quot;timeAcquiringMicros&amp;quot; : NumberLong(38346),
+    &amp;quot;locksPerOp&amp;quot; : 1,
+    &amp;quot;sustainerRate&amp;quot; : 1924,
+    &amp;quot;isLagged&amp;quot; : true,
+    &amp;quot;isLaggedCount&amp;quot; : 1,
+    &amp;quot;isLaggedTimeMicros&amp;quot; : NumberLong(0)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
 &lt;h2&gt;日志&lt;/h2&gt;
 &lt;p&gt;触发限流时，可以在 MongoDB 的日志里找到 flowControl 相关的日志。&lt;/p&gt;
 &lt;p&gt;&lt;img alt="image-20220609174333655" src="/static/mongodb-flowcontrol-log.png"&gt;&lt;/p&gt;
