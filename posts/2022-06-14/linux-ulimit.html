@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Django Admin 使用 filter_horizontal 不生效</title>
+    <title>可能是全网最全的 ulimit 配置说明了</title>
     <!-- Using the latest rendering mode for IE -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
@@ -10,9 +10,9 @@
     <!-- Open Graph tags -->
 
             <meta property="og:type" content="article"/>
-            <meta property="og:title" content="Django Admin 使用 filter_horizontal 不生效"/>
-            <meta property="og:url" content="https://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html"/>
-            <meta property="og:description" content="Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直filter_vertical方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用filter_horizontal进行显示的时候，我们碰到了一些问题。"/>
+            <meta property="og:title" content="可能是全网最全的 ulimit 配置说明了"/>
+            <meta property="og:url" content="https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html"/>
+            <meta property="og:description" content="ulimit 设置不当经常会引起各种各样的问题，比如很经典的 too many open files，网上也有很多文章讲解 ulimit 设置，如 initscrip 设置、PAM、systemd 的配置等等。"/>
 
     <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
     <!--<link href="https://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">-->
@@ -66,12 +66,12 @@
     <section id="content">
         <article>
             <header class="page-header">
-                <h1>Django Admin 使用 filter_horizontal 不生效
+                <h1>可能是全网最全的 ulimit 配置说明了
                     <!--
-                    <a href="https://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html"
+                    <a href="https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html"
                        rel="bookmark"
-                       title="Permalink to Django Admin 使用 filter_horizontal 不生效">
-                        Django Admin 使用 filter_horizontal 不生效
+                       title="Permalink to 可能是全网最全的 ulimit 配置说明了">
+                        可能是全网最全的 ulimit 配置说明了
                     </a>
                     -->
                 </h1>
@@ -81,45 +81,81 @@
                     <div class="panel-body">
 <footer class="post-info">
     <span class="published">
-      <i class="icon-calendar"></i>2013-09-23 15:25
+      <i class="icon-calendar"></i>2022-06-14 13:07
     </span>
 
 
 
 <i class="icon-tags"></i>
-	<a href="https://blog.chenxiaosheng.com/tag/django.html">django</a>
+	<a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a>
         /
-	<a href="https://blog.chenxiaosheng.com/tag/python.html">python</a>
+	<a href="https://blog.chenxiaosheng.com/tag/ulimit.html">ulimit</a>
 </footer><!-- /.post-info -->                    </div>
                 </div>
-                <p>考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。</p>
-<p>Django 1.2.7 admin在使用<code>ManyToManyField</code>的时候，默认使用垂直<code>filter_vertical</code>方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，如下图所示：</p>
-<p><img src="/static/django_filter_vertical.png"></p>
-<p>决定使用更直观的方式，<code>filter_horizontal</code>，设置比较简单，只要在<code>admin.py</code>里对应的模块下，添加类似如下内容即可：</p>
-<div class="highlight"><pre><span></span><code><span class="n">filter_horizontal</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;example&#39;</span><span class="p">]</span>
+                <p>ulimit 设置不当经常会引起各种各样的问题，比如很经典的 <code>too many open files</code>，网上也有很多文章讲解 ulimit 设置，如 <a href="https://linux.die.net/man/5/initscript">initscrip</a> 设置、PAM、systemd 的配置等等。</p>
+<p>由于 systemd 已经成为主流，本文以 Debian 11 bullseye 为环境理清正确的 ulimit 设置应该覆盖哪些配置。通常情况下这些配置在绝大多数 Linux 发行版会是通用的，并不局限于 Debian。</p>
+<h2>systemd</h2>
+<p>systemd 主要涉及 /etc/systemd/system.conf 和 /etc/systemd/user.conf 两个文件，需要配置的内容是以样的，以 ulimit 中 <code>open files</code> 和 <code>max user processes</code> 为例，我们需要配置如下两项：</p>
+<div class="highlight"><pre><span></span><code><span class="k">[Manager]</span><span class="w"></span>
+<span class="na">DefaultLimitNOFILE</span><span class="o">=</span><span class="s">1048567</span><span class="w"></span>
+<span class="na">DefaultLimitNPROC</span><span class="o">=</span><span class="s">65535</span><span class="w"></span>
 </code></pre></div>
 
-<p><code>filter_horizontal</code>显示方式如下图所示：</p>
-<p><img src="/static/django_filter_horizontal.png"></p>
-<p>但是，当我设置了此选择后，发现出现了奇怪的问题，如下图：</p>
-<p><img src="/static/django_filter_nothing.png"></p>
-<p>没有报错，但也没有出现设想中的选择框。经过研究，发现，原来是因为我对应的字段<code>ips</code>，在<code>models.py</code>里定义的时候，<code>verbose_name</code>使用了字符串，而不是<code>unicode</code>，如下：</p>
-<div class="highlight"><pre><span></span><code><span class="n">ips</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span> <span class="n">IPData</span><span class="p">,</span> <span class="n">verbose_name</span> <span class="o">=</span> <span class="s2">&quot;使用IP&quot;</span> <span class="p">)</span>
+<p>配置生效需要重启。但是这两个配置文件有什么区别呢？通过 <code>man systemd-system.conf</code> 了解到当以系统实例运行时，引用的是 system.conf ，当以用户实例运行时，引用的是 user.conf。不过系统环境中运行的都是系统实例，如果有兴趣的朋友可以通过 <code>systemctl edit/enable/start --user</code> 等操作自己注册个 user 实例看看。可以通过 <code>cat /proc/${pid}/limits</code> 进行确认。</p>
+<p>结论：为了确保 ulimit 在 system 环境中生效，建议同时修改/etc/systemd/system.conf 和 /etc/systemd/user.conf 两个文件中的相关配置，并确保配置一致。</p>
+<h2>PAM limits</h2>
+<p>很多伙伴会发现，即使完全配置了 system 相关的文件并重启生效后，通过 ssh 远程登录服务器，<code>ulimit -n</code> 一看，还是 1024，这可是个忧伤的故事，怎么破呢？</p>
+<p>请检查 <code>/etc/ssh/sshd_config</code> 配置文件，看看是否有这一行：</p>
+<blockquote>
+<p>UsePAM yes</p>
+</blockquote>
+<p>如果有，请将 <code>yes</code> 改成 <code>no</code> 之后重启 sshd 服务，再次登录后，你应该能发现 systemd ulimit 相关配置已经生效了。</p>
+<p>但系统中 PAM 可是在相当多的地方用到了，所以这里我们需要再次修改 pam limit 相关配置，以确保系统中 ulimit 相关的配置一致。需要修改的文件为：/etc/security/limits.conf，请在文件里增加如下内容：</p>
+<div class="highlight"><pre><span></span><code>*   soft    nofile  1048567
+*   hard    nofile  1048567
+*   soft    nproc   65535
+*   hard    nproc   65535
 </code></pre></div>
 
-<p>调整为</p>
-<div class="highlight"><pre><span></span><code><span class="n">ips</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span> <span class="n">IPData</span><span class="p">,</span> <span class="n">verbose_name</span> <span class="o">=</span> <span class="sa">u</span><span class="s2">&quot;使用IP&quot;</span> <span class="p">)</span>
+<p>修改上述文件后，需要再确认一下以下文件（可能还有更多，但以下这些文件建议确认）：</p>
+<ul>
+<li>/etc/pam.d/su</li>
+<li>/etc/pam.d/sshd</li>
+<li>/etc/pam.d/login</li>
+<li>/etc/pam.d/cron</li>
+</ul>
+<p>包含以下这行内容：</p>
+<blockquote>
+<p>session    required     pam_limits.so</p>
+</blockquote>
+<p>请注意，前方高能：细心的小伙伴可能会发现这时通过 <code>su -</code> 切换成 root 后，再看 ulimit，又是没有生效的，怎么回事呢？ <code>man limits.conf</code> 可以找到答案：</p>
+<blockquote>
+<p>NOTE: group and wildcard limits are not applied to the root user. To set a limit for the root user, this field must contain the literal username root.</p>
+</blockquote>
+<p>上述 /etc/security/limits.conf 配置中的通配符 "*" 对 root 用户不生效，我们需要继续在 /etc/security/limits.conf 中增加如下配置：</p>
+<div class="highlight"><pre><span></span><code>root    soft    nofile  1048567
+root    hard    nofile  1048567
+root    soft    nproc   65535
+root    hard    nproc   65535
 </code></pre></div>
 
-<p>问题解决。使用<code>string</code>是因为我们这些是一些老旧的系统，新项目必须果断的抛弃<code>string</code>，拥抱<code>unicode</code>吧！</p>
+<p>保存后，应该安逸了~</p>
+<p>结论：pam 的 limit 设置也会影响  ulimit 相关设置，需要通过配置确保和 systemd 相关内容一致。坑点：通配符 "*" 对 root 用户不生效。</p>
+<h2>结论</h2>
+<ol>
+<li>system 的 ulimit 相关设置需要同时调整 /etc/systemd/system.conf 和 /etc/systemd/user.conf；</li>
+<li>除了 system 的配置，pam 相关的配置也需要同步调整，主要涉及 /etc/security/limits.conf 和 /etc/pam.d/ 目录下的相关文件；</li>
+<li>/etc/security/limits.conf 中的通配符 "*" 对 root 用户不生效，root 用户相关配置需要显式指定；</li>
+<li>除了系统级别的配置，用户也可以在 /etc/profile 和 bashrc 等相关配置里显式的修改 ulimit，当你发现上述 3 项配置都没有生效的时候，请检查用户侧的设定，看看是否自己另外指定了；</li>
+</ol>
                     <h3><i class="fa fa-hand-o-right"></i> 您可能还喜欢以下文章</h3>
                     </br>
                     <ul>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html">pip 升级 pip 失败</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-15/wireguard-tutorial.html">WireGuard 浅显体验</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html">Linux系统上通知网关更新arp</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-07/debian-switch-kernel-boot.html">Debian 指定内核启动</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-03-29/cgroups-hyperthreading.html">当 cgroups 碰上超线程</a></li>
                             <li><a href="https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html">MongoDB 4.2 流控 FlowControl 机制走读</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">Django multiple select option with title</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html">可能是全网最全的 ulimit 配置说明了</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html">pelican增加自定义jinja template filters</a></li>
                     </ul>
                 <div class="panel-about row">
                   <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
@@ -144,8 +180,8 @@
         <script type="text/javascript">
             /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
             var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
-            var disqus_identifier = 'https://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html';
-            var disqus_url = 'https://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html';
+            var disqus_identifier = 'https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html';
+            var disqus_url = 'https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html';
 
             /* * * DON'T EDIT BELOW THIS LINE * * */
             (function () {
@@ -192,61 +228,61 @@
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
             <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/tags.html"><h4><i class="fa fa-tags fa-lg"></i>Tags</h4></a></li>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/flowcontrol.html">flowcontrol</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireguard.html">wireguard</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
                 <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/vpn.html">vpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
                 <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/cgroups.html">cgroups</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/vpn.html">vpn</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/kernel.html">kernel</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ulimit.html">ulimit</a></span>
-                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/grub.html">grub</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireguard.html">wireguard</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
                 <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/grub.html">grub</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/kernel.html">kernel</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ulimit.html">ulimit</a></span>
             <!-- TAGS CLOUD END -->
             <li class="list-group-item"><h4><i class="fa fa-comments fa-lg"></i>最新评论</h4></li>
             <script type="text/javascript" src="https://stutiredboy.disqus.com/recent_comments_widget.js?num_items=6&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>

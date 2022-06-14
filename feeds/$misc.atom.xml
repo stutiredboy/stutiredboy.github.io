@@ -1,5 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - misc</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/$misc.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2022-06-11T22:21:00+08:00</updated><entry><title>MongoDB 4.2 流控 FlowControl 机制走读</title><link href="https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html" rel="alternate"></link><published>2022-06-11T22:21:00+08:00</published><updated>2022-06-11T22:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2022-06-11:/posts/2022-06-11/mongodb-flowcontrol-practice.html</id><summary type="html">&lt;p&gt;MongoDB 4.2 引入了一个「流量控制」的新特性。该流控机制旨在保持副本集多数提交延迟小于或等于配置的最大值。此最大延迟的默认值为 10 秒。一旦多数提交的复制延迟达到配置的最大值的阈值百分比，流控制机制就会开始限制主节点上的写入。&lt;/p&gt;</summary><content type="html">&lt;p&gt;MongoDB 4.2 引入了一个「流量控制」的新特性。该流控机制旨在保持副本集多数提交延迟小于或等于配置的最大值。此最大延迟的默认值为 10 秒。一旦多数提交的复制延迟达到配置的最大值的阈值百分比，流控制机制就会开始限制主节点上的写入。&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - misc</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/$misc.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2022-06-14T13:07:00+08:00</updated><entry><title>可能是全网最全的 ulimit 配置说明了</title><link href="https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html" rel="alternate"></link><published>2022-06-14T13:07:00+08:00</published><updated>2022-06-14T13:07:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2022-06-14:/posts/2022-06-14/linux-ulimit.html</id><summary type="html">&lt;p&gt;ulimit 设置不当经常会引起各种各样的问题，比如很经典的 &lt;code&gt;too many open files&lt;/code&gt;，网上也有很多文章讲解 ulimit 设置，如 &lt;a href="https://linux.die.net/man/5/initscript"&gt;initscrip&lt;/a&gt; 设置、PAM、systemd 的配置等等。&lt;/p&gt;</summary><content type="html">&lt;p&gt;ulimit 设置不当经常会引起各种各样的问题，比如很经典的 &lt;code&gt;too many open files&lt;/code&gt;，网上也有很多文章讲解 ulimit 设置，如 &lt;a href="https://linux.die.net/man/5/initscript"&gt;initscrip&lt;/a&gt; 设置、PAM、systemd 的配置等等。&lt;/p&gt;
+&lt;p&gt;由于 systemd 已经成为主流，本文以 Debian 11 bullseye 为环境理清正确的 ulimit 设置应该覆盖哪些配置。通常情况下这些配置在绝大多数 Linux 发行版会是通用的，并不局限于 Debian。&lt;/p&gt;
+&lt;h2&gt;systemd&lt;/h2&gt;
+&lt;p&gt;systemd 主要涉及 /etc/systemd/system.conf 和 /etc/systemd/user.conf 两个文件，需要配置的内容是以样的，以 ulimit 中 &lt;code&gt;open files&lt;/code&gt; 和 &lt;code&gt;max user processes&lt;/code&gt; 为例，我们需要配置如下两项：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Manager]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="na"&gt;DefaultLimitNOFILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;1048567&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="na"&gt;DefaultLimitNPROC&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s"&gt;65535&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;配置生效需要重启。但是这两个配置文件有什么区别呢？通过 &lt;code&gt;man systemd-system.conf&lt;/code&gt; 了解到当以系统实例运行时，引用的是 system.conf ，当以用户实例运行时，引用的是 user.conf。不过系统环境中运行的都是系统实例，如果有兴趣的朋友可以通过 &lt;code&gt;systemctl edit/enable/start --user&lt;/code&gt; 等操作自己注册个 user 实例看看。可以通过 &lt;code&gt;cat /proc/${pid}/limits&lt;/code&gt; 进行确认。&lt;/p&gt;
+&lt;p&gt;结论：为了确保 ulimit 在 system 环境中生效，建议同时修改/etc/systemd/system.conf 和 /etc/systemd/user.conf 两个文件中的相关配置，并确保配置一致。&lt;/p&gt;
+&lt;h2&gt;PAM limits&lt;/h2&gt;
+&lt;p&gt;很多伙伴会发现，即使完全配置了 system 相关的文件并重启生效后，通过 ssh 远程登录服务器，&lt;code&gt;ulimit -n&lt;/code&gt; 一看，还是 1024，这可是个忧伤的故事，怎么破呢？&lt;/p&gt;
+&lt;p&gt;请检查 &lt;code&gt;/etc/ssh/sshd_config&lt;/code&gt; 配置文件，看看是否有这一行：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;UsePAM yes&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如果有，请将 &lt;code&gt;yes&lt;/code&gt; 改成 &lt;code&gt;no&lt;/code&gt; 之后重启 sshd 服务，再次登录后，你应该能发现 systemd ulimit 相关配置已经生效了。&lt;/p&gt;
+&lt;p&gt;但系统中 PAM 可是在相当多的地方用到了，所以这里我们需要再次修改 pam limit 相关配置，以确保系统中 ulimit 相关的配置一致。需要修改的文件为：/etc/security/limits.conf，请在文件里增加如下内容：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;*   soft    nofile  1048567
+*   hard    nofile  1048567
+*   soft    nproc   65535
+*   hard    nproc   65535
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;修改上述文件后，需要再确认一下以下文件（可能还有更多，但以下这些文件建议确认）：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;/etc/pam.d/su&lt;/li&gt;
+&lt;li&gt;/etc/pam.d/sshd&lt;/li&gt;
+&lt;li&gt;/etc/pam.d/login&lt;/li&gt;
+&lt;li&gt;/etc/pam.d/cron&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;包含以下这行内容：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;session    required     pam_limits.so&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;请注意，前方高能：细心的小伙伴可能会发现这时通过 &lt;code&gt;su -&lt;/code&gt; 切换成 root 后，再看 ulimit，又是没有生效的，怎么回事呢？ &lt;code&gt;man limits.conf&lt;/code&gt; 可以找到答案：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;NOTE: group and wildcard limits are not applied to the root user. To set a limit for the root user, this field must contain the literal username root.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;上述 /etc/security/limits.conf 配置中的通配符 "*" 对 root 用户不生效，我们需要继续在 /etc/security/limits.conf 中增加如下配置：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;root    soft    nofile  1048567
+root    hard    nofile  1048567
+root    soft    nproc   65535
+root    hard    nproc   65535
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;保存后，应该安逸了~&lt;/p&gt;
+&lt;p&gt;结论：pam 的 limit 设置也会影响  ulimit 相关设置，需要通过配置确保和 systemd 相关内容一致。坑点：通配符 "*" 对 root 用户不生效。&lt;/p&gt;
+&lt;h2&gt;结论&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;system 的 ulimit 相关设置需要同时调整 /etc/systemd/system.conf 和 /etc/systemd/user.conf；&lt;/li&gt;
+&lt;li&gt;除了 system 的配置，pam 相关的配置也需要同步调整，主要涉及 /etc/security/limits.conf 和 /etc/pam.d/ 目录下的相关文件；&lt;/li&gt;
+&lt;li&gt;/etc/security/limits.conf 中的通配符 "*" 对 root 用户不生效，root 用户相关配置需要显式指定；&lt;/li&gt;
+&lt;li&gt;除了系统级别的配置，用户也可以在 /etc/profile 和 bashrc 等相关配置里显式的修改 ulimit，当你发现上述 3 项配置都没有生效的时候，请检查用户侧的设定，看看是否自己另外指定了；&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="linux"></category><category term="ulimit"></category></entry><entry><title>MongoDB 4.2 流控 FlowControl 机制走读</title><link href="https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html" rel="alternate"></link><published>2022-06-11T22:21:00+08:00</published><updated>2022-06-11T22:21:00+08:00</updated><author><name>老树</name></author><id>tag:blog.chenxiaosheng.com,2022-06-11:/posts/2022-06-11/mongodb-flowcontrol-practice.html</id><summary type="html">&lt;p&gt;MongoDB 4.2 引入了一个「流量控制」的新特性。该流控机制旨在保持副本集多数提交延迟小于或等于配置的最大值。此最大延迟的默认值为 10 秒。一旦多数提交的复制延迟达到配置的最大值的阈值百分比，流控制机制就会开始限制主节点上的写入。&lt;/p&gt;</summary><content type="html">&lt;p&gt;MongoDB 4.2 引入了一个「流量控制」的新特性。该流控机制旨在保持副本集多数提交延迟小于或等于配置的最大值。此最大延迟的默认值为 10 秒。一旦多数提交的复制延迟达到配置的最大值的阈值百分比，流控制机制就会开始限制主节点上的写入。&lt;/p&gt;
 &lt;p&gt;当该特性开启时，MongoDB 会在给定的周期内（目前实现是 1 秒），分配一定数量的「流控票据」，MongoDB 的数据库库写操作需要通过获取「流控票据」来获取全局 IX 锁。当此给定周期内的票据分发完比后，相关操作需要等待下一个周期（下一秒）的票据刷新分发。部份 MongoDB 内部操作可能会忽略该流控机制，以确保 MongoDB 的正常运行。&lt;/p&gt;
 &lt;p&gt;接下来我们从算法、配置、源码等几个方面结合来了解一下该流控制机制的实现（本文以 MongoDB 4.2.20 版本的文档及源码为参考）。&lt;/p&gt;
 &lt;h2&gt;环境要求&lt;/h2&gt;
