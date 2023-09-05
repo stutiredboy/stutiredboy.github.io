@@ -11,24 +11,24 @@
 
             <meta property="og:type" content="article"/>
             <meta property="og:title" content="Java 使用自签证书访问https站点"/>
-            <meta property="og:url" content="https://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html"/>
+            <meta property="og:url" content="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html"/>
             <meta property="og:description" content="最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白， 我也忍不住想感慨一下，不同 Java 程序员的水平差 …"/>
 
-    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
-    <!--<link href="https://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">-->
-    <link href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="https://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://blog.chenxiaosheng.com/theme/css/style.css">
+    <link rel="stylesheet" href="http://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
+    <link href="http://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+    <link href="http://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://blog.chenxiaosheng.com/theme/css/style.css">
     <!--[if lt IE 9]>
-        <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+        <script src="http://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
     <![endif]-->
     <!--[if gte IE 9]><!-->
-        <script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
+        <script src="http://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
     <!--<![endif]-->
 
-        <link href="https://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+        <link href="http://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
               title="碎碎念 ATOM Feed"/>
 
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9399540303343331" crossorigin="anonymous"></script>
     <script type="text/javascript">
 
         var _gaq = _gaq || [];
@@ -50,7 +50,14 @@
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container">
         <div class="navbar-header">
-            <a href="https://blog.chenxiaosheng.com" class="navbar-brand">碎碎念</a>
+            <!-- I don't need this //by tiredboy
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>-->
+            <a href="http://blog.chenxiaosheng.com" class="navbar-brand">碎碎念</a>
         </div>
         <div class="collapse navbar-collapse navbar-ex1-collapse">
             <ul class="nav navbar-nav">
@@ -66,14 +73,12 @@
     <section id="content">
         <article>
             <header class="page-header">
-                <h1>Java 使用自签证书访问https站点
-                    <!--
-                    <a href="https://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html"
+                <h1>
+                    <a href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html"
                        rel="bookmark"
                        title="Permalink to Java 使用自签证书访问https站点">
                         Java 使用自签证书访问https站点
                     </a>
-                    -->
                 </h1>
             </header>
             <div class="entry-content">
@@ -87,9 +92,9 @@
 
 
 <i class="icon-tags"></i>
-	<a href="https://blog.chenxiaosheng.com/tag/java.html">java</a>
+	<a href="http://blog.chenxiaosheng.com/tag/java.html">java</a>
         /
-	<a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a>
+	<a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a>
 </footer><!-- /.post-info -->                    </div>
                 </div>
                 <p>最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
@@ -122,79 +127,76 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 
 <p>之后在你的 Java 程序里，使用 keystore 加载该证书，并附加该证书创建 https 请求即可。</p>
 <p>从 Java 官方 docs 和 网上拼凑了小样例一枚，请君参照并自行完善：</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">java.io.File</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">java.io.FileInputStream</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">java.io.InputStream</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">java.io.InputStreamReader</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">java.security.KeyStore</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">java.io.File</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.io.FileInputStream</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.io.InputStream</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.io.InputStreamReader</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.security.KeyStore</span><span class="p">;</span><span class="w"></span>
 
 
-<span class="kn">import</span> <span class="nn">java.security.cert.CertificateException</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">java.security.cert.X509Certificate</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">java.net.URL</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">javax.net.ssl.HttpsURLConnection</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">javax.net.ssl.TrustManager</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">javax.net.ssl.TrustManagerFactory</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">javax.net.ssl.X509TrustManager</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span>
-<span class="kn">import</span> <span class="nn">javax.net.ssl.SSLSocketFactory</span><span class="p">;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.security.cert.CertificateException</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.security.cert.X509Certificate</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">java.net.URL</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.HttpsURLConnection</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.TrustManager</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.TrustManagerFactory</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.X509TrustManager</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLContext</span><span class="p">;</span><span class="w"></span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">javax.net.ssl.SSLSocketFactory</span><span class="p">;</span><span class="w"></span>
 
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">LoadCert</span> <span class="p">{</span>
-    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="p">{</span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">LoadCert</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
 
-        <span class="n">X509TrustManager</span> <span class="n">sunJSSEX509TrustManager</span><span class="p">;</span>
-        <span class="c1">// 加载 Keytool 生成的证书文件</span>
-        <span class="kt">char</span><span class="o">[]</span> <span class="n">passphrase</span><span class="p">;</span>
-        <span class="n">String</span> <span class="n">p</span> <span class="o">=</span> <span class="s">&quot;changeit&quot;</span><span class="p">;</span>
-        <span class="n">passphrase</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="na">toCharArray</span><span class="p">();</span>
-        <span class="n">File</span> <span class="n">file</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="p">(</span><span class="s">&quot;java.cnnic.cacert&quot;</span><span class="p">);</span>
-        <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Loading KeyStore &quot;</span> <span class="o">+</span> <span class="n">file</span> <span class="o">+</span> <span class="s">&quot;...&quot;</span><span class="p">);</span>
-        <span class="n">InputStream</span> <span class="n">in</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FileInputStream</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
-        <span class="n">KeyStore</span> <span class="n">ks</span> <span class="o">=</span> <span class="n">KeyStore</span><span class="p">.</span><span class="na">getInstance</span><span class="p">(</span><span class="n">KeyStore</span><span class="p">.</span><span class="na">getDefaultType</span><span class="p">());</span>
-        <span class="n">ks</span><span class="p">.</span><span class="na">load</span><span class="p">(</span><span class="n">in</span><span class="p">,</span> <span class="n">passphrase</span><span class="p">);</span>
-        <span class="n">in</span><span class="p">.</span><span class="na">close</span><span class="p">();</span>
-        <span class="c1">// 构造 javax.net.ssl.TrustManager 对象</span>
-        <span class="n">TrustManagerFactory</span> <span class="n">tmf</span> <span class="o">=</span>
-        <span class="n">TrustManagerFactory</span><span class="p">.</span><span class="na">getInstance</span><span class="p">(</span><span class="s">&quot;SunX509&quot;</span><span class="p">,</span> <span class="s">&quot;SunJSSE&quot;</span><span class="p">);</span>
-        <span class="n">tmf</span><span class="p">.</span><span class="na">init</span><span class="p">(</span><span class="n">ks</span><span class="p">);</span>
-        <span class="n">TrustManager</span> <span class="n">tms</span> <span class="o">[]</span> <span class="o">=</span> <span class="n">tmf</span><span class="p">.</span><span class="na">getTrustManagers</span><span class="p">();</span>
-        <span class="c1">// 使用构造好的 TrustManager 访问相应的 https 站点</span>
-        <span class="n">SSLContext</span> <span class="n">sslContext</span> <span class="o">=</span> <span class="n">SSLContext</span><span class="p">.</span><span class="na">getInstance</span><span class="p">(</span><span class="s">&quot;SSL&quot;</span><span class="p">,</span> <span class="s">&quot;SunJSSE&quot;</span><span class="p">);</span>
-        <span class="n">sslContext</span><span class="p">.</span><span class="na">init</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="n">tms</span><span class="p">,</span> <span class="k">new</span> <span class="n">java</span><span class="p">.</span><span class="na">security</span><span class="p">.</span><span class="na">SecureRandom</span><span class="p">());</span>
-        <span class="n">SSLSocketFactory</span> <span class="n">ssf</span> <span class="o">=</span> <span class="n">sslContext</span><span class="p">.</span><span class="na">getSocketFactory</span><span class="p">();</span>
-        <span class="n">URL</span> <span class="n">myURL</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="p">(</span><span class="s">&quot;https://replace.to.your.site.real.url/&quot;</span><span class="p">);</span>
-        <span class="n">HttpsURLConnection</span> <span class="n">httpsConn</span> <span class="o">=</span> <span class="p">(</span><span class="n">HttpsURLConnection</span><span class="p">)</span> <span class="n">myURL</span><span class="p">.</span><span class="na">openConnection</span><span class="p">();</span>
-        <span class="n">httpsConn</span><span class="p">.</span><span class="na">setSSLSocketFactory</span><span class="p">(</span><span class="n">ssf</span><span class="p">);</span>
-        <span class="n">InputStreamReader</span> <span class="n">insr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">InputStreamReader</span><span class="p">(</span><span class="n">httpsConn</span><span class="p">.</span><span class="na">getInputStream</span><span class="p">());</span>
-        <span class="kt">int</span> <span class="n">respInt</span> <span class="o">=</span> <span class="n">insr</span><span class="p">.</span><span class="na">read</span><span class="p">();</span>
-        <span class="k">while</span> <span class="p">(</span><span class="n">respInt</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">print</span><span class="p">((</span><span class="kt">char</span><span class="p">)</span> <span class="n">respInt</span><span class="p">);</span>
-            <span class="n">respInt</span> <span class="o">=</span> <span class="n">insr</span><span class="p">.</span><span class="na">read</span><span class="p">();</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">}</span>
+<span class="w">        </span><span class="n">X509TrustManager</span><span class="w"> </span><span class="n">sunJSSEX509TrustManager</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// 加载 Keytool 生成的证书文件</span><span class="w"></span>
+<span class="w">        </span><span class="kt">char</span><span class="o">[]</span><span class="w"> </span><span class="n">passphrase</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;changeit&quot;</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">passphrase</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="na">toCharArray</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="n">File</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">File</span><span class="p">(</span><span class="s">&quot;java.cnnic.cacert&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Loading KeyStore &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;...&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">InputStream</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FileInputStream</span><span class="p">(</span><span class="n">file</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">KeyStore</span><span class="w"> </span><span class="n">ks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KeyStore</span><span class="p">.</span><span class="na">getInstance</span><span class="p">(</span><span class="n">KeyStore</span><span class="p">.</span><span class="na">getDefaultType</span><span class="p">());</span><span class="w"></span>
+<span class="w">        </span><span class="n">ks</span><span class="p">.</span><span class="na">load</span><span class="p">(</span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">passphrase</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">in</span><span class="p">.</span><span class="na">close</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// 构造 javax.net.ssl.TrustManager 对象</span><span class="w"></span>
+<span class="w">        </span><span class="n">TrustManagerFactory</span><span class="w"> </span><span class="n">tmf</span><span class="w"> </span><span class="o">=</span><span class="w"></span>
+<span class="w">        </span><span class="n">TrustManagerFactory</span><span class="p">.</span><span class="na">getInstance</span><span class="p">(</span><span class="s">&quot;SunX509&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;SunJSSE&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">tmf</span><span class="p">.</span><span class="na">init</span><span class="p">(</span><span class="n">ks</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">TrustManager</span><span class="w"> </span><span class="n">tms</span><span class="w"> </span><span class="o">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tmf</span><span class="p">.</span><span class="na">getTrustManagers</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// 使用构造好的 TrustManager 访问相应的 https 站点</span><span class="w"></span>
+<span class="w">        </span><span class="n">SSLContext</span><span class="w"> </span><span class="n">sslContext</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SSLContext</span><span class="p">.</span><span class="na">getInstance</span><span class="p">(</span><span class="s">&quot;SSL&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;SunJSSE&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">sslContext</span><span class="p">.</span><span class="na">init</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="n">tms</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">java</span><span class="p">.</span><span class="na">security</span><span class="p">.</span><span class="na">SecureRandom</span><span class="p">());</span><span class="w"></span>
+<span class="w">        </span><span class="n">SSLSocketFactory</span><span class="w"> </span><span class="n">ssf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sslContext</span><span class="p">.</span><span class="na">getSocketFactory</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="n">URL</span><span class="w"> </span><span class="n">myURL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">URL</span><span class="p">(</span><span class="s">&quot;https://replace.to.your.site.real.url/&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">HttpsURLConnection</span><span class="w"> </span><span class="n">httpsConn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">HttpsURLConnection</span><span class="p">)</span><span class="w"> </span><span class="n">myURL</span><span class="p">.</span><span class="na">openConnection</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="n">httpsConn</span><span class="p">.</span><span class="na">setSSLSocketFactory</span><span class="p">(</span><span class="n">ssf</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="n">InputStreamReader</span><span class="w"> </span><span class="n">insr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">InputStreamReader</span><span class="p">(</span><span class="n">httpsConn</span><span class="p">.</span><span class="na">getInputStream</span><span class="p">());</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">respInt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">insr</span><span class="p">.</span><span class="na">read</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">respInt</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">print</span><span class="p">((</span><span class="kt">char</span><span class="p">)</span><span class="w"> </span><span class="n">respInt</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="n">respInt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">insr</span><span class="p">.</span><span class="na">read</span><span class="p">();</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
-                    <h3><i class="fa fa-hand-o-right"></i> 您可能还喜欢以下文章</h3>
-                    </br>
-                    <ul>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-15/wireguard-tutorial.html">WireGuard 浅显体验</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html">可能是全网最全的 ulimit 配置说明了</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html">Java 发起Http Post请求</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html">MongoDB 4.2 流控 FlowControl 机制走读</a></li>
-                            <li><a href="https://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></li>
-                    </ul>
+                <h4 class="icon-hand-right"> 您可能还喜欢以下文章</h4>
+                <ul>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html">Java 发起Http Post请求</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html">MongoDB 随机查询获取一条或 N 条记录的方法</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html">OpenID4Java 使用dumb模式（stateless）并禁用 discovery</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html">在 Mac 中对 iPhone 手机网络进行抓包的方法</a></li>
+                  <li><a href="http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html">一次「安全」的变更将 redis cluster 送进了孤岛</a></li>
+                </ul>
                 <div class="panel-about row">
                   <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
                     <img src="/static/avatar.gif" class="img-circle">
                   </div>
-                  <div class="panel-author-description col-md-7">
-                    <h4><i class="fa fa-user"></i> 关于我</h4>
-                    热爱开源、分享。目前主要从事混合云、数据库 SaaS 等运维开发及相关团队管理工作。</br>
+                  <div class="panel-author-description col-md-10">
+                    <h4 class="icon-user"> 关于我</h4>
+                    就职于网易在线游戏事业部，任系统运维工程师职位。目前主要从事 MongoDB、MySQLDB、Redis、DNS 的运维工作。如果有相关求职需求，欢迎联系我。</br>
                     <br/>
+                    VPS 使用 <a href="http://www.vultr.com/?ref=6820888">vultr</a>，欢迎使用我的 <a href="http://www.vultr.com/?ref=6820888">referral link</a>，我可以得到少许返利。<br/>
                     <a href="https://www.vultr.com/?ref=6820888" class="hidden-xs hidden-sm"><img src="https://www.vultr.com/media/banner_2.png" width="468" height="60"></a>
-                  </div>
-                  <div class="panel-author-description col-md-3 hidden-xs hidden-sm">
-                    <img src="/static/qrcode.jpg" width="160" height="160"></a>
                   </div>
                 </div>
             </div>
@@ -206,8 +208,8 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
         <script type="text/javascript">
             /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
             var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
-            var disqus_identifier = 'https://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html';
-            var disqus_url = 'https://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html';
+            var disqus_identifier = 'http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html';
+            var disqus_url = 'http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html';
 
             /* * * DON'T EDIT BELOW THIS LINE * * */
             (function () {
@@ -218,9 +220,9 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
                 (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
             })();
         </script>
-        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by
             Disqus.</a></noscript>
-        <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+        <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
 
     </section>
         </article>
@@ -234,7 +236,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
             <!-- NOTIFICATION START -->
             <div class="bs-callout bs-callout-info">
               <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@<a href="http://www.zhihu.com" target="blank">知乎</a></p>
-              <p>系统最后一次生成时间：2022-06-14 13:08:06</p>
+              <p>系统最后一次生成时间：2023-09-05 13:54:38</p>
             </div>
             <!-- NOTIFICATION END -->
             <!-- SOCIAL START -->
@@ -244,74 +246,63 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
                 <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
                 <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
                 <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
-                <span class="span-group-item"><a href="https://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
+                <span class="span-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
                 </li>
             -->
             <!-- SOCIAL END -->
             <!-- CONTACT START -->
-            <li class="list-group-item"><h4><i class="fa fa-weixin fa-lg"></i>微信公众号</h4></li>
-            <div class="text-center"><img src="/static/qrcode.jpg" alt="欢迎关注个人微信公众号" class="img-rounded wxqrcode"></div>
+            <!--
+            <li class="list-group-item"><h4><i class="icon-envelope icon-large"></i>联系老树</h4></li>
+            <div class="text-center"><img src="/static/vCard.jpg" alt="联系我" class="img-rounded"></div>
+            -->
             <!-- CONTACT END -->
             <!-- TAGS CLOUD START -->
-            <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/tags.html"><h4><i class="fa fa-tags fa-lg"></i>Tags</h4></a></li>
-                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/cgroups.html">cgroups</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/vpn.html">vpn</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/grub.html">grub</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ulimit.html">ulimit</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireguard.html">wireguard</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
-                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
-                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/kernel.html">kernel</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
-                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/flowcontrol.html">flowcontrol</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
-                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+            <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/tags.html"><h4><i class="icon-tags icon-large"></i>Tags</h4></a></li>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-1"><a href="http://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-2"><a href="http://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-4"><a href="http://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
+                <span class="tag-8"><a href="http://blog.chenxiaosheng.com/tag/post.html">post</a></span>
             <!-- TAGS CLOUD END -->
-            <li class="list-group-item"><h4><i class="fa fa-comments fa-lg"></i>最新评论</h4></li>
-            <script type="text/javascript" src="https://stutiredboy.disqus.com/recent_comments_widget.js?num_items=6&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
+            <li class="list-group-item"><h4><i class="icon-comment icon-large"></i>最新评论</h4></li>
+            <script type="text/javascript" src="http://stutiredboy.disqus.com/recent_comments_widget.js?num_items=8&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
             <!-- Uncomment if you want to show Social
                 <li class="list-group-item"><h4><i class="icon-home icon-large"></i>Social</h4></li>
                     <li class="list-group-item"><a href="http://weibo.com/stutiredboy"><i
@@ -326,13 +317,225 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
                     <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
                             class="icon-github-sign icon-large"></i>github
                     </a></li>
-                    <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
+                    <li class="list-group-item"><a href="http://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
                             class="icon-rss-sign icon-large"></i>rss
                     </a></li>
             -->
 
 
 
+            <!-- 使用上面的标签云，这里不需要了
+                <li class="list-group-item tag-1">
+                    <a href="http://blog.chenxiaosheng.com/tag/python.html">
+                        python
+                    </a>
+                </li>
+                <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/mac.html">
+                        mac
+                    </a>
+                </li>
+                <li class="list-group-item tag-2">
+                    <a href="http://blog.chenxiaosheng.com/tag/java.html">
+                        java
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/mongodb.html">
+                        mongodb
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/django.html">
+                        django
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssl.html">
+                        ssl
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/debian.html">
+                        debian
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/bind.html">
+                        bind
+                    </a>
+                </li>
+                <li class="list-group-item tag-4">
+                    <a href="http://blog.chenxiaosheng.com/tag/osx.html">
+                        osx
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/netease.html">
+                        netease
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/lxc.html">
+                        lxc
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dig.html">
+                        dig
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/named.html">
+                        named
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sftp.html">
+                        sftp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/apache.html">
+                        apache
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/pelican.html">
+                        pelican
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/tcpdump.html">
+                        tcpdump
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/iterm2.html">
+                        iterm2
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openid.html">
+                        openid
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/linux.html">
+                        linux
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/yosemite.html">
+                        yosemite
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/sshd.html">
+                        sshd
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/wireshark.html">
+                        wireshark
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/openvpn.html">
+                        openvpn
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ios.html">
+                        ios
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/securefx.html">
+                        secureFX
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/scribe.html">
+                        scribe
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/okr.html">
+                        okr
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/wifi.html">
+                        wifi
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/http.html">
+                        http
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/proxy.html">
+                        proxy
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dba.html">
+                        dba
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/pip.html">
+                        pip
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/jinja.html">
+                        jinja
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/arp.html">
+                        arp
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/crontab.html">
+                        crontab
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/ssh.html">
+                        ssh
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/windows.html">
+                        windows
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/mysql.html">
+                        mysql
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/redis.html">
+                        redis
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/dns.html">
+                        dns
+                    </a>
+                </li>
+                <li class="list-group-item tag-8">
+                    <a href="http://blog.chenxiaosheng.com/tag/post.html">
+                        post
+                    </a>
+                </li>
+            -->
         </ul>
     </section>
 </aside>
@@ -340,15 +543,15 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
     </div>
 </div>
 
-<script src="https://cdn.staticfile.org/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
+<script src="http://cdn.staticfile.org/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
 
 <!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
-<script src="https://blog.chenxiaosheng.com/theme/js/respond.min.js"></script>
+<script src="http://blog.chenxiaosheng.com/theme/js/respond.min.js"></script>
 <!-- Footer Start -->
 <footer class="footer">
   <div class="container">
-    <p class="text-right visible-xs">&copy; 2022 ChenXiaosheng</p>
-    <p class="text-right hidden-xs">&copy; 2022 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://github.com">Github</a> - MarkDown 构建</p>
+    <p class="text-right visible-xs">&copy; 2018 ChenXiaosheng</p>
+    <p class="text-right hidden-xs">&copy; 2018 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://github.com">Github</a> - MarkDown 构建</p>
     <p class="text-right hidden-xs">除非另有声明，本网站采用<a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh">署名-非商业性使用-禁止演绎 4.0 国际 (CC BY-NC-ND 4.0)</a>授权</p>
   </div>
 </footer>
