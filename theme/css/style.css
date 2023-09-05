@@ -1,6 +1,9 @@
 body {
-    font: 14px/21px Microsoft YaHei,Helvetica,Tahoma,Arial;
+    /* change 14px -> 16px @2022-05-16 */
+    font: 16px/21px Microsoft YaHei,Helvetica,Tahoma,Arial;
     padding-top: 70px;
+    /* add @2022-05-16 */
+    line-height: 24px;
 }
 
 #sidebar .list-group, #sidebar .list-group-item {
@@ -108,9 +111,16 @@ a, a:hover {
 
 /* added by tiredboy below */
 
+.navbar-fixed-top {
+  background-color: #1e1e1e;
+}
+
 .page-header {
     margin: 20px 0 10px 0;
-}   
+}
+.page-header {
+    color: #73afcb;
+}
 .panel-body {
     padding: 0px;
 }  
@@ -206,4 +216,16 @@ a, a:hover {
 }
 .bs-callout-info h4 {
   color: #5bc0de;
+}
+blockquote p {
+  font-size: 14px;
+  color: #777;
+}
+.summary img {
+  align: center;
+  max-width: 100%;
+}
+
+.wxqrcode {
+  max-width: 100%;
 }

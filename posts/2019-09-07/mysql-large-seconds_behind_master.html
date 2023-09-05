@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>MySQL Seconds_Behind_Master 忽大忽小？莫慌</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Open Graph tags -->
+
+            <meta property="og:type" content="article"/>
+            <meta property="og:title" content="MySQL Seconds_Behind_Master 忽大忽小？莫慌"/>
+            <meta property="og:url" content="https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html"/>
+            <meta property="og:description" content="MySQL Slave Seconds_Behind_Master 是否可以直接做为数据复制是否延迟的衡量标准？在日常监控中是否有需要注意或特别避开的坑点？有没有更好的监控方式呢？"/>
+
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
+    <!--<link href="https://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">-->
+    <link href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://blog.chenxiaosheng.com/theme/css/style.css">
+    <!--[if lt IE 9]>
+        <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <![endif]-->
+    <!--[if gte IE 9]><!-->
+        <script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
+    <!--<![endif]-->
+
+        <link href="https://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="碎碎念 ATOM Feed"/>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9399540303343331"
+     crossorigin="anonymous"></script>
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30723232-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+
+    </script>
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a href="https://blog.chenxiaosheng.com" class="navbar-brand">碎碎念</a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</nav>
+<!-- /.navbar -->
+<div class="container">
+    <div class="row">
+        <div class="col-md-9 col-lg-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>MySQL Seconds_Behind_Master 忽大忽小？莫慌
+                    <!--
+                    <a href="https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html"
+                       rel="bookmark"
+                       title="Permalink to MySQL Seconds_Behind_Master 忽大忽小？莫慌">
+                        MySQL Seconds_Behind_Master 忽大忽小？莫慌
+                    </a>
+                    -->
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="published">
+      <i class="icon-calendar"></i>2019-09-07 22:33
+    </span>
+
+
+
+<i class="icon-tags"></i>
+	<a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a>
+        /
+	<a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a>
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>本周在某次开会的时候，忽然收到了大量的 MySQL Seconds_Behind_Master 落后的报警轰炸（落后时间随机，几百到几万秒不等），但是当我们的值班 DBA 登录 MySQL 通过 <code>show slave status\G</code> 查看时，发现都是 0，通常我们认为这个时候复制是正常的。那么是什么情况导致了报警的发生呢？</p>
+<p>DBA 值班同学也比较没有头绪，我们首先做了以下几件事情：</p>
+<ol>
+<li>
+<p>确认监控插件是否变更？收到的答复是没有；</p>
+</li>
+<li>
+<p>我们自己是否有变更？收到的答复是没有。</p>
+</li>
+</ol>
+<blockquote>
+<p>事后打脸了，有一位同学做了报警策略的变更，从原 X 时间内只发送第 N 条报警修改成了 X 时间内只发送第 1 条报警。该策略的变更也会导致该报警的轰炸，但是他变更的时间是在报警轰炸之后，跟此次报警轰炸原因没有正相关；</p>
+</blockquote>
+<ol>
+<li>登录多个实例确认都是误报后，先通告产品，明确是误报事件，让产品不用担心，等待 DBA 查明原因；</li>
+</ol>
+<p>接下来我们会议正常进行，由某位 DBA 同学对此问题进行持续跟进，这个时候了解到某报警系统正在维护，猜测与他们有关系。但是即使是与他们有关系，这个落后的时间又是如何得来的呢？暂时 DBA 值班同学也没有很好的 GET 到头绪，DBA 老司机可能当时不是特别在状态，有点懵。</p>
+<p>刚好会议环节进入非重点环节，偷偷转移精力排查了一下，做为 DBA 门外汉，首先想到的是我要确认是不是 MySQL <code>show slave status</code> 里真的出现了随机的落后数值，所以我做了最原始的一件事情：写了一个 2 秒执行一次 <code>show slave status</code> 的脚本对 <code>Secons_Behind_Master</code> 进行检查，果然在脚本执行了几分钟后出现了非 0 的数值，且是一个较大的超出实际线上情况的数值。（这里已经确认了是 MySQL 本身会有这个情况出现）</p>
+<p>接下来怎么办呢？门外汉的第一反应当然是查手册啦（手册大多数时候都是解毒良药），几乎是没有耗费时间的，直接在 MySQL 官方<a href="https://dev.mysql.com/doc/refman/5.7/en/replication-administration-status.html">文档</a>里关于这个问题的非常重要的一句说明：</p>
+<div class="highlight"><pre><span></span><code><span class="nv">when</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">slave</span><span class="w"> </span><span class="nv">I</span><span class="o">/</span><span class="nv">O</span><span class="w"> </span><span class="nv">thread</span><span class="w"> </span><span class="nv">is</span><span class="w"> </span><span class="nv">still</span><span class="w"> </span><span class="nv">queuing</span><span class="w"> </span><span class="nv">up</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">new</span><span class="w"> </span><span class="nv">event</span>,<span class="w"></span>
+<span class="nv">Seconds_Behind_Master</span><span class="w"> </span><span class="nv">may</span><span class="w"> </span><span class="k">show</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">large</span><span class="w"> </span><span class="nv">value</span><span class="w"> </span><span class="k">until</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">SQL</span><span class="w"> </span><span class="nv">thread</span><span class="w"> </span>
+<span class="nv">finishes</span><span class="w"> </span><span class="nv">executing</span><span class="w"> </span><span class="nv">the</span><span class="w"> </span><span class="nv">new</span><span class="w"> </span><span class="nv">event</span>.<span class="w"></span>
+</code></pre></div>
+
+<p>MySQL Replication 通常情况下有两个工作线程，I/O 线程用于获取 MySQL Master 的 Binlog，SQL 线程用于将获取到的 Binlog Events 在 Slave 从库上进行回放。</p>
+<p><img alt="MySQL Replication示意图" src="/static/mysql_repl.png"></p>
+<p>上面的描述我们通过字面简单进行了理解：当 I/O 线程仍在排队等待一件新事件时，<code>Seconds_Behind_Master</code> 有可能返回一个较大的随机值，直到 SQL 线程完成该事件的重放。</p>
+<p>那么这里我们已经可以确认了，MySQL 是会出现这个情况的，并且是正常的，至少这个报警轰炸是不用特别担心了。那为什么忽然就炸出来了呢，在后面几分钟后我们得到了几个信息，确认了原因：</p>
+<ol>
+<li>该报警原先的设置是 X 时间内只发送第 N 条报警：X 时间内并不一定总会出现 &gt;= N 次的随机 <code>Seconds_Behind_Master</code> 飙升（并且被监控插件获取到）；即使出现 &gt;= N 次，在 X 时间内也只会发送一条报警，所以这个问题一直并没有被注意到；</li>
+<li>从报警平台的同事了解到，确实在维护过程中，报警策略匹配有问题，导致 <code>X 时间内只发送第 N 条</code> 这个策略没有生效，所有报警都发了出来；</li>
+<li>如前述，某同事确实做了策略变更，该变更可以明确是错的，但跟上述的轰炸没有正相关。</li>
+</ol>
+<p>这个时候我们整体的原因已经比较清楚了，恢复生效的策略，并同步通告相关产品具体的情况，让产品安心是我们服务的目标之一。</p>
+<p>但这里也暴露了几个问题：</p>
+<ol>
+<li>报警平台维护变更出现了一定的问题，导致策略失效；</li>
+<li>部分 DBA 同学在某些环节对系统的了解并不够完整、也不够专业（我们都需要不断学习积累的，我自己也是学习中，能理解）；</li>
+<li>DBA 同学在做策略变更的时候也没有在团队内部进行同步，存在管理和规范遵守上的问题；</li>
+</ol>
+<p>以上问题需要我们进行反思，并在团队内进行解决。但是 MySQL Seconds_Behind_Master 是否还有监控的价值呢？对可能导致 <code>Seconds_Behind_Master</code> 异常的情况这里做个简单的总结：</p>
+<ol>
+<li>Replication 启动时，Slave 会在主库执行 <code>SELECT UNIX_TIMESTAMP()</code> 并进行主库和从库的系统时间差值对比，以避免由于系统时间差异对于 <code>Seconds_Behind_Master</code> 的时间产生影响。但如果是 Replication 启动后的时间异常，还是会对 <code>Seconds_Behind_Master</code> 产生影响，因此确保系统时间的同步非常重要（ntpd）；</li>
+<li>当 Master 和 Slave 间的网络较差时，I/O 线程不能快速的获取 Binlog Events，SQL 线程处理速度是有可能超过 I/O 线程的，那么这个时候即使是 0，也不代表主从同步是正常的。（良好的网络环境是主从同步的基础保障）</li>
+<li>当 I/O 线程被关闭时，该值可能为 NULL。（可以理解为特殊情况）；</li>
+</ol>
+<h3>Seconds_Behind_Master 怎么用？</h3>
+<p>结合以上情况，我认为 <code>Seconds_Behind_Master</code> 还是一个很重要的同步是否落后的参考值的，只是可能我们可以做得更完善一些，比如在获取的时候，可以通过二次获取进行判断，当获取到较大值时，再次获取一次当前值进行确认。</p>
+<p>另外，如果需要较为严格的同步监控，建议通过 Binglog 的位置：</p>
+<ul>
+<li>Master_Log_file/Read_Master_Log_Pos</li>
+<li>Relay_Master_Log_File/Exec_Master_Log_Pos</li>
+</ul>
+<p>进行判断，如果(Relay_Master_Log_File, Exec_Master_Log_Pos) 和 (Relay_Master_Log_File, Read_Master_Log_Pos)位置相等且 Seconds_Behind_Master=0，那么我们可以认为目前的同步是「同步」的。（开启 gtid 的话，比对 <code>Executed_Gtid_Set</code> 我认为也是没有毛病的）</p>
+<h3>The End</h3>
+<p>后续相关技术内容的总结，也会逐步更新至微信平台（微信目前确实也是技术内容流转的一个好渠道），欢迎关注个人公众号（也算给自己立个 flag 吧，希望 flag 永不倒）：</p>
+<p><img alt="公众号二维码" src="/static/qrcode.jpg"></p>
+                    <h3><i class="fa fa-hand-o-right"></i> 您可能还喜欢以下文章</h3>
+                    </br>
+                    <ul>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html">记一次 TiDB 时区设置异常问题排查</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html">MongoDB 4.2 流控 FlowControl 机制走读</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html">TiDB DM 数据库同步 STEP BY STEP</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html">网易游戏 MySQL-MongoDB 运维及 DBA 招聘</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html">可能是全网最全的 ulimit 配置说明了</a></li>
+                    </ul>
+                <div class="panel-about row">
+                  <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
+                    <img src="/static/avatar.gif" class="img-circle">
+                  </div>
+                  <div class="panel-author-description col-md-7">
+                    <h4><i class="fa fa-user"></i> 关于我</h4>
+                    热爱开源、分享。目前主要从事混合云、数据库 SaaS 等运维开发及相关团队管理工作。</br>
+                    <br/>
+                    <a href="https://www.vultr.com/?ref=6820888" class="hidden-xs hidden-sm"><img src="https://www.vultr.com/media/banner_2.png" width="468" height="60"></a>
+                  </div>
+                  <div class="panel-author-description col-md-3 hidden-xs hidden-sm">
+                    <img src="/static/qrcode.jpg" width="160" height="160"></a>
+                  </div>
+                </div>
+            </div>
+            <!-- /.entry-content -->
+    <hr />
+    <section class="comments hidden-xs hidden-sm well well-sm" id="comments">
+        <h2>相关评论</h2>
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
+            var disqus_identifier = 'https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html';
+            var disqus_url = 'https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html';
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-md-3 col-lg-3 hidden-xs hidden-sm well well-sm" id="sidebar">
+<aside>
+    <section>
+        <ul class="list-group list-group-flush">
+            <!-- NOTIFICATION START -->
+            <div class="bs-callout bs-callout-info">
+              <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@<a href="http://www.zhihu.com" target="blank">知乎</a></p>
+              <p>系统最后一次生成时间：2023-09-05 14:01:43</p>
+            </div>
+            <!-- NOTIFICATION END -->
+            <!-- SOCIAL START -->
+            <!--
+                <li class="list-group-item">
+                <span class="span-group-item"><a href="http://weibo.com/stutiredboy"><i class="icon-weibo icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
+                </li>
+            -->
+            <!-- SOCIAL END -->
+            <!-- CONTACT START -->
+            <li class="list-group-item"><h4><i class="fa fa-weixin fa-lg"></i>微信公众号</h4></li>
+            <div class="text-center"><img src="/static/qrcode.jpg" alt="欢迎关注个人微信公众号" class="img-rounded wxqrcode"></div>
+            <!-- CONTACT END -->
+            <!-- TAGS CLOUD START -->
+            <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/tags.html"><h4><i class="fa fa-tags fa-lg"></i>Tags</h4></a></li>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/cgroups.html">cgroups</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/kernel.html">kernel</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ulimit.html">ulimit</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/grub.html">grub</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/vpn.html">vpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireguard.html">wireguard</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/flowcontrol.html">flowcontrol</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+            <!-- TAGS CLOUD END -->
+            <li class="list-group-item"><h4><i class="fa fa-comments fa-lg"></i>最新评论</h4></li>
+            <script type="text/javascript" src="https://stutiredboy.disqus.com/recent_comments_widget.js?num_items=6&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
+            <!-- Uncomment if you want to show Social
+                <li class="list-group-item"><h4><i class="icon-home icon-large"></i>Social</h4></li>
+                    <li class="list-group-item"><a href="http://weibo.com/stutiredboy"><i
+                            class="icon-weibo-sign icon-large"></i>weibo
+                    </a></li>
+                    <li class="list-group-item"><a href="https://www.facebook.com/stutiredboy"><i
+                            class="icon-facebook-sign icon-large"></i>facebook
+                    </a></li>
+                    <li class="list-group-item"><a href="https://twitter.com/stutiredboy"><i
+                            class="icon-twitter-sign icon-large"></i>twitter
+                    </a></li>
+                    <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
+                            class="icon-github-sign icon-large"></i>github
+                    </a></li>
+                    <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
+                            class="icon-rss-sign icon-large"></i>rss
+                    </a></li>
+            -->
+
+
+
+        </ul>
+    </section>
+</aside>
+</script>        </div>
+    </div>
+</div>
+
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="https://blog.chenxiaosheng.com/theme/js/respond.min.js"></script>
+<!-- Footer Start -->
+<footer class="footer">
+  <div class="container">
+    <p class="text-right visible-xs">&copy; 2022 ChenXiaosheng</p>
+    <p class="text-right hidden-xs">&copy; 2022 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://github.com">Github</a> - MarkDown 构建</p>
+    <p class="text-right hidden-xs">除非另有声明，本网站采用<a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh">署名-非商业性使用-禁止演绎 4.0 国际 (CC BY-NC-ND 4.0)</a>授权</p>
+  </div>
+</footer>
+<!-- Footer End -->
+</body>
+</html>

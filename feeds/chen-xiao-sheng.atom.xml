@@ -1,11 +1,675 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - 陈小生</title><link href="http://blog.chenxiaosheng.com/" rel="alternate"></link><link href="http://blog.chenxiaosheng.com/feeds/chen-xiao-sheng.atom.xml" rel="self"></link><id>http://blog.chenxiaosheng.com/</id><updated>2018-11-02T19:58:00+08:00</updated><entry><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link href="http://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html" rel="alternate"></link><published>2018-11-02T19:58:00+08:00</published><updated>2018-11-02T19:58:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-11-02:/posts/2018-11-02/capture-packet-from-ios-through-mac.html</id><summary type="html">&lt;ol&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>碎碎念 - 陈小生</title><link href="https://blog.chenxiaosheng.com/" rel="alternate"></link><link href="https://blog.chenxiaosheng.com/feeds/chen-xiao-sheng.atom.xml" rel="self"></link><id>https://blog.chenxiaosheng.com/</id><updated>2022-03-29T11:24:00+08:00</updated><entry><title>当 cgroups 碰上超线程</title><link href="https://blog.chenxiaosheng.com/posts/2022-03-29/cgroups-hyperthreading.html" rel="alternate"></link><published>2022-03-29T11:24:00+08:00</published><updated>2022-03-29T11:24:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2022-03-29:/posts/2022-03-29/cgroups-hyperthreading.html</id><summary type="html">&lt;p&gt;cgroups 是 Linux 内核提供的一种可以限制单个进程或者多个进程所使用资源的机制，可以对 cpu，内存等资源实现精细化的控制。当英特尔® 超线程技术处于激活状态时，CPU 会在每个物理内核上公开两个执行上下文。这意味着，一个物理内核现在就像两个“逻辑内核”一样。这个时候使用 cgroups 进行 cpu 资源隔离会出现什么情况呢？ &lt;/br&gt;&lt;center&gt;&lt;img alt="" src="/static/cpu_arch_ex2.png"&gt;&lt;/center&gt;&lt;/p&gt;</summary><content type="html">&lt;h2&gt;超线程&lt;/h2&gt;
+&lt;p&gt;当英特尔® 超线程技术处于激活状态时，CPU 会在每个物理内核上公开两个执行上下文。这意味着，一个物理内核现在就像两个“逻辑内核”一样。超线程技术就是利用特殊的硬件指令，把两个逻辑内核模拟成两个物理芯片，让单个处理器都能使用线程级并行计算，进而兼容多线程操作系统和软件，&lt;strong&gt;减少了 CPU 的闲置时间&lt;/strong&gt;，提高的 CPU 的运行效率。&lt;/p&gt;
+&lt;p&gt;虽然采用超线程技术能同时执行两个线程，但它并不象两个真正的 CPU 那样，每个 CPU 都具有独立的资源。当两个线程都同时需要某一个资源时，其中一个要暂时停止，并让出资源，直到这些资源闲置后才能继续。因此&lt;strong&gt;超线程的性能并不等于两颗 CPU 的性能&lt;/strong&gt;。根据 Intel 官方文档反馈，&lt;strong&gt;理论情况下在服务器应用程序中可提升 30% 的性能&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3&gt;怎么确认机器是否开启超线程&lt;/h3&gt;
+&lt;p&gt;通常情况下，我们只需要通过 &lt;code&gt;/proc/cpuinfo&lt;/code&gt; 即可确认机器是否开启超线程。当相同的 &lt;code&gt;physical id&lt;/code&gt; 和 &lt;code&gt;core id&lt;/code&gt; 出现两次时，即表示机器开启了超线程。&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;&lt;img alt="image-20210830174503295" src="/static/cpus_hyperthreading.png"&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;图 1. /proc/cpuinfo&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;以图 1 为例，在 &lt;code&gt;/proc/cpuinfo&lt;/code&gt; 中共可以找到 48 个 CPU，根据 &lt;code&gt;physical id&lt;/code&gt; 和 &lt;code&gt;core id&lt;/code&gt; 的组合，我们可以画出 CPU 架构图如下图 2。其中如 0-24/2-26/../23-47 表示相同 core id，启用了超线程后操作系统看到的逻辑 CPU 对。&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;&lt;img alt="image-20210830175849529" src="/static/cpu_arch.png"&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;图 2. 物理 CPU 与逻辑 CPU 关系&lt;/center&gt;&lt;/p&gt;
+&lt;h2&gt;CGROUPS&lt;/h2&gt;
+&lt;p&gt;cgroups 是 Linux 内核提供的一种可以限制单个进程或者多个进程所使用资源的机制，可以对 cpu，内存等资源实现精细化的控制，目前市面上相当流行的轻量级容器 Docker 就使用了 cgroups 提供的资源限制能力来完成 cpu，内存等部分的资源控制。&lt;/p&gt;
+&lt;p&gt;笔者目前主要的工作内容是为公司提供数据库私有云服务，为了有效充分的利用服务器资源，我们会利用 cgroups 对资源进行隔离，根据业务需求提供不等规模的机器资源。其中对 cpu 的隔离是通过 &lt;code&gt;cpuset.cpus&lt;/code&gt; 来进行的，通常情况下，我们会保留头部数个 cpu，如 CPU 0-CPU 5 做为系统保留 CPU。其它 CPU 则按顺序，如将 &lt;code&gt;6,7,8&lt;/code&gt;、&lt;code&gt;9,10,11,12，13，14&lt;/code&gt; 分配给两个不同的实例。&lt;/p&gt;
+&lt;p&gt;为了业务的可用性考虑，我们的 CPU 分配还是比较充份的，通常 50% 是我们的一个相对安全水位。&lt;strong&gt;所以大多数情况下，上面的按序分配并不会带来什么问题&lt;/strong&gt;。本文主要是探讨极端情况下上述 cpu 分配方式可能造成的问题。&lt;/p&gt;
+&lt;h3&gt;问题&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;由于共用了物理 CPU，容器之间可能存在 CPU 争抢：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;以数据库为例，明明 A 实例的负载并不高，但有时候会忽然「卡」那么一下或者刷个慢查询，但业务并没有发生变化，DBA 也无法追踪到不合理的 SQL 或索引缺失等情况&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;center&gt;&lt;img alt="image-20210901144651162" src="/static/cpu_arch_ex1.png"&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;图 3. 逻辑 CPU 分配案例一&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;以上图 3 为例，假设我们给 Container A 绑定了 2, 3, 4 共 3 个 CPU，给 Container B 绑定了 26, 27, 28 共三个 CPU，可以看到 2-26, 4-28, 3-27 分别共享了一个物理核心（core id 相同）。根据对超线程的理解：&lt;code&gt;当两个线程都同时需要某一个资源时，其中一个要暂时停止，并让出资源，直到这些资源闲置后才能继续&lt;/code&gt;，假设 Container A 的负载较高，则 Container B 是有可能受到影响并导致出现 cpu 等待的情况的，反映到业务，则是：&lt;strong&gt;不知道为什么抽风了&lt;/strong&gt;。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;高负载情况下，隔离资源的实际性能表示与标称值不符：&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;&lt;img alt="image-20210901150436639" src="/static/cpu_arch_ex2.png"&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;图 4. 逻辑 CPU 分配案例二&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;以上图 4 为例，假设 0, 1, 2, 45, 46, 47 为保留 CPU（不明确分配实际业务），其它 CPU 按顺序每 6 个一组分配至不同的业务容器，我们可以猜测分配到 21, 22, 23, 24, 25, 26 这 6 个 CPU 的容器会有较少的超线程资源争抢，预计会有更好的性能表现。&lt;/p&gt;
+&lt;p&gt;下图为某业务的实际测试图，在施加具备让容器满载压力情况下，&lt;strong&gt;具备较少超线程争抢的容器拥有较好的性能&lt;/strong&gt;。这在大多数情况下可能并不是好事：&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;&lt;img alt="image-20210901152629454" src="/static/cpu_load_bench_1.png"&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;图5. 某业务使用“图 4. 逻辑 CPU 分配案例二”压力测试情况&lt;/center&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;个别节点拥有较高性能可能造成业务上线压力评估的数据失真；&lt;/li&gt;
+&lt;li&gt;对于分布式场景，各节点的能力承载存在明显不一致可能造成分布式系统的降级甚至雪崩；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;上述两个问题本质是一样的，都是因为超线程的争取造成的压力不一致、资源抢占。虽然大多数情况下通过资源的预留减少了上述问题发生的概率，但当问题发生时，&lt;strong&gt;一线技术人员极难排查，只能以疑难问题或偶尔抽风等玄学又无奈的口径进行解释&lt;/strong&gt;。对技术人员的业务技能储备有非常高的要求，需要对硬件架构、操作系统、业务架构等多方面都有较清晰的了解。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;推荐分配方案&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;大多数情况下，如果可以预见系统不会出现满载（如达到 70% 或以上），或只有个别实例会出现满载的情况按系统内 CPU 顺序直接分配绑定并不会带来明显问题。这种方式不管是理解还是运维实现，都是最直接和可快速落地的。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;相关技术人员需了解此知识点，当出现资源抢占问题时可以有效进行分析排查。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;如果对于资源隔离、容器间相互影响有较高质量要求的情况下，建议 CPU 以偶数倍进行绑定，并确保同一个 core id 下的两个逻辑 CPU（超线程 HT）被分配绑定至同一个容器/实例。这种方案下，需要对 CPU 的分配进行合理编排调度。（下图以 4 个 CPU 为一组，确保每一个物理核心超线程后的两个逻辑 CPU 被分配至同一组）&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;&lt;img alt="image-20210901155115582" src="/static/cpu_arch_ex3.png"&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;图 6. 逻辑 CPU 分配案例三&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;&lt;img alt="image-20210901162859160" src="/static/cpu_load_bench_2.png"&gt;&lt;/center&gt;&lt;/p&gt;
+&lt;p&gt;&lt;center&gt;图7. 某业务使用“图 6. 逻辑 CPU 分配案例三”压例测试情况&lt;/center&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;对于 CPU 时间有更细粒度或更精准控制的场景可以考虑通过 CPU 时间分片进行限制，可参考 &lt;a href="https://www.kernel.org/doc/Documentation/scheduler/sched-bwc.txt"&gt;CFS Bandwidth Control&lt;/a&gt;，这里不展开讨论。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;参考文档&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;a href="https://www.intel.cn/content/www/cn/zh/gaming/resources/hyper-threading.html"&gt;什么是超线程&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://tech.meituan.com/2015/03/31/cgroups.html"&gt;Linux资源管理之cgroups简介&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="cgroups"></category></entry><entry><title>速率限制算法：固定窗口与滑动窗口</title><link href="https://blog.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html" rel="alternate"></link><published>2022-03-28T15:59:00+08:00</published><updated>2022-03-28T15:59:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2022-03-28:/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html</id><summary type="html">&lt;p&gt;在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况下，我们还需要对系统进行适度的降级，以确保系统的可用性。速率限制（rate limit）有助于自动化该过程（有时候也会称为流量控制）。&lt;/br&gt;&lt;img alt="image-20220328154213560" src="/static/sliding_window.png"&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况下，我们还需要对系统进行适度的降级，以确保系统的可用性。速率限制（rate limit）有助于自动化该过程（有时候也会称为流量控制）。&lt;/p&gt;
+&lt;p&gt;这里我们主要介绍固定窗口计数算法和滑动窗口计数算法。&lt;/p&gt;
+&lt;h2&gt;固定窗口 Fixed Window&lt;/h2&gt;
+&lt;p&gt;固定窗口算法比较好理解，大致的概念如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;时间被切分成固定大小的窗口，比如 60 秒或 5 分钟等；&lt;/li&gt;
+&lt;li&gt;每个时间窗口允许通过的请求阈值固定，假定为 N；&lt;/li&gt;
+&lt;li&gt;每一次请求进来，对当前时间窗口的计数器加 1， 假设为 n；&lt;/li&gt;
+&lt;li&gt;当当前时间窗口的请求计数超过阈值时（n&amp;gt;N），丢弃当前时间窗口进来的所有请求；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;整体的理解可以参考下述图例 1（固定时间窗口 1 秒，每秒钟允许通过 3 个请求）：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image-20220328142057442" src="/static/fixed_window.png"&gt;&lt;/p&gt;
+&lt;p style="text-align:center"&gt; 图 1. 固定窗口算法图例&lt;/p&gt;
+
+&lt;p&gt;看起来好像没有什么毛病，在允许的时间窗口内只允许通过预设的请求。为什么还会需要滑动窗口算法，我们看一下固定窗口算法的问题：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;以上图为例，假定  14:00:02 秒的 3 个请求是在后 500ms 到达，14:00:03 分的 3 个请求是在前 500ms 到达，实际上一秒内可能通过了超过预设的 3 个请求，系统被击穿（参考下图 2）；&lt;/li&gt;
+&lt;li&gt;如果这是一个高并发系统，那么有可能存在大量请求等待时间窗口重置的情况，还是以上图为例，一切换新的时间窗口，系统可能马上在短时间内被击穿不可用（踩踏）；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="图2" src="/static/fixed_window_cons.png"&gt;&lt;/p&gt;
+&lt;p style="text-align:center"&gt; 图 2. 固定窗口算法问题&lt;/p&gt;
+
+&lt;h2&gt;滑动窗口 Sliding Window&lt;/h2&gt;
+&lt;p&gt;为了解决固定窗口在时间窗口切换边界的流量尖峰问题，引入了滑动窗口计数算法。该算法在固定窗口的基础上，将固定窗口进行更细粒度的切分：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;将时间划分为多个固定区间，如 200ms；&lt;/li&gt;
+&lt;li&gt;在每个区间内每有一次请求则计数加 1，并维持固定的时间窗口，如固定时间窗口为 1 秒，则占用 5 个时间区间；&lt;/li&gt;
+&lt;li&gt;每经过一个区间的时间，抛弃最早的区间，并纳入最新的时间区间；&lt;/li&gt;
+&lt;li&gt;如果当前时间窗口的请求数量超过了预设限制，则本时间窗口内的后续请求都会被丢弃；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;基本算法通过下图 3 概要说明，可以直观发现滑动窗口计算方法可以有效避免窗口切换的边界流量尖峰及踩踏问题。并且在我们需要提高流控精度的时候，可以通过划分更细的时间区间来实现。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image-20220328154213560" src="/static/sliding_window.png"&gt;&lt;/p&gt;
+&lt;p style="text-align:center"&gt; 图 3. 滑动窗口算法图例&lt;/p&gt;
+
+&lt;p&gt;注：算法可以进一步简化，假设当前时间窗口已经过去 25%，目前的请求数为CurrentN，上一次时间窗口共接受 PreN 次请求（权重为 100%-25%=75%），如果 &lt;code&gt;(PreN * 0.75 + CurrentN) &amp;gt; 预设请求阈值&lt;/code&gt; 则丢弃本次请求，反之放行本次请求。&lt;/p&gt;
+&lt;h2&gt;参考文档&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;[How to Design a Scalable Rate Limiting Algorithm with Kong API&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="rate limit"></category></entry><entry><title>记一次 TiDB 时区设置异常问题排查</title><link href="https://blog.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html" rel="alternate"></link><published>2019-10-12T22:27:00+08:00</published><updated>2019-10-12T22:27:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2019-10-12:/posts/2019-10-12/tidb-time_zone-settings.html</id><summary type="html">&lt;p&gt;两个配置一模一样的 TiDB 集群，在执行 &lt;code&gt;SELECT NOW();&lt;/code&gt; 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。OS、TiDB 配置是统一管理的，究竟是什么原因导致的呢？&lt;/p&gt;</summary><content type="html">&lt;p&gt;收到同事的反馈，两个配置一模一样的 TiDB 集群，在执行 &lt;code&gt;SELECT NOW();&lt;/code&gt; 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="请在这里输入图片描述" src="/static/20191012150952.png"&gt;&lt;/p&gt;
+&lt;p&gt;由于我们的 OS、TiDB 配置是统一管理的，所以我并不怀疑是因为两个集群当前配置不一样导致的。第一反应肯定是因为在 TiDB 启动之前用了错误的时区（UTC），然后 TiDB 引用了错误的时区导致的这个时间问题。根据常规经验，重启一下 TiDB 进程问题应该能解决。&lt;/p&gt;
+&lt;p&gt;然而这一次失望了，重启 TiDB 之后，并没有发生什么变化。跟同事要了服务器信息，直接登录到机器上看一下吧。以下是整体的排查过程。&lt;/p&gt;
+&lt;h3&gt;先确认是不是，再查为什么&lt;/h3&gt;
+&lt;p&gt;首先还是确认是不是有这个问题（再研究为什么），根据&lt;a href="https://pingcap.com/docs-cn/v3.0/how-to/configure/time-zone/#%E6%97%B6%E5%8C%BA%E6%94%AF%E6%8C%81"&gt;官方文档&lt;/a&gt;，检查了 &lt;code&gt;time_zone&lt;/code&gt; 信息，并没有发现异常，有问题的集群和没问题的集群配置也是完全一样的。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c"&gt;mysql&lt;/span&gt;&lt;span class="nv"&gt;&amp;gt;&lt;/span&gt;&lt;span class="c"&gt; SELECT @@global&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;time_zone&lt;/span&gt;&lt;span class="nt"&gt;,&lt;/span&gt;&lt;span class="c"&gt; @@session&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;time_zone;&lt;/span&gt;
+&lt;span class="nb"&gt;+--------------------+---------------------+&lt;/span&gt;&lt;span class="c"&gt;&lt;/span&gt;
+&lt;span class="c"&gt;| @@global&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;time_zone | @@session&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;time_zone |&lt;/span&gt;
+&lt;span class="nb"&gt;+--------------------+---------------------+&lt;/span&gt;&lt;span class="c"&gt;&lt;/span&gt;
+&lt;span class="c"&gt;| SYSTEM             | SYSTEM              |&lt;/span&gt;
+&lt;span class="nb"&gt;+--------------------+---------------------+&lt;/span&gt;&lt;span class="c"&gt;&lt;/span&gt;
+&lt;span class="c"&gt;1 row in set (0&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;01 sec)&lt;/span&gt;
+
+&lt;span class="c"&gt;mysql&lt;/span&gt;&lt;span class="nv"&gt;&amp;gt;&lt;/span&gt;&lt;span class="c"&gt; SHOW GLOBAL VARIABLES LIKE &amp;#39;%time_zone&amp;#39;;&lt;/span&gt;
+&lt;span class="nb"&gt;+------------------+--------+&lt;/span&gt;&lt;span class="c"&gt;&lt;/span&gt;
+&lt;span class="c"&gt;| Variable_name    | Value  |&lt;/span&gt;
+&lt;span class="nb"&gt;+------------------+--------+&lt;/span&gt;&lt;span class="c"&gt;&lt;/span&gt;
+&lt;span class="c"&gt;| system_time_zone | CST    |&lt;/span&gt;
+&lt;span class="c"&gt;| time_zone        | SYSTEM |&lt;/span&gt;
+&lt;span class="nb"&gt;+------------------+--------+&lt;/span&gt;&lt;span class="c"&gt;&lt;/span&gt;
+&lt;span class="c"&gt;2 rows in set (0&lt;/span&gt;&lt;span class="nt"&gt;.&lt;/span&gt;&lt;span class="c"&gt;00 sec)&lt;/span&gt;
+
+&lt;span class="c"&gt;mysql&lt;/span&gt;&lt;span class="nv"&gt;&amp;gt;&lt;/span&gt;&lt;span class="c"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;虽然这里没有发现明显问题，但我们还是发现了一个疑点：我们的服务器，不可能会有 &lt;code&gt;CST&lt;/code&gt; 这个时区设置（我们用的是 HKT），但 &lt;code&gt;CST&lt;/code&gt; 这个很明显不是问题的原因。&lt;/p&gt;
+&lt;h3&gt;日志是一定要看的&lt;/h3&gt;
+&lt;p&gt;几乎可以这么说，日志就是为了排查问题而诞生的，任何不能马上判断的问题，都应该去翻一下日志，对服务的健康情况进行判断。因为是时区相关的问题，所以直接对 TiDB 的日志做了一个 &lt;code&gt;fgrep -i timezone tidb.log&lt;/code&gt; 的操作，没想到真的发现了错误日志，毫无波折，就是这么惊喜。（TiDB 日志打印出来是完整一行的，以下内容我稍微格式化了一下，转化为真正的换行）：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;019/10/09 16:21:42.111 +08:00&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;ERROR&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;time.go:81&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;&amp;quot;locate timezone files failed&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;[]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;stack=&amp;quot;github.com/pingcap/tidb/util/timeutil.InferSystemTZ&lt;/span&gt;
+&lt;span class="n"&gt;/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/util/timeutil/time.go:81&lt;/span&gt;
+&lt;span class="n"&gt;github.com/pingcap/tidb/session.writeSystemTZ&lt;/span&gt;
+&lt;span class="n"&gt;/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/bootstrap.go:786&lt;/span&gt;
+&lt;span class="n"&gt;github.com/pingcap/tidb/session.doDMLWorks&lt;/span&gt;
+&lt;span class="n"&gt;/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/bootstrap.go:935&lt;/span&gt;
+&lt;span class="n"&gt;github.com/pingcap/tidb/session.bootstrap&lt;/span&gt;
+&lt;span class="n"&gt;/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/bootstrap.go:290&lt;/span&gt;
+&lt;span class="n"&gt;github.com/pingcap/tidb/session.runInBootstrapSession&lt;/span&gt;
+&lt;span class="n"&gt;/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/session.go:1541&lt;/span&gt;
+&lt;span class="n"&gt;github.com/pingcap/tidb/session.BootstrapSession&lt;/span&gt;
+&lt;span class="n"&gt;/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/session.go:1460&lt;/span&gt;
+&lt;span class="n"&gt;main.createStoreAndDomain&lt;/span&gt;
+&lt;span class="n"&gt;/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/tidb-server/main.go:205&lt;/span&gt;
+&lt;span class="n"&gt;main.main&lt;/span&gt;
+&lt;span class="n"&gt;/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/tidb-server/main.go:171&lt;/span&gt;
+&lt;span class="n"&gt;runtime.main&lt;/span&gt;
+&lt;span class="n"&gt;/usr/local/go/src/runtime/proc.go:200&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;几乎可以直接肯定是因为这个报错导致的问题了，但还是需要靠撸代码来证明一下的。&lt;/p&gt;
+&lt;h3&gt;撸代码&lt;/h3&gt;
+&lt;p&gt;根据上述的错误日志，可以知道最终实际执行出错的函数在 &lt;code&gt;util/timeutil/time.go&lt;/code&gt; 的 &lt;code&gt;InferSystemTZ&lt;/code&gt; 函数里，我们来看下这个函数做了什么：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// InferSystemTZ reads system timezone from `TZ`, the path of the soft link of `/etc/localtime`. If both of them are failed, system timezone will be set to `UTC`.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;// It is exported because we need to use it during bootstap stage. And it should be only used at that stage.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;InferSystemTZ&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// consult $TZ to find the time zone to use.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// no $TZ means use the system default /etc/localtime.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// $TZ=&amp;quot;&amp;quot; means use UTC.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// $TZ=&amp;quot;foo&amp;quot; means use /usr/share/zoneinfo/foo.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;tz&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;ok&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;syscall&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Getenv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;TZ&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;switch&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;case&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;!&lt;/span&gt;&lt;span class="nx"&gt;ok&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;path&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err1&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;filepath&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;EvalSymlinks&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/etc/localtime&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err1&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="nx"&gt;name&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err2&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;inferTZNameFromFileName&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err2&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;name&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="nx"&gt;logutil&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Logger&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()).&lt;/span&gt;&lt;span class="nx"&gt;Error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;infer timezone failed&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;zap&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err2&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;logutil&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Logger&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()).&lt;/span&gt;&lt;span class="nx"&gt;Error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;locate timezone files failed&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;zap&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err1&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;case&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tz&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tz&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;UTC&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;source&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;range&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;zoneSources&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;os&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Stat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;source&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tz&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tz&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;UTC&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;可以看到，TiDB 设置时区的逻辑是首先获取操作系统的 TZ 变量，再从 &lt;code&gt;/etc/localtime&lt;/code&gt; 的实际软链地址提取，最后 fallback 为 UTC。这个逻辑还是与&lt;a href="https://pingcap.com/docs-cn/v3.0/how-to/configure/time-zone/#%E6%97%B6%E5%8C%BA%E6%94%AF%E6%8C%81"&gt;官方文档&lt;/a&gt;的描述一致的。但是我们的机器上肯定是有 &lt;code&gt;/etc/localtime&lt;/code&gt; 文件的，文件肯定也是正确的，为什么会失败呢？再来看一下上述代码里最终分析  &lt;code&gt;/etc/localtime&lt;/code&gt; 的函数 &lt;code&gt;inferTZNameFromFileName&lt;/code&gt; 都做了什么？&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// inferTZNameFromFileName gets IANA timezone name from zoneinfo path.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;// TODO: It will be refined later. This is just a quick fix.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;inferTZNameFromFileName&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;path&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;error&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// phase1 only support read /etc/localtime which is a softlink to zoneinfo file&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;substr&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;zoneinfo&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// macOs MoJave changes the sofe link of /etc/localtime from&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// &amp;quot;/var/db/timezone/tz/2018e.1.0/zoneinfo/Asia/Shanghai&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// to &amp;quot;/usr/share/zoneinfo.default/Asia/Shanghai&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;substrMojave&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;zoneinfo.default&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;idx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;strings&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Index&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;path&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;substrMojave&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;idx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;string&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;path&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;idx&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;substrMojave&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:]),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;idx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;strings&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Index&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;path&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;substr&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;idx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nb"&gt;string&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;path&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nx"&gt;idx&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;substr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:]),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;fmt&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Errorf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;path %s is not supported&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;path&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;代码的注释里明确写了&lt;strong&gt;只支持 /etc/localtime 为软链接&lt;/strong&gt;，代码的逻辑也是通过截取 &lt;code&gt;/etc/localtime&lt;/code&gt; 软链指向的具体文件路径来获得时区信息。看一下我们服务器上的这个文件：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ ls -alh /etc/localtime
+-rw-r--r-- &lt;span class="m"&gt;1&lt;/span&gt; root root &lt;span class="m"&gt;1&lt;/span&gt;.2K 10月 &lt;span class="m"&gt;12&lt;/span&gt; &lt;span class="m"&gt;10&lt;/span&gt;:11 /etc/localtime
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;果然是一个文件而不是一个软链接。这下又带来了两个疑问：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;如果我改成软链再重启 TiDB 能不能解决问题呢？实践证明，不能解决。这里不再赘述。&lt;/li&gt;
+&lt;li&gt;函数逻辑很明确是 fallback 了 UTC，根据 &lt;code&gt;SELECT NOW();&lt;/code&gt; 早了 8 小时也可以确认是 UTC，可为什么 &lt;code&gt;system_time_zone&lt;/code&gt; 是 CST 呢？&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h4&gt;看到的（CST）和实际的（UTC）不一样？&lt;/h4&gt;
+&lt;p&gt;TiDB 在拿不到正确的时区，回落至 UTC 时，最终 UTC 是怎么设置的呢？我们再来看一下上面的错误日志：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;github&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pingcap&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;tidb&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;session&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;writeSystemTZ&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;home&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;jenkins&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;workspace&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;release_tidb_3&lt;/span&gt;&lt;span class="mf"&gt;.0&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;go&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;src&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;github&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pingcap&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;tidb&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="k"&gt;session&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;bootstrap&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;go&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;786&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;在 &lt;code&gt;session/bootstrap.go&lt;/code&gt; 我们找到：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// writeSystemTZ writes system timezone info into mysql.tidb&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;writeSystemTZ&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;s&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;Session&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;sql&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;fmt&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Sprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;`INSERT HIGH_PRIORITY INTO %s.%s VALUES (&amp;quot;%s&amp;quot;, &amp;quot;%s&amp;quot;, &amp;quot;TiDB Global System Timezone.&amp;quot;) ON DUPLICATE KEY UPDATE VARIABLE_VALUE=&amp;quot;%s&amp;quot;`&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;SystemDB&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;mysql&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;TiDBTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tidbSystemTZ&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;timeutil&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;InferSystemTZ&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;timeutil&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;InferSystemTZ&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;mustExecute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;sql&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;TiDB 首次启动时，拿到时区信息后，将时区信息写到了 mysql.SystemDB.mysql.TiDBTable，也就是 mysql.tidb，其中 &lt;code&gt;VARIABLE_NAME&lt;/code&gt; 为 &lt;code&gt;tidbSystemTZ&lt;/code&gt;，也即 &lt;code&gt;system_tz&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// The variable name in mysql.tidb table and it will be used when we want to know&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// system timezone.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;tidbSystemTZ&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;system_tz&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;继续直接登录机器看一下这张参数的内容在两个集群中有什么不一样： &lt;/p&gt;
+&lt;p&gt;&lt;img alt="请在这里输入图片描述" src="/static/20191012164104.png"&gt;&lt;/p&gt;
+&lt;p&gt;可以看到，确实是设置了 UTC，那么也可以非常明确是由于这个值引起的了。经过测试，可以通过如下两种方式解决：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;更新 mysql.tidb 中 system_tz 为正确的时区，如我们这里为 HKT，并重启 tidb-server 进程后，问题可以得到解决。&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;根据&lt;a href="https://pingcap.com/docs-cn/v3.0/how-to/configure/time-zone/#%E6%97%B6%E5%8C%BA%E6%94%AF%E6%8C%81"&gt;官方文档&lt;/a&gt;设置 &lt;code&gt;time_zone&lt;/code&gt; 变量，问题可以得到解决。如果有需要，可以把 &lt;code&gt;system_tz&lt;/code&gt; 也修改了，tidb-server 不会自行进行调整：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="请在这里输入图片描述" src="/static/20191012165413.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;为什么&lt;/h3&gt;
+&lt;p&gt;到这里，我们可以很明确 TiDB 参数这里导致时间不对的情况了。但是还有几个疑问还没有得到解决：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;为什么同样的配置，有一个集群是正常的，一个集群又用了 UTC 呢？&lt;/p&gt;
+&lt;p&gt;这个情况主要是因为我们的机器有一个初始化的过程，在没有完成初始化的时候，&lt;code&gt;/etc/localtime&lt;/code&gt; 确实是一个软链接，并且指向了 &lt;code&gt;/usr/share/zoneinfo/Asia/Hong_Kong&lt;/code&gt;，当我们的 tidb-server 进程在这个文件被修改之前启动时，会使用正确的时区。但同时，我们在机器上部署了 puppet 进行统一的配置管理，puppet 会做一个类似 &lt;code&gt;cp /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime&lt;/code&gt; 的操作，将 &lt;code&gt;/etc/localtime&lt;/code&gt; 替换为一个文件，这个时候，tidb-server 无法正确分析时区信息，导致 fall back 至 UTC。简单示意如下：
+&lt;img alt="请在这里输入图片描述" src="/static/20191012172800.png"&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;为什么 &lt;code&gt;SELECT @@global.time_zone, @@session.time_zone;&lt;/code&gt; 看到的是 CST，但不管是我们的机器还是 TiDB 配置文件都没有引用 CST 这个时区，CST 从哪里来的？&lt;/p&gt;
+&lt;p&gt;属于 tidb-server 的默认行为，tidb-server 初次启动时，会默认设置为 CST。可以参考 &lt;code&gt;session/bootstrap.go&lt;/code&gt; 和 &lt;code&gt;sessionctx/variable/sysvar.go&lt;/code&gt; 这里不再展开。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;system_tz&lt;/code&gt;、&lt;code&gt;@@global.time_zone&lt;/code&gt;、&lt;code&gt;@@sessio.time_zone&lt;/code&gt; 的关系是什么？&lt;code&gt;system_tz&lt;/code&gt; 和 &lt;code&gt;time_zone&lt;/code&gt; 两者的生效逻辑是怎样的？&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;@@session.time_zone&lt;/code&gt; 在新建连接时，值主要依赖于 &lt;code&gt;@@global.time_zone&lt;/code&gt;，session 值等同于 global，默认都为 SYSTEM，即 &lt;code&gt;system_tz&lt;/code&gt; 值；&lt;/li&gt;
+&lt;li&gt;如果单独修改了 &lt;code&gt;@@session.time_zone&lt;/code&gt; ，则当前连接的 time_zone 以 session 设置为准；&lt;/li&gt;
+&lt;li&gt;tidb-server 在每次启动的时候会从 mysql.tidb 加载 &lt;code&gt;system_tz&lt;/code&gt; 值，并设置系统时区。这也是为什么我们在更新了 &lt;code&gt;system_tz&lt;/code&gt; 并重启 tidb-server 后，可以获取到正确时间的原因；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;tidb-server 启动时通过 mysql.tidb 设置系统时区的相关代码可以在 &lt;code&gt;session/session.go&lt;/code&gt; 找到：&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// loadSystemTZ loads systemTZ from mysql.tidb&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;loadSystemTZ&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;se&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;session&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;string&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;error&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;sql&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;`select variable_value from mysql.tidb where variable_name = &amp;#39;system_tz&amp;#39;`&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;rss&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;errLoad&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;se&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Execute&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;sql&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;errLoad&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;errLoad&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="c1"&gt;// the record of mysql.tidb under where condition: variable_name = &amp;quot;system_tz&amp;quot; should shall only be one.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;defer&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;rss&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="nx"&gt;Close&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="nx"&gt;logutil&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Logger&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()).&lt;/span&gt;&lt;span class="nx"&gt;Error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;close result set error&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;zap&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Error&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;}()&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nx"&gt;req&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;rss&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="nx"&gt;NewChunk&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;rss&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="nx"&gt;Next&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;req&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;req&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GetRow&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;).&lt;/span&gt;&lt;span class="nx"&gt;GetString&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="c1"&gt;// BootstrapSession runs the first time when the TiDB server start.&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;BootstrapSession&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;store&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;kv&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Storage&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="nx"&gt;domain&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Domain&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;error&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3&gt;小结&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;其实还蛮普通的一个问题，只是之前碰到比较多的情况是在环境初始化没完成时就启动服务，导致服务出现状况。这次 TiDB 这里刚好反过来，环境初始化未操作之前反而是正常的，初始化之后异常了；&lt;/li&gt;
+&lt;li&gt;问题的线索其实完完整整的保存在了日志中，流程是否有可以优化的空间有待考证商榷，但日志在排查问题的时候是一定要首先关注的；&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;/etc/localtime&lt;/code&gt; 直接使用文件不是一个合理的方式，TZ 环境变量的优先级也高于 &lt;code&gt;/etc/localtime&lt;/code&gt;。这个可以参考 &lt;a href="http://man7.org/linux/man-pages/man5/localtime.5.html"&gt;man 文档&lt;/a&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Because the timezone identifier is extracted from the symlink target 
+name of /etc/localtime, this file may not be a normal file or
+hardlink.&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="dm"></category><category term="mysql"></category><category term="tidb"></category><category term="pingcap"></category></entry><entry><title>TiDB DM 数据库同步 STEP BY STEP</title><link href="https://blog.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html" rel="alternate"></link><published>2019-09-29T13:08:00+08:00</published><updated>2019-09-29T13:08:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2019-09-29:/posts/2019-09-29/tidb-dm-syncer.html</id><summary type="html">&lt;p&gt;前段时间，看到了一篇关于数据库选型的文章（MongoDB/TiDB/CockroachDB），忍不住感慨了一句，TiDB 一看就是大户人家，什么工具都可以有，什么工 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;前段时间，看到了一篇关于数据库选型的文章（MongoDB/TiDB/CockroachDB），忍不住感慨了一句，TiDB 一看就是大户人家，什么工具都可以有，什么工具都迭代得特别快，没有钱没有人，难以想像如何才能驱动得了。TiDB/TiKV/PD/Mydumper/Loader/Syncer/Data Migration/TiDB Lighting/Pump/Drainer ... 光是弄清楚这些组件是用来做什么的，感觉都可以评个高工了 :-)&lt;/p&gt;
+&lt;p&gt;随着 DM 1.0 GA 的 release，我们也开始考虑将 syncer 迁移至 DM。主要原因还是 syncer 已经太久没有更新了，否则 syncer 这种简易几乎无须部署的工具还是比较对我个人的胃口的，官方很喜欢把工具集群化（可能听起来厉害一点），DM 也是，那就按着最小目标（syncer）折腾一下吧。&lt;/p&gt;
+&lt;p&gt;DM 的架构文档可以参考&lt;a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/overview/#dm-架构"&gt;官方&lt;/a&gt;，整个集群有三个角色 dmctl/dm-master/dm-worker。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;DM-master 负责管理和调度数据同步任务的各项操作。&lt;/li&gt;
+&lt;li&gt;DM-worker 负责执行具体的数据同步任务。&lt;/li&gt;
+&lt;li&gt;dmctl 是用来控制 DM 集群的命令行工具。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="Data Migration architecture" src="https://pingcap.com/images/docs-cn/dm-architecture.png"&gt;&lt;/p&gt;
+&lt;p&gt;官方也提供了基于 Ansible 的部署工具，如果你不是特别需要了解实际的部署过程，或者你的环境对 ansible 的亲和度比较好的话，可以参考&lt;a href="https://pingcap.com/docs-cn/v3.0/how-to/deploy/data-migration-with-ansible"&gt;使用 DM-Ansible 部署 DM 集群&lt;/a&gt;。在这篇文章里，我们还是希望对于 DM 的部署有一定的了解，另外我们的小目标是实现类似 syncer 功能，因此，让我们 step by step 人肉部署吧。（好吧，吐槽一下，其实本人是很反感什么都要 ansible 再包一层的，无法直接通过文档了解工作方式，还非得去读 ansible 的相关部署文件）。&lt;/p&gt;
+&lt;h2&gt;准备工作&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;确认工作目录，假定这里为 &lt;code&gt;/home/dm&lt;/code&gt;，并确保相关目录已经建立且具备读写权限：&lt;code&gt;mkdir -p /home/dm/log&lt;/code&gt;；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;确保机器上已经具备相应的命令行工具，如：tar、wget、rsync 或 cp 等；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;下载 DM 二进制文件：&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;wget http://download.pingcap.org/dm-latest-linux-amd64.tar.gz
+tar -zxvf dm-latest-linux-amd64.tar.gz
+rsync -avz dm-latest-linux-amd64/bin/ /home/dm/bin/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ol&gt;
+&lt;li&gt;机器列表，这里我们主要熟悉部署过程，且不需要分库分表合并等功能，只实现 syncer 流程，因此 master 和 worker 均只部署在同一台同器：&lt;/li&gt;
+&lt;/ol&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;角色&lt;/th&gt;
+&lt;th&gt;地址&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;DM-master&lt;/td&gt;
+&lt;td&gt;127.0.0.1:8261&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;DM-worker&lt;/td&gt;
+&lt;td&gt;127.0.0.1:8262&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;配置文件&lt;/h2&gt;
+&lt;h3&gt;dm-worker&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# DM-worker Configuration: worker.toml&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# MySQL Server ID, 注意不要和已有的 ID 冲突&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;server-id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;8262&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# 可以理解为 worker 的唯一标识&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;source-id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;worker-8262&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;worker-addr&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;127.0.0.1:8262&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# 支持源为 mysql 或 mariadb&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;flavor&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;mysql&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# 是否启用 GTID，开启前需要上游 MySQL 开启 GTID 功能&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;enable-gtid&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# MySQL Master/Slave 发生切换时，是否修复 gtid&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;auto-fix-gtid&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# 开始同步的位置，我这里使用 GTID，该值为 MySQL Master 上的 Executed_Gtid_Set 值&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# relay-binlog-name = &amp;quot;binlog.000140&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;relay-binlog-gtid&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# charset of DSN of source mysql/mariadb instance&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;charset&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# worker 元数据存储目录，需要提前创建好&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;meta-dir&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/home/dm/meta/worker-8262&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# relay log 的本地存储目录，需要提前创建好&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;relay-dir&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/home/dm/relay/worker-8262&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# 源数据库，一个 worker 只能对应一个 MySQL 源&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="k"&gt;[from]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;host&lt;/span&gt;&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;127.0.0.1&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;dm&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="c1"&gt;# 该密码为使用 dmctl -encrypt ${你的原始密码} 加密后的字符串&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;vUYLfdtQlHLF6Kr4IHg8NkDjiPtVig6p&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;3306&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="c1"&gt;# relay log purge strategy&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="k"&gt;[purge]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;interval&lt;/span&gt;&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;3600&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;expires&lt;/span&gt;&lt;span class="w"&gt;             &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;remain-space&lt;/span&gt;&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;15&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;配置不算特别复杂，需要留意的地方都在注释里进行说明了。其中 &lt;code&gt;source-id&lt;/code&gt; 请记下来，接着配置 dm-master 需要用到。&lt;/p&gt;
+&lt;p&gt;再次提醒，MySQL 的密码配置需要使用 dmctl 进行加密处理。&lt;/p&gt;
+&lt;h3&gt;dm-master&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# dm-master Configuration: master.toml&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;log-level&lt;/span&gt;&lt;span class="w"&gt;       &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;info&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;log-file&lt;/span&gt;&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/home/dm/log/dm-master.log&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;master-addr&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;127.0.0.1:8261&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="k"&gt;[[deploy]]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;source-id&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;worker-8262&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;dm-worker&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;127.0.0.1:8262&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;配置文件比较简单，基本上都不需要解释。其中 &lt;code&gt;[[deploy]]&lt;/code&gt; 对应一个 worker，可以有多个 &lt;code&gt;[[deploy]]&lt;/code&gt; 。目前了解到的，dm-worker 只能通过配置文件并重启 dm-master 进行加载，无法通过 dmctl 进行运行上填加。好在 dm-master 几乎随时都可以重启，所以也不是特别大的问题。&lt;/p&gt;
+&lt;h3&gt;dmctl&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# dmctl Configuration: ctl.toml&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;master-addr&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;127.0.0.1:8261&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;dmctl 的配置就相当简单了，只需要指定 dm-master 地址。而 dmctl 也是我们与 dm-master 打交道的最直接工作。&lt;/p&gt;
+&lt;h2&gt;集群启动&lt;/h2&gt;
+&lt;p&gt;经过上述的配置（是不是没有想像中复杂），我们已经可以开启集群了：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;启动 master: bin/dm-master -config master.toml&lt;/li&gt;
+&lt;li&gt;启动 worker: bin/dm-worker -config worker.toml&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;除了跟踪日志输出，确认进程是否正常启动。我们还可以借助 dmctl 来检查当前集群的情况，使用 &lt;code&gt;bin/dmctl -config ctl.toml&lt;/code&gt; 连接集群，并通过 &lt;code&gt;query-status&lt;/code&gt; 查询集群状态，返回如下（成功）：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;»&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;query&lt;/span&gt;&lt;span class="mi"&gt;-&lt;/span&gt;&lt;span class="err"&gt;s&lt;/span&gt;&lt;span class="kc"&gt;tatus&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;msg&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;workers&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;worker&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;127.0.0.1:8262&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;msg&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;no sub task started&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;subTaskStatus&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;relayStatus&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;masterBinlog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;(binlog.000172, 234)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;masterBinlogGtid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;relaySubDir&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee.000001&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;relayBinlog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;(, 4)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;relayBinlogGtid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;34204ac9-a157-11e9-bc03-c6e9019f8073:1-2,2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;relayCatchUpMaster&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;stage&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Running&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;sourceID&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;worker-8262&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="err"&gt;»&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;这个时候，系统还没有配置任何同步任务，所以也可以看到显示的是：&lt;code&gt;no sub task started&lt;/code&gt;。接下来，我们开始来配置一个最基础的同步任务。&lt;/p&gt;
+&lt;h2&gt;配置并应用同步任务&lt;/h2&gt;
+&lt;h3&gt;创建任务配置文件&lt;/h3&gt;
+&lt;p&gt;PingCAP 在任务配置这一块有比较完善的说明了&lt;a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/"&gt;DM 任务配置文件介绍&lt;/a&gt;。这里我们以将源库为 &lt;code&gt;abc&lt;/code&gt; 迁到目标库 &lt;code&gt;abc_dm&lt;/code&gt; 为例子做简单说明：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="err"&gt;---&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;task-mode&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;all&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;is-sharding&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;meta-schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;dm_meta&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;remove-meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;enable-heartbeat&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="n"&gt;target-database&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="n"&gt;host&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;192.168.143.41&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="n"&gt;port&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;3306&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="n"&gt;user&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;dm&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="n"&gt;password&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;vUYLfdtQlHLF6Kr4IHg8NkDjiPtVig6p&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="n"&gt;mysql-instances&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 源库及相关的同步规则配置&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="err"&gt;-&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;source-id&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;worker-8262&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="n"&gt;binlog-name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;binlog&lt;/span&gt;&lt;span class="mf"&gt;.000140&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="n"&gt;binlog-pos&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;141868&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;route-rules&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;user-route-rules-schema&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;black-white-list&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;instance&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="n"&gt;routes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="n"&gt;user-route-rules-schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;schema-pattern&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;abc&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;target-schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;abc_dm&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="n"&gt;black-white-list&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="n"&gt;instance&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;do-dbs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;abc&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;上面参数的说明都可以在官方文档找到，这里对几个重要的参数再做补充说明：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;参数&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;meta-schema&lt;/td&gt;
+&lt;td&gt;DM 会将该 task 对应的  meta 信息，如断点（checkpoint）存储至目标集存中的该数据库&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;remove-meta&lt;/td&gt;
+&lt;td&gt;通常我们希望在重启 worker/task 时可以从上次断点继续同步，需要设置为 false&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;password&lt;/td&gt;
+&lt;td&gt;需要使用 dmctl 加密&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;source-id&lt;/td&gt;
+&lt;td&gt;理解为相应 dm worker 的 source-id&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;routes&lt;/td&gt;
+&lt;td&gt;可以在这里配置数据库表的改名规则，具体参考&lt;a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/"&gt;官方文档&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;filters&lt;/td&gt;
+&lt;td&gt;这里没有用到，可以过滤相应的 binlog events，如 &lt;code&gt;drop table&lt;/code&gt; 操作，具体参考&lt;a href="https://pingcap.com/docs-cn/v3.0/reference/tools/data-migration/configure/task-configuration-file/"&gt;官方文档&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3&gt;应用并启动同步任务&lt;/h3&gt;
+&lt;p&gt;使用 &lt;code&gt;bin/dmctl -config ctl.toml&lt;/code&gt; 登录 dm master，并执行 &lt;code&gt;start-task test.yaml&lt;/code&gt; 即可，确认 &lt;code&gt;test.yaml&lt;/code&gt; 文件在当前目录下，成功的话将收到如下返回：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;msg&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;workers&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;worker&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;127.0.0.1:8262&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;msg&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;这个时候再执行 &lt;code&gt;query-status&lt;/code&gt; 可以看到相应的 dm worker 有了具体的 subTaskStatus 信息：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;subTaskStatus&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;test&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;stage&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Paused&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;unit&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Sync&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;result&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;isCanceled&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;errors&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;detail&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;null&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                    &lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;unresolvedDDLLockID&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                    &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;sync&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;totalEvents&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;totalTps&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;recentTps&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;masterBinlog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;(binlog.000176, 234)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;masterBinlogGtid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;2ea42e60-a157-11e9-8f2d-0ef02be0adee:1-3472558,34204ac9-a157-11e9-bc03-c6e9019f8073:1-2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;syncerBinlog&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;(, 4)&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;syncerBinlogGtid&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;blockingDDLs&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;unresolvedGroups&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;synced&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;                &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;这个时候我们通过 mysql 登录目标数据库，可以看到多了 &lt;code&gt;dm_meta&lt;/code&gt; 和 &lt;code&gt;abc_dm&lt;/code&gt; 两个数据库，其中 &lt;code&gt;dm_meta&lt;/code&gt; 里面有两张表：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;test_loader_checkpoint&lt;/code&gt; 其中 test 是任务的名称，这张表存储的是全量同步的 meta 信息；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;            id: worker-8262
+      filename: abc.t3.sql
+     cp_schema: abc
+      cp_table: t3
+        offset: 156
+       end_pos: 156
+   create_time: 2019-09-29 12:03:59
+   update_time: 2019-09-29 12:04:00
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;test_syncer_checkpint&lt;/code&gt; 其中 test 是任务的名称，这张表存储的是增量同步的 meta 信息；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;            id: worker-8262
+     cp_schema: abc
+      cp_table: xxy
+   binlog_name: binlog|000001.000176
+    binlog_pos: 538
+     is_global: 0
+   create_time: 2019-09-29 12:11:25
+   update_time: 2019-09-29 12:11:25
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2&gt;组件升级&lt;/h2&gt;
+&lt;h3&gt;dm-master&lt;/h3&gt;
+&lt;p&gt;dm-master 主要负责 dmctl 的通讯，维护任务及 Sharding DDL lock 信息，重启后会与 dm-worker 重启这些信息，所以除了影响 dmctl 短暂的使用，可以随时重启，升级也就比较简单了：下载新版本 -&amp;gt; 覆盖旧 binary -&amp;gt; 重启。&lt;/p&gt;
+&lt;h3&gt;dm-worker&lt;/h3&gt;
+&lt;p&gt;dm-worker 在本地维护了 meta 信息，在下游（目标）数据库维护了断点（checkpoint）信息，升级也是按：下载新版本 -&amp;gt; 覆盖旧 binary -&amp;gt; 重启即可。唯一需要注意的有：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;尽量避免在 sharding DDL 同步过程中重启 DM-worker。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;当然，本身对数据的敬畏之心，即使没有 sharding，也不推荐在 DDL 的过程中重启 dm-worker。&lt;/p&gt;
+&lt;h3&gt;dmctl&lt;/h3&gt;
+&lt;p&gt;命令行交互工具，直接升级即可：下载新版本 -&amp;gt; 覆盖旧 binary。&lt;/p&gt;
+&lt;h2&gt;问题处理&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;dm-worker 挂了，并且本地的 meta 信息都丢失了怎么办？&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;通常不需要担心，找回按原来的 worker.toml 再启动 worker 即可。其中配置文件中的 &lt;code&gt;relay-binlog-gtid&lt;/code&gt; 或 &lt;code&gt;relay-binlog-name&lt;/code&gt; 的位置信息可能在源数据库已经过期，可以从目标集群的 meta 库找回，或者直接从源数据库集群上使用一个相对靠前的位置信息替换即可。&lt;/p&gt;
+&lt;p&gt;确认新的 worker 已经启动后，再次通过 dmctl 执行 &lt;code&gt;start-task test.yaml&lt;/code&gt; 即可，task 的配置文件不需要修改，断点信息会从目标数据库中的 meta 库直接获取。&lt;/p&gt;
+&lt;h2&gt;总结&lt;/h2&gt;
+&lt;p&gt;官方的组件（概念）特别多，ansible 的包装让用户对相关组件的工作流程了解门槛大大提升。实际部署流程比想像中较为简单。从可靠性来看，还是比较推荐放弃 syncer（较长时间未更新了），并使用 dm 做为替代工具。&lt;/p&gt;</content><category term="misc"></category><category term="dm"></category><category term="mysql"></category><category term="tidb"></category><category term="syncer"></category><category term="pingcap"></category></entry><entry><title>MySQL Seconds_Behind_Master 忽大忽小？莫慌</title><link href="https://blog.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html" rel="alternate"></link><published>2019-09-07T22:33:00+08:00</published><updated>2019-09-07T22:33:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2019-09-07:/posts/2019-09-07/mysql-large-seconds_behind_master.html</id><summary type="html">&lt;p&gt;MySQL Slave Seconds_Behind_Master 是否可以直接做为数据复制是否延迟的衡量标准？在日常监控中是否有需要注意或特别避开的坑点？有没有更好的监控方式呢？&lt;/br&gt; &lt;img alt="MySQL Replication示意图" src="/static/mysql_repl.png"&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;本周在某次开会的时候，忽然收到了大量的 MySQL Seconds_Behind_Master 落后的报警轰炸（落后时间随机，几百到几万秒不等），但是当我们的值班 DBA 登录 MySQL 通过 &lt;code&gt;show slave status\G&lt;/code&gt; 查看时，发现都是 0，通常我们认为这个时候复制是正常的。那么是什么情况导致了报警的发生呢？&lt;/p&gt;
+&lt;p&gt;DBA 值班同学也比较没有头绪，我们首先做了以下几件事情：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;确认监控插件是否变更？收到的答复是没有；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;我们自己是否有变更？收到的答复是没有。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;事后打脸了，有一位同学做了报警策略的变更，从原 X 时间内只发送第 N 条报警修改成了 X 时间内只发送第 1 条报警。该策略的变更也会导致该报警的轰炸，但是他变更的时间是在报警轰炸之后，跟此次报警轰炸原因没有正相关；&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;登录多个实例确认都是误报后，先通告产品，明确是误报事件，让产品不用担心，等待 DBA 查明原因；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;接下来我们会议正常进行，由某位 DBA 同学对此问题进行持续跟进，这个时候了解到某报警系统正在维护，猜测与他们有关系。但是即使是与他们有关系，这个落后的时间又是如何得来的呢？暂时 DBA 值班同学也没有很好的 GET 到头绪，DBA 老司机可能当时不是特别在状态，有点懵。&lt;/p&gt;
+&lt;p&gt;刚好会议环节进入非重点环节，偷偷转移精力排查了一下，做为 DBA 门外汉，首先想到的是我要确认是不是 MySQL &lt;code&gt;show slave status&lt;/code&gt; 里真的出现了随机的落后数值，所以我做了最原始的一件事情：写了一个 2 秒执行一次 &lt;code&gt;show slave status&lt;/code&gt; 的脚本对 &lt;code&gt;Secons_Behind_Master&lt;/code&gt; 进行检查，果然在脚本执行了几分钟后出现了非 0 的数值，且是一个较大的超出实际线上情况的数值。（这里已经确认了是 MySQL 本身会有这个情况出现）&lt;/p&gt;
+&lt;p&gt;接下来怎么办呢？门外汉的第一反应当然是查手册啦（手册大多数时候都是解毒良药），几乎是没有耗费时间的，直接在 MySQL 官方&lt;a href="https://dev.mysql.com/doc/refman/5.7/en/replication-administration-status.html"&gt;文档&lt;/a&gt;里关于这个问题的非常重要的一句说明：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nv"&gt;when&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;the&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;slave&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;I&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="nv"&gt;O&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;thread&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;is&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;still&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;queuing&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;up&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;a&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;new&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;event&lt;/span&gt;,&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="nv"&gt;Seconds_Behind_Master&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;may&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;show&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;a&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;large&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;value&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;until&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;the&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;SQL&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;thread&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;
+&lt;span class="nv"&gt;finishes&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;executing&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;the&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;new&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;event&lt;/span&gt;.&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;MySQL Replication 通常情况下有两个工作线程，I/O 线程用于获取 MySQL Master 的 Binlog，SQL 线程用于将获取到的 Binlog Events 在 Slave 从库上进行回放。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="MySQL Replication示意图" src="/static/mysql_repl.png"&gt;&lt;/p&gt;
+&lt;p&gt;上面的描述我们通过字面简单进行了理解：当 I/O 线程仍在排队等待一件新事件时，&lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 有可能返回一个较大的随机值，直到 SQL 线程完成该事件的重放。&lt;/p&gt;
+&lt;p&gt;那么这里我们已经可以确认了，MySQL 是会出现这个情况的，并且是正常的，至少这个报警轰炸是不用特别担心了。那为什么忽然就炸出来了呢，在后面几分钟后我们得到了几个信息，确认了原因：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;该报警原先的设置是 X 时间内只发送第 N 条报警：X 时间内并不一定总会出现 &amp;gt;= N 次的随机 &lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 飙升（并且被监控插件获取到）；即使出现 &amp;gt;= N 次，在 X 时间内也只会发送一条报警，所以这个问题一直并没有被注意到；&lt;/li&gt;
+&lt;li&gt;从报警平台的同事了解到，确实在维护过程中，报警策略匹配有问题，导致 &lt;code&gt;X 时间内只发送第 N 条&lt;/code&gt; 这个策略没有生效，所有报警都发了出来；&lt;/li&gt;
+&lt;li&gt;如前述，某同事确实做了策略变更，该变更可以明确是错的，但跟上述的轰炸没有正相关。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;这个时候我们整体的原因已经比较清楚了，恢复生效的策略，并同步通告相关产品具体的情况，让产品安心是我们服务的目标之一。&lt;/p&gt;
+&lt;p&gt;但这里也暴露了几个问题：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;报警平台维护变更出现了一定的问题，导致策略失效；&lt;/li&gt;
+&lt;li&gt;部分 DBA 同学在某些环节对系统的了解并不够完整、也不够专业（我们都需要不断学习积累的，我自己也是学习中，能理解）；&lt;/li&gt;
+&lt;li&gt;DBA 同学在做策略变更的时候也没有在团队内部进行同步，存在管理和规范遵守上的问题；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;以上问题需要我们进行反思，并在团队内进行解决。但是 MySQL Seconds_Behind_Master 是否还有监控的价值呢？对可能导致 &lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 异常的情况这里做个简单的总结：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Replication 启动时，Slave 会在主库执行 &lt;code&gt;SELECT UNIX_TIMESTAMP()&lt;/code&gt; 并进行主库和从库的系统时间差值对比，以避免由于系统时间差异对于 &lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 的时间产生影响。但如果是 Replication 启动后的时间异常，还是会对 &lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 产生影响，因此确保系统时间的同步非常重要（ntpd）；&lt;/li&gt;
+&lt;li&gt;当 Master 和 Slave 间的网络较差时，I/O 线程不能快速的获取 Binlog Events，SQL 线程处理速度是有可能超过 I/O 线程的，那么这个时候即使是 0，也不代表主从同步是正常的。（良好的网络环境是主从同步的基础保障）&lt;/li&gt;
+&lt;li&gt;当 I/O 线程被关闭时，该值可能为 NULL。（可以理解为特殊情况）；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;Seconds_Behind_Master 怎么用？&lt;/h3&gt;
+&lt;p&gt;结合以上情况，我认为 &lt;code&gt;Seconds_Behind_Master&lt;/code&gt; 还是一个很重要的同步是否落后的参考值的，只是可能我们可以做得更完善一些，比如在获取的时候，可以通过二次获取进行判断，当获取到较大值时，再次获取一次当前值进行确认。&lt;/p&gt;
+&lt;p&gt;另外，如果需要较为严格的同步监控，建议通过 Binglog 的位置：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Master_Log_file/Read_Master_Log_Pos&lt;/li&gt;
+&lt;li&gt;Relay_Master_Log_File/Exec_Master_Log_Pos&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;进行判断，如果(Relay_Master_Log_File, Exec_Master_Log_Pos) 和 (Relay_Master_Log_File, Read_Master_Log_Pos)位置相等且 Seconds_Behind_Master=0，那么我们可以认为目前的同步是「同步」的。（开启 gtid 的话，比对 &lt;code&gt;Executed_Gtid_Set&lt;/code&gt; 我认为也是没有毛病的）&lt;/p&gt;
+&lt;h3&gt;The End&lt;/h3&gt;
+&lt;p&gt;后续相关技术内容的总结，也会逐步更新至微信平台（微信目前确实也是技术内容流转的一个好渠道），欢迎关注个人公众号（也算给自己立个 flag 吧，希望 flag 永不倒）：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="公众号二维码" src="/static/qrcode.jpg"&gt;&lt;/p&gt;</content><category term="misc"></category><category term="mysql"></category><category term="replication"></category></entry><entry><title>在 Mac 中对 iPhone 手机网络进行抓包的方法</title><link href="https://blog.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html" rel="alternate"></link><published>2018-11-02T19:58:00+08:00</published><updated>2018-11-02T19:58:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-11-02:/posts/2018-11-02/capture-packet-from-ios-through-mac.html</id><summary type="html">&lt;ol&gt;
 &lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
-&lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
+&lt;img alt="iphone uuid" src="/static/iphone_uuid.png"&gt;&lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网 …&lt;/p&gt;&lt;/li&gt;&lt;/ol&gt;</summary><content type="html">&lt;ol&gt;
 &lt;li&gt;通过数据线连接 Mac 笔记本，并通过 itunes 查询手机的 UUID
-&lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_uuid.png"&gt;&lt;/li&gt;
+&lt;img alt="iphone uuid" src="/static/iphone_uuid.png"&gt;&lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;Mac 提供了一个工具 rvictl （rvi=Remote Virtual Interface）可以为连上的 iphone 手机创建一个虚拟网络设备，不管手机用的是移动网络还是 WIFI，均可以通过该设备进行抓包。启动虚拟设备的命令如下：&lt;/p&gt;
 &lt;blockquote&gt;
@@ -33,7 +697,7 @@
 &lt;/ol&gt;
 &lt;h4&gt;怎么通过 iTunes 往手机上安装 ipa 包？&lt;/h4&gt;
 &lt;p&gt;旧版本的 iTunes，在设备信息里有个「应用」入口，并可以在这里安装 ipa 文件。这次顺便发现 iTunes 没有了这个入口，刚拿到 ipa 包时，有点不知道怎么办。原来，只要将将文件拖到 iTunes 对应的设备里，就会自动安装了。（拖到下面截图红色框框部份）&lt;/p&gt;
-&lt;p&gt;&lt;img alt="" src="http://blog.chenxiaosheng.com/static/iphone_drop.png"&gt;&lt;/p&gt;</content><category term="misc"></category><category term="tcpdump"></category><category term="wireshark"></category><category term="ios"></category><category term="mac"></category></entry><entry><title>一次「安全」的变更将 redis cluster 送进了孤岛</title><link href="http://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html" rel="alternate"></link><published>2018-07-16T00:51:00+08:00</published><updated>2018-07-16T00:51:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-07-16:/posts/2018-07-16/redis-cluster-bind-bug.html</id><summary type="html">&lt;p&gt;一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</summary><content type="html">&lt;p&gt;鉴于 redis 没有有效的鉴权方法（特别是 redis cluster），为了防止人为疏忽导致系统防火墙未被有效开启，我们决定对线上的 redis 增加显示监听内网 IP 配置：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="iphone drop" src="/static/iphone_drop.png"&gt;&lt;/p&gt;</content><category term="misc"></category><category term="tcpdump"></category><category term="wireshark"></category><category term="ios"></category><category term="mac"></category></entry><entry><title>一次「安全」的变更将 redis cluster 送进了孤岛</title><link href="https://blog.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html" rel="alternate"></link><published>2018-07-16T00:51:00+08:00</published><updated>2018-07-16T00:51:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-07-16:/posts/2018-07-16/redis-cluster-bind-bug.html</id><summary type="html">&lt;p&gt;一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</summary><content type="html">&lt;p&gt;鉴于 redis 没有有效的鉴权方法（特别是 redis cluster），为了防止人为疏忽导致系统防火墙未被有效开启，我们决定对线上的 redis 增加显示监听内网 IP 配置：&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;bind 127.0.0.1 ${本机内网 IP}&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -173,7 +837,7 @@
 &lt;li&gt;当 redis cluster 初始化时，可以使用初始化时指定的节点 IP 做为源地址；&lt;/li&gt;
 &lt;li&gt;redis 在 anet.c 文件里，其实还提供了 &lt;code&gt;anetTcpNonBlockBestEffortBindConnect&lt;/code&gt; 函数，这个函数如果通过绑定源地址建立 socket 链接失败后，会再次尝试由系统分配源地址的方式（不绑定），健康检查函数换成这个也不失为一个好办法；&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;最（chao）后（xi）：对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</content><category term="misc"></category><category term="redis"></category></entry><entry><title>MongoDB 随机查询获取一条或 N 条记录的方法</title><link href="http://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html" rel="alternate"></link><published>2018-05-24T12:14:13+08:00</published><updated>2018-05-24T12:14:13+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-05-24:/posts/2018-05-24/mongodb-random-query.html</id><summary type="html">&lt;p&gt;MySQL 可以通过 &lt;code&gt;rand()&lt;/code&gt; 配合 &lt;code&gt;limit&lt;/code&gt; 获取随机的 N 条记录，那么在 MongoDB 上我们又该如何操作呢？&lt;/p&gt;</summary><content type="html">&lt;p&gt;熟悉 MySQL 的同学应该都知道可以通过类似如下语句简单的获取一张表里随机的 N 条记录：&lt;/p&gt;
+&lt;p&gt;最（chao）后（xi）：对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。&lt;/p&gt;</content><category term="misc"></category><category term="redis"></category></entry><entry><title>MongoDB 随机查询获取一条或 N 条记录的方法</title><link href="https://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html" rel="alternate"></link><published>2018-05-24T12:14:13+08:00</published><updated>2018-05-24T12:14:13+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2018-05-24:/posts/2018-05-24/mongodb-random-query.html</id><summary type="html">&lt;p&gt;MySQL 可以通过 &lt;code&gt;rand()&lt;/code&gt; 配合 &lt;code&gt;limit&lt;/code&gt; 获取随机的 N 条记录，那么在 MongoDB 上我们又该如何操作呢？&lt;/p&gt;</summary><content type="html">&lt;p&gt;熟悉 MySQL 的同学应该都知道可以通过类似如下语句简单的获取一张表里随机的 N 条记录：&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;SELECT * FROM table ORDER BY RAND() LIMIT N;&lt;/p&gt;
 &lt;/blockquote&gt;
@@ -220,12 +884,12 @@
 &lt;ol&gt;
 &lt;li&gt;https://docs.mongodb.com/manual/reference/operator/aggregation/sample/&lt;/li&gt;
 &lt;li&gt;https://jira.mongodb.org/browse/SERVER-533&lt;/li&gt;
-&lt;/ol&gt;</content><category term="misc"></category><category term="mongodb"></category></entry><entry><title>LXC 如何找出容器对应的 veth 设备</title><link href="http://blog.chenxiaosheng.com/posts/2017-03-29/lxc-veth-pairs.html" rel="alternate"></link><published>2017-03-29T11:42:00+08:00</published><updated>2017-03-29T11:42:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2017-03-29:/posts/2017-03-29/lxc-veth-pairs.html</id><summary type="html">&lt;p&gt;LXC 使用 veth 模式时，如果宿主机上创建了很多容器，那么宿主上将存在大量的 vethXXXX 设备，肉眼难以直接确认每个虚拟容器使用的是哪个 veth 设备。&lt;/p&gt;</summary><content type="html">&lt;p&gt;LXC 使用 veth 模式时，如果宿主机上创建了很多容器，那么宿主上将存在大量的 vethXXXX 设备，肉眼难以直接确认每个虚拟容器使用的是哪个 veth 设备。&lt;/p&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="mongodb"></category></entry><entry><title>LXC 如何找出容器对应的 veth 设备</title><link href="https://blog.chenxiaosheng.com/posts/2017-03-29/lxc-veth-pairs.html" rel="alternate"></link><published>2017-03-29T11:42:00+08:00</published><updated>2017-03-29T11:42:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2017-03-29:/posts/2017-03-29/lxc-veth-pairs.html</id><summary type="html">&lt;p&gt;LXC 使用 veth 模式时，如果宿主机上创建了很多容器，那么宿主上将存在大量的 vethXXXX 设备，肉眼难以直接确认每个虚拟容器使用的是哪个 veth 设备。&lt;/p&gt;</summary><content type="html">&lt;p&gt;LXC 使用 veth 模式时，如果宿主机上创建了很多容器，那么宿主上将存在大量的 vethXXXX 设备，肉眼难以直接确认每个虚拟容器使用的是哪个 veth 设备。&lt;/p&gt;
 &lt;p&gt;在我的记忆中，方法比较复杂，且之前忘了记录下来，已经遗忘。今天重新尝试使用另一方法获取匹配信息，这里做下记录：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;虚拟机（容器）执行 &lt;code&gt;ethtool -S eth0&lt;/code&gt; 拿到如 &lt;code&gt;peer_ifindex: 16&lt;/code&gt;，其中 &lt;code&gt;eth0&lt;/code&gt; 为在虚拟机（容器）内对应的设备名称；&lt;/li&gt;
 &lt;li&gt;宿主机执行：&lt;code&gt;ip link show | grep '^16:'&lt;/code&gt;，其中 &lt;code&gt;16&lt;/code&gt; 为第一步拿到的 &lt;code&gt;peer_ifindex&lt;/code&gt;，通过该命令拿到的 vethXXXX 即为虚拟机（容器）使用的设备。&lt;/li&gt;
-&lt;/ol&gt;</content><category term="misc"></category><category term="lxc"></category></entry><entry><title>记一次 Apache 性能调优</title><link href="http://blog.chenxiaosheng.com/posts/2017-03-23/apache-performance-tuning.html" rel="alternate"></link><published>2017-03-23T09:44:00+08:00</published><updated>2017-03-23T09:44:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2017-03-23:/posts/2017-03-23/apache-performance-tuning.html</id><summary type="html">&lt;p&gt;每一次神优化背后都有一个很烧饼的设置（bug），刷一次负载下降 70%+ 的小目标。&lt;/br&gt;&lt;img src="/static/apache_load.png"&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;手上有一组 web 服务，使用 apache 对外提供服务，其中apache 使用 worker 模式，这堆 web 服务器有以下一堆毛病：&lt;/p&gt;
+&lt;/ol&gt;</content><category term="misc"></category><category term="lxc"></category></entry><entry><title>记一次 Apache 性能调优</title><link href="https://blog.chenxiaosheng.com/posts/2017-03-23/apache-performance-tuning.html" rel="alternate"></link><published>2017-03-23T09:44:00+08:00</published><updated>2017-03-23T09:44:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2017-03-23:/posts/2017-03-23/apache-performance-tuning.html</id><summary type="html">&lt;p&gt;每一次神优化背后都有一个很烧饼的设置（bug），刷一次负载下降 70%+ 的小目标。&lt;/br&gt;&lt;img src="/static/apache_load.png"&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;手上有一组 web 服务，使用 apache 对外提供服务，其中apache 使用 worker 模式，这堆 web 服务器有以下一堆毛病：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;apache 长期占用大量 CPU，负载长期居高不下。&lt;/li&gt;
 &lt;li&gt;每天 rotate log 的指令不能被 apache 处理，通过 lsof 可以看到被删除的日志文件没有正确关闭。&lt;/li&gt;
@@ -264,7 +928,7 @@
 &lt;p&gt;优化前：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/apache_before_tuning.png"&gt;&lt;/p&gt;
 &lt;p&gt;优化后：&lt;/p&gt;
-&lt;p&gt;&lt;img src="/static/apache_after_tuning.png"&gt;&lt;/p&gt;</content><category term="misc"></category><category term="apache"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="http://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><updated>2014-07-07T20:21:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/apache_after_tuning.png"&gt;&lt;/p&gt;</content><category term="misc"></category><category term="apache"></category></entry><entry><title>查询 dns server 使用的bind版本</title><link href="https://blog.chenxiaosheng.com/posts/2014-07-07/query-remote-bind-version.html" rel="alternate"></link><published>2014-07-07T20:21:00+08:00</published><updated>2014-07-07T20:21:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2014-07-07:/posts/2014-07-07/query-remote-bind-version.html</id><summary type="html">&lt;p&gt;其实命令很简单，但我发现我老记不住，所以做个记录吧（我总是把version.bind记成bind.version，orz）&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt; dig @&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;server&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt; TXT CHAOS version.bind
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
@@ -284,7 +948,7 @@
 }
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</content><category term="misc"></category><category term="bind"></category><category term="dns"></category><category term="dig"></category><category term="named"></category></entry><entry><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link href="http://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html" rel="alternate"></link><published>2014-05-09T13:31:00+08:00</published><updated>2014-05-09T13:31:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</id><summary type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
+&lt;p&gt;或者你可以将此值设置为某个固定字符串，如 "someone like you"&lt;/p&gt;</content><category term="misc"></category><category term="bind"></category><category term="dns"></category><category term="dig"></category><category term="named"></category></entry><entry><title>crontab 同时显式指定day of month和day of week的特殊说明</title><link href="https://blog.chenxiaosheng.com/posts/2014-05-09/cron-day-weekday-restricted.html" rel="alternate"></link><published>2014-05-09T13:31:00+08:00</published><updated>2014-05-09T13:31:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2014-05-09:/posts/2014-05-09/cron-day-weekday-restricted.html</id><summary type="html">&lt;p&gt;man 5 crontab:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;           field         allowed values
            -----         --------------
            minute        0-59
@@ -322,7 +986,7 @@ at 4:30 am on the 1st and 15th of each month, plus every Fri-day.&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;3月里的每一个周三&lt;/li&gt;
 &lt;li&gt;3月27日&lt;/li&gt;
-&lt;/ol&gt;</content><category term="misc"></category><category term="crontab"></category></entry><entry><title>Java 发起Http Post请求</title><link href="http://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html" rel="alternate"></link><published>2014-02-19T17:16:00+08:00</published><updated>2014-02-19T17:16:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2014-02-19:/posts/2014-02-19/java-ssl-and-http_post.html</id><summary type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
+&lt;/ol&gt;</content><category term="misc"></category><category term="crontab"></category></entry><entry><title>Java 发起Http Post请求</title><link href="https://blog.chenxiaosheng.com/posts/2014-02-19/java-ssl-and-http_post.html" rel="alternate"></link><published>2014-02-19T17:16:00+08:00</published><updated>2014-02-19T17:16:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2014-02-19:/posts/2014-02-19/java-ssl-and-http_post.html</id><summary type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;对于一个 Java 小白，每完成一个新的功能，都表示相当不易，就连 Apache HttpClient 偶都表示没搞明白，
 看起来好像不同版本还有不同的方法，没办法，还是借助于 Google，拼凑出了这一段代码，记录以备自己后用。&lt;/p&gt;
 &lt;p&gt;功能：使用 http post 方式访问某使用了 CNNIC 证书的站点（cnnic，唉，好多不信任）&lt;/p&gt;
@@ -471,7 +1135,7 @@ at 4:30 am on the 1st and 15th of each month, plus every Fri-day.&lt;/p&gt;
 &lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
 &lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="java"></category><category term="ssl"></category><category term="http"></category><category term="post"></category></entry><entry><title>Java 使用自签证书访问https站点</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html" rel="alternate"></link><published>2013-12-26T10:18:00+08:00</published><updated>2013-12-26T10:18:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-12-26:/posts/2013-12-26/java-use-self_signed_certificate.html</id><summary type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="java"></category><category term="ssl"></category><category term="http"></category><category term="post"></category></entry><entry><title>Java 使用自签证书访问https站点</title><link href="https://blog.chenxiaosheng.com/posts/2013-12-26/java-use-self_signed_certificate.html" rel="alternate"></link><published>2013-12-26T10:18:00+08:00</published><updated>2013-12-26T10:18:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-12-26:/posts/2013-12-26/java-use-self_signed_certificate.html</id><summary type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
 我也忍不住想感慨一下，不同 Java 程序员的水平差 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;最近被 Java 使用自签证书访问 https 的问题折腾得体无完肤，做为一名 Java 小白，
 我也忍不住想感慨一下，不同 Java 程序员的水平差别真的好大，有些根本无法沟通，
 都不知道他们怎么胜任日常的编码工作的=,=
@@ -553,7 +1217,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 &lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
 &lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
 &lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="java"></category><category term="ssl"></category></entry><entry><title>OpenID4Java 使用dumb模式（stateless）并禁用 discovery</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html" rel="alternate"></link><published>2013-12-25T12:20:00+08:00</published><updated>2013-12-25T12:20:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-12-25:/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html</id><summary type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="java"></category><category term="ssl"></category></entry><entry><title>OpenID4Java 使用dumb模式（stateless）并禁用 discovery</title><link href="https://blog.chenxiaosheng.com/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html" rel="alternate"></link><published>2013-12-25T12:20:00+08:00</published><updated>2013-12-25T12:20:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-12-25:/posts/2013-12-25/openid4java-dumb_mode-and-disable_discovery.html</id><summary type="html">&lt;p&gt;使用无状态模式（dumb mode/stateless）发起 OpenID 认证请求：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;ConsumerManager&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
 &lt;span class="n"&gt;manager&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="na"&gt;getRealmVerifier&lt;/span&gt;&lt;span class="p"&gt;().&lt;/span&gt;&lt;span class="na"&gt;setEnforceRpId&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
 &lt;span class="c1"&gt;// 强制manager使用无状态模式&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
@@ -576,7 +1240,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 &lt;span class="c1"&gt;// 使用人肉构造discoveries&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
 &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;discoveries&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;ArrayList&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
 &lt;span class="n"&gt;discoveries&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="na"&gt;add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;DiscoveryInformation&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;URL&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http//real.openid.server.url&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="openid"></category><category term="java"></category></entry><entry><title>ssh client 通过 socks5 proxy 登录远程服务器</title><link href="http://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html" rel="alternate"></link><published>2013-12-20T12:20:00+08:00</published><updated>2013-12-20T12:20:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-12-20:/posts/2013-12-20/ssh-through-socks-proxy.html</id><summary type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="openid"></category><category term="java"></category></entry><entry><title>ssh client 通过 socks5 proxy 登录远程服务器</title><link href="https://blog.chenxiaosheng.com/posts/2013-12-20/ssh-through-socks-proxy.html" rel="alternate"></link><published>2013-12-20T12:20:00+08:00</published><updated>2013-12-20T12:20:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-12-20:/posts/2013-12-20/ssh-through-socks-proxy.html</id><summary type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
 发现从岛国过去的速度相当快，但因为岛国的服务 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;今天某同学需要登录某国家服务器（A），但从我朝过去网络延时非常大
 发现从岛国过去的速度相当快，但因为岛国的服务器（B）不适合加该同学的帐号
 因此做了一个 socks5 proxy ，然后本地 ssh client 通过该 proxy 登录A服务器&lt;/p&gt;
@@ -594,7 +1258,7 @@ Java 可以读取的证书格式，命令同方法一，只是 keystore 的位�
 
 &lt;p&gt;非OpenBSD 可能报如下错误：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;/bin/nc: invalid option -- &amp;#39;x&amp;#39;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="ssh"></category><category term="proxy"></category></entry><entry><title>sshd无法使用secureFX传输文件</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><published>2013-09-24T15:58:00+08:00</published><updated>2013-09-24T15:58:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:/posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"></category><category term="ssh"></category><category term="proxy"></category></entry><entry><title>sshd无法使用secureFX传输文件</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-24/sshd-sftp-securefx.html" rel="alternate"></link><published>2013-09-24T15:58:00+08:00</published><updated>2013-09-24T15:58:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-09-24:/posts/2013-09-24/sshd-sftp-securefx.html</id><summary type="html">&lt;p&gt;某同学表示，某些机器无法使用&lt;code&gt;secureFX&lt;/code&gt;进行文件传输。&lt;/p&gt;
 &lt;p&gt;正常情况下：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AUTH_SUCCESS&lt;/span&gt;
 &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="n"&gt;RECV&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Server&lt;/span&gt; &lt;span class="n"&gt;Sftp&lt;/span&gt; &lt;span class="n"&gt;Version&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;
@@ -623,7 +1287,7 @@ i Changing state from STATE_CLOSING to STATE_CLOSED.
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;Subsystem   sftp    /usr/libexec/openssh/sftp-server
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-&lt;p&gt;然后重启sshd服务，问题解决。&lt;/p&gt;</content><category term="misc"></category><category term="sftp"></category><category term="secureFX"></category><category term="sshd"></category></entry><entry><title>Django Admin 使用 filter_horizontal 不生效</title><link href="http://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html" rel="alternate"></link><published>2013-09-23T15:25:00+08:00</published><updated>2013-09-23T15:25:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-09-23:/posts/2013-09-23/django-filter_horizontal.html</id><summary type="html">&lt;p&gt;Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用&lt;code&gt;filter_horizontal&lt;/code&gt;进行显示的时候，我们碰到了一些问题。&lt;/p&gt;</summary><content type="html">&lt;p&gt;考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。&lt;/p&gt;
+&lt;p&gt;然后重启sshd服务，问题解决。&lt;/p&gt;</content><category term="misc"></category><category term="sftp"></category><category term="secureFX"></category><category term="sshd"></category></entry><entry><title>Django Admin 使用 filter_horizontal 不生效</title><link href="https://blog.chenxiaosheng.com/posts/2013-09-23/django-filter_horizontal.html" rel="alternate"></link><published>2013-09-23T15:25:00+08:00</published><updated>2013-09-23T15:25:00+08:00</updated><author><name>陈小生</name></author><id>tag:blog.chenxiaosheng.com,2013-09-23:/posts/2013-09-23/django-filter_horizontal.html</id><summary type="html">&lt;p&gt;Django 1.2.7 admin在使用ManyToManyField的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，在尝试使用&lt;code&gt;filter_horizontal&lt;/code&gt;进行显示的时候，我们碰到了一些问题。&lt;/p&gt;</summary><content type="html">&lt;p&gt;考虑到Django 1.0.2 admin的功能实在太弱了，今天冒着大风险，将某系统的Django进行了升级（升级至Django 1.2.7）。&lt;/p&gt;
 &lt;p&gt;Django 1.2.7 admin在使用&lt;code&gt;ManyToManyField&lt;/code&gt;的时候，默认使用垂直&lt;code&gt;filter_vertical&lt;/code&gt;方式进行显示与选择。此方式在选项比较多的时候，难以直观的看出哪些选项被选中，如下图所示：&lt;/p&gt;
 &lt;p&gt;&lt;img src="/static/django_filter_vertical.png"&gt;&lt;/p&gt;
 &lt;p&gt;决定使用更直观的方式，&lt;code&gt;filter_horizontal&lt;/code&gt;，设置比较简单，只要在&lt;code&gt;admin.py&lt;/code&gt;里对应的模块下，添加类似如下内容即可：&lt;/p&gt;

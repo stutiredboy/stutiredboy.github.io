@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>MongoDB 4.2 流控 FlowControl 机制走读</title>
+    <!-- Using the latest rendering mode for IE -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Open Graph tags -->
+
+            <meta property="og:type" content="article"/>
+            <meta property="og:title" content="MongoDB 4.2 流控 FlowControl 机制走读"/>
+            <meta property="og:url" content="https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html"/>
+            <meta property="og:description" content="MongoDB 4.2 引入了一个「流量控制」的新特性。该流控机制旨在保持副本集多数提交延迟小于或等于配置的最大值。此最大延迟的默认值为 10 秒。一旦多数提交的复制延迟达到配置的最大值的阈值百分比，流控制机制就会开始限制主节点上的写入。"/>
+
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
+    <!--<link href="https://cdn.staticfile.org/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">-->
+    <link href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://blog.chenxiaosheng.com/theme/css/pygments.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://blog.chenxiaosheng.com/theme/css/style.css">
+    <!--[if lt IE 9]>
+        <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <![endif]-->
+    <!--[if gte IE 9]><!-->
+        <script src="https://cdn.staticfile.org/jquery/3.3.1/jquery.min.js"></script>
+    <!--<![endif]-->
+
+        <link href="https://blog.chenxiaosheng.com/feeds/all.atom.xml" type="application/atom+xml" rel="alternate"
+              title="碎碎念 ATOM Feed"/>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9399540303343331"
+     crossorigin="anonymous"></script>
+    <script type="text/javascript">
+
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-30723232-1']);
+        _gaq.push(['_trackPageview']);
+
+        (function () {
+            var ga = document.createElement('script');
+            ga.type = 'text/javascript';
+            ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(ga, s);
+        })();
+
+    </script>
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a href="https://blog.chenxiaosheng.com" class="navbar-brand">碎碎念</a>
+        </div>
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+</nav>
+<!-- /.navbar -->
+<div class="container">
+    <div class="row">
+        <div class="col-md-9 col-lg-9">
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>MongoDB 4.2 流控 FlowControl 机制走读
+                    <!--
+                    <a href="https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html"
+                       rel="bookmark"
+                       title="Permalink to MongoDB 4.2 流控 FlowControl 机制走读">
+                        MongoDB 4.2 流控 FlowControl 机制走读
+                    </a>
+                    -->
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+<footer class="post-info">
+    <span class="published">
+      <i class="icon-calendar"></i>2022-06-11 22:21
+    </span>
+
+
+
+<i class="icon-tags"></i>
+	<a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a>
+        /
+	<a href="https://blog.chenxiaosheng.com/tag/flowcontrol.html">flowcontrol</a>
+</footer><!-- /.post-info -->                    </div>
+                </div>
+                <p>MongoDB 4.2 引入了一个「流量控制」的新特性。该流控机制旨在保持副本集多数提交延迟小于或等于配置的最大值。此最大延迟的默认值为 10 秒。一旦多数提交的复制延迟达到配置的最大值的阈值百分比，流控制机制就会开始限制主节点上的写入。</p>
+<p>当该特性开启时，MongoDB 会在给定的周期内（目前实现是 1 秒），分配一定数量的「流控票据」，MongoDB 的数据库库写操作需要通过获取「流控票据」来获取全局 IX 锁。当此给定周期内的票据分发完比后，相关操作需要等待下一个周期（下一秒）的票据刷新分发。部份 MongoDB 内部操作可能会忽略该流控机制，以确保 MongoDB 的正常运行。</p>
+<p>接下来我们从算法、配置、源码等几个方面结合来了解一下该流控制机制的实现（本文以 MongoDB 4.2.20 版本的文档及源码为参考）。</p>
+<h2>环境要求</h2>
+<ol>
+<li>因为是 4.2 才引入的，所以要求 MongoDB 版本大于等于 4.2.0，并且 featureCompatibility 也要匹配相应的版本；</li>
+<li>流控机制只在可以接受写入的节点生效（通过指 replica sets 中的 primary 节点）；</li>
+<li>当然，流控开关也是要打开的，默认打开。可以通过 <a href="https://www.mongodb.com/docs/v4.2/reference/parameters/#param.enableFlowControl">enableFlowControl</a> 进行开关；</li>
+<li>Read Concern Majority 必须启用，可以参考 <a href="https://www.mongodb.com/docs/v4.2/reference/parameters/#param.enableFlowControl">replication.enableMajorityReadConcern</a> 启用；</li>
+</ol>
+<p>当以上机制不满足时（亦可理解为流控机制关闭时），MongoDB 总是返回默认的最大数量 <code>_kMaxTickets = 1000 * 1000 * 1000</code>。</p>
+<h2>流控机制</h2>
+<p>流控制机制允许每秒获取指定数量的全局 IX 锁。除明确规避流控机制的操作外，全局 IX 锁获取必须首先获取「流控票据」然后才能获取锁。当此给定周期内的票据分发完比后，相关操作需要等待下一个周期（下一秒）的票据刷新分发。MongoDB 通过一个独立的机制每秒刷新一次票数。</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/mongo/db/storage/flow_control.cpp</span>
+
+<span class="n">FlowControl</span><span class="o">::</span><span class="n">FlowControl</span><span class="p">(</span><span class="n">ServiceContext</span><span class="o">*</span><span class="w"> </span><span class="n">service</span><span class="p">,</span><span class="w"> </span><span class="n">repl</span><span class="o">::</span><span class="n">ReplicationCoordinator</span><span class="o">*</span><span class="w"> </span><span class="n">replCoord</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+
+<span class="w">    </span><span class="n">_jobAnchor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">service</span><span class="o">-&gt;</span><span class="n">getPeriodicRunner</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">makeJob</span><span class="p">(</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="s">&quot;FlowControlRefresher&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">         </span><span class="p">[</span><span class="k">this</span><span class="p">](</span><span class="n">Client</span><span class="o">*</span><span class="w"> </span><span class="n">client</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">             </span><span class="n">FlowControlTicketholder</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="n">client</span><span class="o">-&gt;</span><span class="n">getServiceContext</span><span class="p">())</span><span class="o">-&gt;</span><span class="n">refreshTo</span><span class="p">(</span><span class="n">getNumTickets</span><span class="p">());</span><span class="w"></span>
+<span class="w">         </span><span class="p">},</span><span class="w"></span>
+<span class="w">         </span><span class="n">Seconds</span><span class="p">(</span><span class="mi">1</span><span class="p">)});</span><span class="w"></span>
+<span class="w">    </span><span class="n">_jobAnchor</span><span class="p">.</span><span class="n">start</span><span class="p">();</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<p>每次/秒刷新 tickets 数量时，<code>getNumTickets</code> 将计算应该允许多少票据以解决 MongoDB 多数提交的滞后问题（复制延迟）。流控机制根据以下因素确定每个周期要补充多少票：</p>
+<ol>
+<li>当前多数提交的复制延迟大于配置的目标最大复制延迟；</li>
+<li>Secondary 在上一周期应用了多少次操作；</li>
+<li>在上一周期中平均每次操作需要获取多少个 IX 锁；</li>
+</ol>
+<h3>触发流控时 ticket 数量计算</h3>
+<p>触发流控的 ticket 数量可以通过如下公式理解：</p>
+<blockquote>
+<p>base * k ^ ((lag - threshold)/threshold) * fudge factor</p>
+</blockquote>
+<p>相关变量说明如下：</p>
+<ul>
+<li>
+<p>base 为上一周期的操作数（也可以理解为操作数 * 平均每次操作获取的 IX 锁），通过采样获取；</p>
+</li>
+<li>
+<p>k 为 MongoDB 触发流控时节流的速率，默认值为 0.5，MongoDB 的可配置参数为 <code>flowControlDecayConstant</code>；</p>
+</li>
+<li>
+<p>lag 为当前多数提交延迟；</p>
+</li>
+<li>
+<p>threshold 为配置的可容忍最达延迟，请特别留意，该值分别由两个参数控制 <code>flowControlTargetLagSeconds</code> 与 <code>flowControlThresholdLagPercentage</code> 默认值分别为 10 和 0.5，可以理解为当多数提交延迟大于 5 秒时，即触发流控；</p>
+</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/mongo/db/storage/flow_control.cpp</span>
+
+<span class="n">std</span><span class="o">::</span><span class="kt">uint64_t</span><span class="w"> </span><span class="nf">getThresholdLagMillis</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">uint64_t</span><span class="o">&gt;</span><span class="p">(</span><span class="mf">1000.0</span><span class="w"> </span><span class="o">*</span><span class="w">                        </span><span class="n">gFlowControlThresholdLagPercentage</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"></span>
+<span class="w">                                      </span><span class="n">gFlowControlTargetLagSeconds</span><span class="p">.</span><span class="n">load</span><span class="p">());</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<ul>
+<li>fudge 因子：比 1 略小的值，主要是为了控制当 lag 与 threshold 接近时，分配略低于 base 数量的票证。默认值为 0.95，可通过参数 <code>flowControlFudgeFactor</code> 进行配置，该值要求设置为大于 0， 小于 1，尽量接近 1；</li>
+</ul>
+<p>公式的代码主体如下：</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/mongo/db/storage/flow_control.cpp</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">multiplyWithOverflowCheck</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">term1</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">term2</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">maxValue</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">term1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">term2</span><span class="p">;</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ret</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+<span class="p">...</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="n">FlowControl</span><span class="o">::</span><span class="n">_calculateNewTicketsForLag</span><span class="p">(</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">exponent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">lagMillis</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">thresholdLagMillis</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"></span>
+<span class="w">        </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">thresholdLagMillis</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">invariant</span><span class="p">(</span><span class="n">exponent</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">reduce</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pow</span><span class="p">(</span><span class="n">gFlowControlDecayConstant</span><span class="p">.</span><span class="n">load</span><span class="p">(),</span><span class="w"> </span><span class="n">exponent</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">    </span><span class="c1">// The fudge factor, by default is 0.95. Keeping this value close to one reduces oscillations in</span>
+<span class="w">    </span><span class="c1">// an environment where secondaries consistently process operations slower than the primary.</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">sustainerAppliedPenalty</span><span class="w"> </span><span class="o">=</span><span class="w"></span>
+<span class="w">        </span><span class="n">sustainerAppliedCount</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">reduce</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">gFlowControlFudgeFactor</span><span class="p">.</span><span class="n">load</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">multiplyWithOverflowCheck</span><span class="p">(</span><span class="n">locksPerOp</span><span class="p">,</span><span class="w"> </span><span class="n">sustainerAppliedPenalty</span><span class="p">,</span><span class="w"> </span><span class="n">_kMaxTickets</span><span class="p">);</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<h4>采样方式</h4>
+<p>采样的频率和数量主要通过如下两个配置参数进行控制：</p>
+<ul>
+<li><code>flowControlSamplePeriod</code> 这个参数的命名比较容易让人困惑，会容易误认为是时间，实际理解是每 N 次采样一次，N 即为 <code>flowControlSamplePeriod</code> 设置的值，值越小的精度越高，所以可能更容易触发流控导致业务降级；</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/mongo/db/storage/flow_control.cpp</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">FlowControl::sample</span><span class="p">(</span><span class="n">Timestamp</span><span class="w"> </span><span class="n">timestamp</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">opsApplied</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_numOpsSinceStartup</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">_lastSample</span><span class="w"> </span><span class="o">&lt;</span><span class="w"></span>
+<span class="w">        </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="o">&gt;</span><span class="p">(</span><span class="n">gFlowControlSamplePeriod</span><span class="p">.</span><span class="n">load</span><span class="p">()))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// Naively sample once every 1000 or so operations.</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<ul>
+<li><code>flowControlMaxSamples</code>，内存中保存的样本数，默认值为 1000000， 每个样本数约为 24 bytes大小，保存 100000 样本数约需 24MB 内存；</li>
+</ul>
+<p>采样在 oplog 相关的操作中进行，参考上述 sample 采样逻辑及下述代码，没有发现显式的采样开关，即<strong>无论是否启用流控制，采样机制都会执行</strong>。</p>
+<div class="highlight"><pre><span></span><code><span class="c1">//src/mongo/db/repl/local_oplog_info.cpp</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">OplogSlot</span><span class="o">&gt;</span><span class="w"> </span><span class="n">LocalOplogInfo</span><span class="o">::</span><span class="n">getNextOpTimes</span><span class="p">(</span><span class="n">OperationContext</span><span class="o">*</span><span class="w"> </span><span class="n">opCtx</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">count</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// Provide a sample to FlowControl after the `oplogInfo.newOpMutex` is released.</span>
+<span class="w">    </span><span class="n">ON_BLOCK_EXIT</span><span class="p">([</span><span class="n">opCtx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ts</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">]</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">auto</span><span class="w"> </span><span class="n">flowControl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FlowControl</span><span class="o">::</span><span class="n">get</span><span class="p">(</span><span class="n">opCtx</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">flowControl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">flowControl</span><span class="o">-&gt;</span><span class="n">sample</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">});</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<h3>延迟正常（未触发流控）时 ticket 数量计算</h3>
+<p>当多数提交的延迟小于可容忍流控阈值的延迟百分比时（认为服务状态健康），直接将上一期间分配的 ticket 数量做为基数，并增加一个可配置的常量（票据加法），参数名称为 <code>flowControlTicketAdderConstant</code> 默认值为 1000。总和乘以另一个可配置的常量（票据乘数），最终的值为下期分配的新票数。该乘数配置参数名称为 <code>flowControlTicketMultiplierConstant</code> 默认值为 1.05，修改配置需要确保大于 1。</p>
+<p>该算法主要是为了确保系统健康时，特别是初始使用了较少的 ticket 时，系统 ticket 数量可以快速得到提升。公式：<code>(lastTargetTicketsPermitted + flowControlTicketAdderConstant) * flowControlTicketMultiplierConstant</code></p>
+<div class="highlight"><pre><span></span><code><span class="c1">// src/mongo/db/storage/flow_control.cpp</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">FlowControl::getNumTickets</span><span class="p">(</span><span class="n">Date_t</span><span class="w"> </span><span class="n">now</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isHealthy</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="c1">// The add/multiply technique is used to ensure ticket allocation can ramp up quickly,</span>
+<span class="w">        </span><span class="c1">// particularly if there were very few tickets to begin with.</span>
+<span class="w">        </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">multiplyWithOverflowCheck</span><span class="p">(</span><span class="n">_lastTargetTicketsPermitted</span><span class="p">.</span><span class="n">load</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"></span>
+<span class="w">                                            </span><span class="n">gFlowControlTicketAdderConstant</span><span class="p">.</span><span class="n">load</span><span class="p">(),</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">gFlowControlTicketMultiplierConstant</span><span class="p">.</span><span class="n">load</span><span class="p">(),</span><span class="w"></span>
+<span class="w">                                        </span><span class="n">kMaxTickets</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">...</span><span class="w"></span>
+<span class="w">      </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">...</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<h2>配置参数整理</h2>
+<table>
+<thead>
+<tr>
+<th>配置参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>enableFlowControl</td>
+<td>流控开关 true/false，默认 true</td>
+</tr>
+<tr>
+<td>flowControlTargetLagSeconds</td>
+<td>可容忍的多数提交延迟，单位为秒，默认 10</td>
+</tr>
+<tr>
+<td>flowControlThresholdLagPercentage</td>
+<td>可容忍的多数提交延迟百分比，{ gte: 0.0, lte: 1.0 }，该值乘以 flowControlTargetLagSeconds 为实际可容忍的延迟</td>
+</tr>
+<tr>
+<td>flowControlMaxSamples</td>
+<td>最大的保留样本数</td>
+</tr>
+<tr>
+<td>flowControlSamplePeriod</td>
+<td>采样周期，注意不是指<strong>时间</strong>，指：N 次操作采样一次</td>
+</tr>
+<tr>
+<td>flowControlMinTicketsPerSecond</td>
+<td>最小的 ticket 数量，默认 100。设置过小可能会导致系统需要<strong>预热</strong>，可以根据系统业务的情况适当调整</td>
+</tr>
+<tr>
+<td>flowControlDecayConstant</td>
+<td>MongoDB 触发流控时节流的速率，默认值为 0.5</td>
+</tr>
+<tr>
+<td>flowControlFudgeFactor</td>
+<td>Fudge 因子，默认为 0.95，要求小于 1，但接近 1，<strong>不建议调整</strong></td>
+</tr>
+<tr>
+<td>flowControlTicketAdderConstant</td>
+<td>健康状态时，ticket 加数，以快速增加健康状态时的 ticket 数量</td>
+</tr>
+<tr>
+<td>flowControlTicketMultiplierConstant</td>
+<td>健康状态时，ticket 乘数，以快速增加健康状态时的 ticket 数量</td>
+</tr>
+</tbody>
+</table>
+<p><strong>需留意</strong>，MongoDB 启动时，默认的 ticket 数量为 <code>_kMaxTickets = 1000 * 1000 * 1000</code> 即 10 亿，而不是 <code>flowControlMinTicketsPerSecond</code> 的值。通过如下命令可以查看当前的票据情况：</p>
+<div class="highlight"><pre><span></span><code>// MongoDB 刚启动时
+
+tmongo40:PRIMARY&gt; db.serverStatus()[&quot;flowControl&quot;].targetRateLimit
+1000000000
+
+tmongo40:PRIMARY&gt; db.serverStatus()[&quot;flowControl&quot;]
+{
+    &quot;enabled&quot; : true,
+    &quot;targetRateLimit&quot; : 1000000000,
+    &quot;timeAcquiringMicros&quot; : NumberLong(76),
+    &quot;locksPerOp&quot; : 0,
+    &quot;sustainerRate&quot; : 0,
+    &quot;isLagged&quot; : false,
+    &quot;isLaggedCount&quot; : 0,
+    &quot;isLaggedTimeMicros&quot; : NumberLong(0)
+}
+
+// 触发流控后
+
+tmongo40:PRIMARY&gt; db.serverStatus()[&quot;flowControl&quot;]
+{
+    &quot;enabled&quot; : true,
+    &quot;targetRateLimit&quot; : 2015,
+    &quot;timeAcquiringMicros&quot; : NumberLong(12064),
+    &quot;locksPerOp&quot; : 1,
+    &quot;sustainerRate&quot; : 2196,
+    &quot;isLagged&quot; : true,
+    &quot;isLaggedCount&quot; : 1,
+    &quot;isLaggedTimeMicros&quot; : NumberLong(0)
+}
+tmongo40:PRIMARY&gt; db.serverStatus()[&quot;flowControl&quot;]
+{
+    &quot;enabled&quot; : true,
+    &quot;targetRateLimit&quot; : 1014,
+    &quot;timeAcquiringMicros&quot; : NumberLong(38346),
+    &quot;locksPerOp&quot; : 1,
+    &quot;sustainerRate&quot; : 1924,
+    &quot;isLagged&quot; : true,
+    &quot;isLaggedCount&quot; : 1,
+    &quot;isLaggedTimeMicros&quot; : NumberLong(0)
+}
+</code></pre></div>
+
+<h2>日志</h2>
+<p>触发限流时，可以在 MongoDB 的日志里找到 flowControl 相关的日志。</p>
+<p><img alt="image-20220609174333655" src="/static/mongodb-flowcontrol-log.png"></p>
+<h2>其他结论</h2>
+<ol>
+<li>好的限流效果需要根据业务的情况持续调测相关参数，且 MongoDB 的限流算法主节点的处理能力受主节点影响，存在多种不确定因素（如网络），建议谨慎开启。或基于前述情况，建议降低流控敏感度，如放宽对大多数主从提交的延迟阈值容忍，仅在较极端情况下对 MongoDB 触发保护，避免过于敏感反而影响正常业务请求；</li>
+<li>根据某业务的线上表现来看，在 CPU、io 吞吐极低的情况下，MongoDB 默认的参数配置仍频繁的触发限流。因此建议仍如 1；</li>
+</ol>
+<h2>参考文档</h2>
+<ol>
+<li>enableFlowControl: https://www.mongodb.com/docs/v4.2/reference/parameters/#param.enableFlowControl</li>
+<li>source code: https://github.com/mongodb/mongo/tree/r4.2.20</li>
+</ol>
+                    <h3><i class="fa fa-hand-o-right"></i> 您可能还喜欢以下文章</h3>
+                    </br>
+                    <ul>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html">网易游戏 MySQL-MongoDB 运维及 DBA 招聘</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-15/wireguard-tutorial.html">WireGuard 浅显体验</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-05-07/debian-switch-kernel-boot.html">Debian 指定内核启动</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2018-05-24/mongodb-random-query.html">MongoDB 随机查询获取一条或 N 条记录的方法</a></li>
+                            <li><a href="https://blog.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html">可能是全网最全的 ulimit 配置说明了</a></li>
+                    </ul>
+                <div class="panel-about row">
+                  <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
+                    <img src="/static/avatar.gif" class="img-circle">
+                  </div>
+                  <div class="panel-author-description col-md-7">
+                    <h4><i class="fa fa-user"></i> 关于我</h4>
+                    热爱开源、分享。目前主要从事混合云、数据库 SaaS 等运维开发及相关团队管理工作。</br>
+                    <br/>
+                    <a href="https://www.vultr.com/?ref=6820888" class="hidden-xs hidden-sm"><img src="https://www.vultr.com/media/banner_2.png" width="468" height="60"></a>
+                  </div>
+                  <div class="panel-author-description col-md-3 hidden-xs hidden-sm">
+                    <img src="/static/qrcode.jpg" width="160" height="160"></a>
+                  </div>
+                </div>
+            </div>
+            <!-- /.entry-content -->
+    <hr />
+    <section class="comments hidden-xs hidden-sm well well-sm" id="comments">
+        <h2>相关评论</h2>
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+            /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+            var disqus_shortname = 'stutiredboy'; // required: replace example with your forum shortname
+            var disqus_identifier = 'https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html';
+            var disqus_url = 'https://blog.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html';
+
+            /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+                var dsq = document.createElement('script');
+                dsq.type = 'text/javascript';
+                dsq.async = true;
+                dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by
+            Disqus.</a></noscript>
+        <a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+    </section>
+        </article>
+    </section>
+
+        </div>
+        <div class="col-md-3 col-lg-3 hidden-xs hidden-sm well well-sm" id="sidebar">
+<aside>
+    <section>
+        <ul class="list-group list-group-flush">
+            <!-- NOTIFICATION START -->
+            <div class="bs-callout bs-callout-info">
+              <p>记录和整理自己的经验，仅供自己参考。若恰好对你有用，也算是功德一件。@<a href="http://www.zhihu.com" target="blank">知乎</a></p>
+              <p>系统最后一次生成时间：2023-09-05 14:01:43</p>
+            </div>
+            <!-- NOTIFICATION END -->
+            <!-- SOCIAL START -->
+            <!--
+                <li class="list-group-item">
+                <span class="span-group-item"><a href="http://weibo.com/stutiredboy"><i class="icon-weibo icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://www.facebook.com/stutiredboy"><i class="icon-facebook icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://twitter.com/stutiredboy"><i class="icon-twitter icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://github.com/stutiredboy"><i class="icon-github icon-large"></i></a></span>
+                <span class="span-group-item"><a href="https://blog.chenxiaosheng.com/feeds/all.atom.xml"><i class="icon-rss icon-large"></i></a></span>
+                </li>
+            -->
+            <!-- SOCIAL END -->
+            <!-- CONTACT START -->
+            <li class="list-group-item"><h4><i class="fa fa-weixin fa-lg"></i>微信公众号</h4></li>
+            <div class="text-center"><img src="/static/qrcode.jpg" alt="欢迎关注个人微信公众号" class="img-rounded wxqrcode"></div>
+            <!-- CONTACT END -->
+            <!-- TAGS CLOUD START -->
+            <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/tags.html"><h4><i class="fa fa-tags fa-lg"></i>Tags</h4></a></li>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/post.html">post</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireguard.html">wireguard</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openvpn.html">openvpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/grub.html">grub</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/crontab.html">crontab</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/dm.html">dm</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/yosemite.html">yosemite</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/mysql.html">mysql</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ulimit.html">ulimit</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/iterm2.html">iterm2</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/syncer.html">syncer</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/tcpdump.html">tcpdump</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/kernel.html">kernel</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/redis.html">redis</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/rate-limit.html">rate limit</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/flowcontrol.html">flowcontrol</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/lxc.html">lxc</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/apache.html">apache</a></span>
+                <span class="tag-1"><a href="https://blog.chenxiaosheng.com/tag/python.html">python</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/linux.html">linux</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dns.html">dns</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/windows.html">windows</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sshd.html">sshd</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/pingcap.html">pingcap</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mongodb.html">mongodb</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/openid.html">openid</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/http.html">http</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ios.html">ios</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/vpn.html">vpn</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/cgroups.html">cgroups</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wireshark.html">wireshark</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/named.html">named</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/securefx.html">secureFX</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/django.html">django</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/mac.html">mac</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/java.html">java</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/jinja.html">jinja</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/arp.html">arp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/scribe.html">scribe</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pip.html">pip</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/replication.html">replication</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/proxy.html">proxy</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/sftp.html">sftp</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/okr.html">okr</a></span>
+                <span class="tag-2"><a href="https://blog.chenxiaosheng.com/tag/debian.html">debian</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/pelican.html">pelican</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/tidb.html">tidb</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/wifi.html">wifi</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/osx.html">osx</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dig.html">dig</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/ssl.html">ssl</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/netease.html">netease</a></span>
+                <span class="tag-4"><a href="https://blog.chenxiaosheng.com/tag/bind.html">bind</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/ssh.html">ssh</a></span>
+                <span class="tag-8"><a href="https://blog.chenxiaosheng.com/tag/dba.html">dba</a></span>
+            <!-- TAGS CLOUD END -->
+            <li class="list-group-item"><h4><i class="fa fa-comments fa-lg"></i>最新评论</h4></li>
+            <script type="text/javascript" src="https://stutiredboy.disqus.com/recent_comments_widget.js?num_items=6&hide_avatars=0&avatar_size=40&excerpt_length=200"></script>
+            <!-- Uncomment if you want to show Social
+                <li class="list-group-item"><h4><i class="icon-home icon-large"></i>Social</h4></li>
+                    <li class="list-group-item"><a href="http://weibo.com/stutiredboy"><i
+                            class="icon-weibo-sign icon-large"></i>weibo
+                    </a></li>
+                    <li class="list-group-item"><a href="https://www.facebook.com/stutiredboy"><i
+                            class="icon-facebook-sign icon-large"></i>facebook
+                    </a></li>
+                    <li class="list-group-item"><a href="https://twitter.com/stutiredboy"><i
+                            class="icon-twitter-sign icon-large"></i>twitter
+                    </a></li>
+                    <li class="list-group-item"><a href="https://github.com/stutiredboy"><i
+                            class="icon-github-sign icon-large"></i>github
+                    </a></li>
+                    <li class="list-group-item"><a href="https://blog.chenxiaosheng.com/feeds/all.atom.xml"><i
+                            class="icon-rss-sign icon-large"></i>rss
+                    </a></li>
+            -->
+
+
+
+        </ul>
+    </section>
+</aside>
+</script>        </div>
+    </div>
+</div>
+
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+<!-- Enable responsive features in IE8 with Respond.js (https://github.com/scottjehl/Respond) -->
+<script src="https://blog.chenxiaosheng.com/theme/js/respond.min.js"></script>
+<!-- Footer Start -->
+<footer class="footer">
+  <div class="container">
+    <p class="text-right visible-xs">&copy; 2022 ChenXiaosheng</p>
+    <p class="text-right hidden-xs">&copy; 2022 ChenXiaosheng • 基于 <a href="http://docs.getpelican.com">Pelican</a> - <a href="http://www.python.org">Python</a> - <a href="http://jinja.pocoo.org/">Jinja</a> - <a href="http://getbootstrap.com">Bootstrap</a> - <a href="http://github.com">Github</a> - MarkDown 构建</p>
+    <p class="text-right hidden-xs">除非另有声明，本网站采用<a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh">署名-非商业性使用-禁止演绎 4.0 国际 (CC BY-NC-ND 4.0)</a>授权</p>
+  </div>
+</footer>
+<!-- Footer End -->
+</body>
+</html>
