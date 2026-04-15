@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }}{% endblock %}
+{% block content %}
+    <section id="content">
+        <article>
+            <header class="page-header">
+                <h1>{{ article.title }}
+                    <!--
+                    <a href="{{ SITEURL }}/{{ article.url }}"
+                       rel="bookmark"
+                       title="Permalink to {{ article.title }}">
+                        {{ article.title }}
+                    </a>
+                    -->
+                </h1>
+            </header>
+            <div class="entry-content">
+                <div class="panel">
+                    <div class="panel-body">
+                        {% include "includes/article_info.html" %}
+                    </div>
+                </div>
+                {{ article.content }}
+                {% if article.related_posts %}
+                    <h3><i class="fa fa-hand-o-right"></i> 您可能还喜欢以下文章</h3>
+                    </br>
+                    <ul>
+                        {% for related_post in article.related_posts %}
+                            <li><a href="{{ SITEURL }}/{{ related_post.url }}">{{ related_post.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <div class="panel-about row">
+                  <div class="panel-author-avatar col-md-2 hidden-xs hidden-sm">
+                    <img src="/static/avatar.gif" class="img-circle">
+                  </div>
+                  <div class="panel-author-description col-md-7">
+                    <h4><i class="fa fa-user"></i> 关于我</h4>
+                    热爱开源、分享。目前主要从事混合云、数据库 SaaS 等运维开发及相关团队管理工作。</br>
+                    <br/>
+		    <!--<a href="https://www.vultr.com/?ref=6820888" class="hidden-xs hidden-sm"><img src="https://www.vultr.com/media/banner_2.png" width="468" height="60"></a>-->
+                  </div>
+                  <div class="panel-author-description col-md-3 hidden-xs hidden-sm">
+                    <img src="/static/qrcode.jpg" width="160" height="160"></a>
+                  </div>
+                </div>
+            </div>
+            <!-- /.entry-content -->
+            {% include 'includes/comments.html' %}
+        </article>
+    </section>
+
+{% endblock %}

@@ -1,0 +1,4 @@
+pelican>=4.9,<5
+pelican-related>=0.1
+pelican-sitemap>=1.2
+Markdown>=3.1
