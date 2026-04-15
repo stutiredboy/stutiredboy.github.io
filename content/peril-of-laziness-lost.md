@@ -1,4 +1,4 @@
-Title: LLM 让程序员丧失了编程美德：懒惰
+Title: LLM 让程序员的编程美德“懒惰”更显重要了
 Date: 2026-04-15 21:30:00
 Tags: ai, llm, programming
 Slug: peril-of-laziness-lost
