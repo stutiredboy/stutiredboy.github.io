@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} &middot; {{ SITENAME }}{% endblock %}
+{% block content %}
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">{{ article.title }}</h1>
+            {% include 'includes/article_meta.html' %}
+        </header>
+
+        <div class="article-content entry-content">
+            {{ article.content }}
+        </div>
+
+        {% if article.related_posts %}
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                {% for related_post in article.related_posts %}
+                <li><a href="{{ SITEURL }}/{{ related_post.url }}">{{ related_post.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me">{% include 'includes/icons/github.svg' %} GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me">{% include 'includes/icons/twitter.svg' %} Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me">{% include 'includes/icons/weibo.svg' %} Weibo</a>
+            </p>
+        </section>
+    </article>
+
+    {% include 'includes/toc.html' %}
+</div>
+{% endblock %}

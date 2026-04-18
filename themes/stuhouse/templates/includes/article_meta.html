@@ -1,0 +1,19 @@
+<div class="article-meta">
+    <span class="article-meta-item">
+        {% include 'includes/icons/calendar.svg' %}
+        <time datetime="{{ article.date.isoformat() }}">{{ article.locale_date }}</time>
+    </span>
+    {% set word_count = article.content|striptags|length %}
+    {% if word_count > 0 %}
+    <span class="article-meta-item">
+        {% include 'includes/icons/clock.svg' %}
+        约 {{ (word_count / 400)|round(0, 'ceil')|int }} 分钟阅读
+    </span>
+    {% endif %}
+    {% if article.tags %}
+    <span class="article-meta-item article-meta-tags">
+        {% include 'includes/icons/tag.svg' %}
+        {% for tag in article.tags %}<a href="{{ SITEURL }}/{{ tag.url }}">{{ tag }}</a>{% if not loop.last %} · {% endif %}{% endfor %}
+    </span>
+    {% endif %}
+</div>

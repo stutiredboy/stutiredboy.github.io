@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="post-list-wrapper">
+    {% if articles %}
+    <ul class="post-list">
+        {% for article in (articles_page.object_list if articles_page else articles) %}
+        <li class="post-list-item">
+            <time class="post-list-date" datetime="{{ article.date.isoformat() }}">{{ article.date.strftime('%Y-%m-%d') }}</time>
+            <div class="post-list-body">
+                <h2 class="post-list-title"><a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a></h2>
+                {% if article.summary %}
+                <p class="post-list-summary">{{ article.summary|striptags }}</p>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if articles_page and articles_paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="分页">
+        {% if articles_page.has_previous() %}
+            {% set prev_num = articles_page.previous_page_number() %}
+            <a class="pagination-prev" href="{{ SITEURL }}/{{ page_name }}{{ '' if prev_num == 1 else prev_num }}.html">← 上一页</a>
+        {% else %}
+            <span class="pagination-prev pagination-disabled">← 上一页</span>
+        {% endif %}
+
+        <span class="pagination-info">第 {{ articles_page.number }} / {{ articles_paginator.num_pages }} 页</span>
+
+        {% if articles_page.has_next() %}
+            <a class="pagination-next" href="{{ SITEURL }}/{{ page_name }}{{ articles_page.next_page_number() }}.html">下一页 →</a>
+        {% else %}
+            <span class="pagination-next pagination-disabled">下一页 →</span>
+        {% endif %}
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

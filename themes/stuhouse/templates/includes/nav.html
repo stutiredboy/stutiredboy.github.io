@@ -1,0 +1,18 @@
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="{{ SITEURL }}/" class="site-brand">{{ SITENAME }}</a>
+        <nav class="site-nav">
+            <a href="{{ SITEURL }}/archives.html">归档</a>
+            <a href="{{ SITEURL }}/pages/about.html">简介</a>
+            {% if FEED_ALL_ATOM %}
+            <a href="{{ SITEURL }}/{{ FEED_ALL_ATOM }}" aria-label="RSS" class="site-nav-icon">
+                {% include 'includes/icons/rss.svg' %}
+            </a>
+            {% endif %}
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun">{% include 'includes/icons/sun.svg' %}</span>
+                <span class="theme-toggle-icon theme-toggle-moon">{% include 'includes/icons/moon.svg' %}</span>
+            </button>
+        </nav>
+    </div>
+</header>

@@ -28,7 +28,7 @@ jobs:
         run: |
           export PYTHONPATH=$PWD:$PYTHONPATH
           export PYTHONDONTWRITEBYTECODE=1
-          pelican content -o output -s pelicanconf.py -t themes/pelican-bootstrap3
+          pelican content -o output -s publishconf.py -t themes/stuhouse
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4

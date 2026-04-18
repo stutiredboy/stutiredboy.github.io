@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}归档 &middot; {{ SITENAME }}{% endblock %}
+{% block content %}
+<div class="post-list-wrapper">
+    <header class="page-header">
+        <h1 class="page-title">归档</h1>
+        <p class="page-subtitle">共 {{ dates|length }} 篇文章</p>
+    </header>
+
+    {% set ns = namespace(current_year=0) %}
+    {% for article in dates %}
+        {% if article.date.year != ns.current_year %}
+            {% if not loop.first %}</ul>{% endif %}
+            <h2 class="archive-year">{{ article.date.year }}</h2>
+            <ul class="archive-list">
+            {% set ns.current_year = article.date.year %}
+        {% endif %}
+        <li class="archive-item">
+            <time class="archive-date" datetime="{{ article.date.isoformat() }}">{{ article.date.strftime('%m-%d') }}</time>
+            <a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a>
+        </li>
+        {% if loop.last %}</ul>{% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

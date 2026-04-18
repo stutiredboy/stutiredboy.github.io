@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ SITENAME }}{% endblock %}</title>
+
+    {% block meta %}
+        {% if article %}
+            <meta name="description" content="{{ article.summary|striptags|truncate(160) }}">
+            <link rel="canonical" href="{{ SITEURL }}/{{ article.url }}">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="{{ article.title }}">
+            <meta property="og:url" content="{{ SITEURL }}/{{ article.url }}">
+            <meta property="og:description" content="{{ article.summary|striptags|truncate(200) }}">
+            <meta property="og:site_name" content="{{ SITENAME }}">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="{{ article.title }}">
+            <meta name="twitter:description" content="{{ article.summary|striptags|truncate(200) }}">
+        {% elif page %}
+            <meta name="description" content="{{ page.title }} - {{ SITENAME }}">
+            <link rel="canonical" href="{{ SITEURL }}/{{ page.url }}">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="{{ page.title }}">
+            <meta property="og:url" content="{{ SITEURL }}/{{ page.url }}">
+            <meta property="og:site_name" content="{{ SITENAME }}">
+        {% else %}
+            <meta name="description" content="{{ SITEDESCRIPTION|default(SITENAME) }}">
+            <link rel="canonical" href="{{ SITEURL }}/{{ output_file|default('') }}">
+            <meta property="og:type" content="website">
+            <meta property="og:title" content="{{ SITENAME }}">
+            <meta property="og:url" content="{{ SITEURL }}">
+            <meta property="og:description" content="{{ SITEDESCRIPTION|default(SITENAME) }}">
+            <meta property="og:site_name" content="{{ SITENAME }}">
+        {% endif %}
+    {% endblock %}
+
+    <link rel="stylesheet" href="{{ SITEURL }}/theme/css/main.css">
+    <link rel="stylesheet" href="{{ SITEURL }}/theme/css/pygments-nord.css">
+
+    {% if FEED_ALL_ATOM %}
+        <link rel="alternate" type="application/atom+xml" href="{{ SITEURL }}/{{ FEED_ALL_ATOM }}" title="{{ SITENAME }} ATOM Feed">
+    {% endif %}
+
+    <link rel="icon" href="{{ SITEURL }}/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body>
+    {% include 'includes/nav.html' %}
+
+    <main class="site-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include 'includes/footer.html' %}
+
+    <script src="{{ SITEURL }}/theme/js/main.js" defer></script>
+</body>
+</html>

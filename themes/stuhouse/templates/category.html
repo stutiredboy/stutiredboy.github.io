@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}分类：{{ category }} &middot; {{ SITENAME }}{% endblock %}
+{% block content %}
+<div class="post-list-wrapper">
+    <header class="page-header">
+        <h1 class="page-title">分类：{{ category }}</h1>
+        <p class="page-subtitle">共 {{ articles|length }} 篇</p>
+    </header>
+
+    <ul class="post-list">
+        {% for article in articles %}
+        <li class="post-list-item">
+            <time class="post-list-date" datetime="{{ article.date.isoformat() }}">{{ article.date.strftime('%Y-%m-%d') }}</time>
+            <div class="post-list-body">
+                <h2 class="post-list-title"><a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a></h2>
+                {% if article.summary %}
+                <p class="post-list-summary">{{ article.summary|striptags }}</p>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

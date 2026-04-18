@@ -14,13 +14,17 @@ JINJA_FILTERS = { 'shuffle' : shuffle }
 PLUGIN_PATHS = ["plugins"]
 PLUGINS = ['pelican_related', 'tag_cloud', 'sitemap']
 
+THEME = 'themes/stuhouse'
+
 AUTHOR = u'陈小生'
 SITENAME = u'小生说大声讲'
-SITEURL = 'https://www.chenxiaosheng.com'
+SITEDESCRIPTION = u'记录和整理自己的经验，仅供自己参考。'
+# 本地预览 (pelican --listen) 使用空 SITEURL 生成根相对 URL；生产构建由 publishconf.py 覆盖
+SITEURL = ''
 
 TIMEZONE = 'Asia/Hong_Kong'
 
-DEFAULT_LANG = u'en'
+DEFAULT_LANG = u'zh'
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M"
 
 # Feed generation is usually not desired when developing
@@ -92,7 +96,4 @@ EXTRA_PATH_METADATA = {
     'extra/robots.txt': {'path': 'robots.txt'},
 }
 
-GOOGLE_ANALYTICS = "UA-30723232-1"
-
-DISQUS_SITENAME = "stutiredboy"
 LAST_GENERATOR_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
