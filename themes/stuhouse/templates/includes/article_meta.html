@@ -10,6 +10,10 @@
         约 {{ (word_count / 400)|round(0, 'ceil')|int }} 分钟阅读
     </span>
     {% endif %}
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+        {% include 'includes/icons/eye.svg' %}
+        <span id="article-pv"></span> 次阅读
+    </span>
     {% if article.tags %}
     <span class="article-meta-item article-meta-tags">
         {% include 'includes/icons/tag.svg' %}

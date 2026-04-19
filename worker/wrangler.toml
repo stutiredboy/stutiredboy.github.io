@@ -1,0 +1,22 @@
+name = "blog-views"
+main = "src/index.ts"
+compatibility_date = "2026-04-19"
+
+# KV namespace binding — 在 2.2 / 2.3 步骤创建后把 id 和 preview_id 填进来
+[[kv_namespaces]]
+binding = "VIEWS"
+id = "845135f951be4263abc64a5e45f541c1"
+preview_id = "ea2ecea27f424314bc7aac66fed1174c"
+
+# 自定义域：wrangler 自动建 DNS 记录 + 签证书 + 绑路由
+# 注意 custom_domain 的 pattern 是纯 hostname，不带 /*
+[[routes]]
+pattern = "views.chenxiaosheng.com"
+custom_domain = true
+
+# 每天 UTC 00:05 触发 UV 归档
+[triggers]
+crons = ["5 0 * * *"]
+
+# 允许通过 wrangler secret put SALT_SECRET 注入密钥
+# 本地开发时放在 .dev.vars（已在 .gitignore）

@@ -803,6 +803,11 @@ hr {
     margin-top: var(--space-3) !important;
 }
 
+.site-stats {
+    color: var(--text-subtle);
+    font-size: 0.82rem;
+}
+
 /* ============================================
    响应式：窄屏
    ============================================ */

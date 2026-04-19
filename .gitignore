@@ -5,3 +5,6 @@ __pycache__/
 *.swp
 *.swo
 .venv/
+scripts/disqus-export.xml
+scripts/disqus-export.xml.gz
+.playwright-mcp/

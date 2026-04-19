@@ -57,7 +57,7 @@
         })();
     </script>
 </head>
-<body>
+<body{% if article %} data-slug="{{ article.slug }}"{% endif %}>
     {% include 'includes/nav.html' %}
 
     <main class="site-main">
@@ -67,5 +67,6 @@
     {% include 'includes/footer.html' %}
 
     <script src="{{ SITEURL }}/theme/js/main.js" defer></script>
+    <script src="{{ SITEURL }}/theme/js/views.js" defer></script>
 </body>
 </html>
