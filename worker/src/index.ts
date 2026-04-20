@@ -18,7 +18,7 @@ export interface Env {
 }
 
 const ALLOWED_ORIGIN = "https://www.chenxiaosheng.com";
-const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,99}$/;
+const SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
 
 export default {
     async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

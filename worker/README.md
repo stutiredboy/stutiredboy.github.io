@@ -56,10 +56,20 @@ zone_name = "chenxiaosheng.com"
 
 ## 常见操作
 
+> **重要**：wrangler v3.60+ 起，`wrangler kv` 子命令默认操作**本地模拟器**。线上 KV 请一律加 `--remote`，否则 `key get/list/put` 看到的是空的本地数据，容易误判服务没生效。
+
+**查线上 KV 内容**：
+
+```bash
+wrangler kv key get  --binding=VIEWS --remote "site:pv"
+wrangler kv key list --binding=VIEWS --remote --prefix "pv:"
+wrangler kv key list --binding=VIEWS --remote --prefix "uv_today:$(date -u +%Y%m%d):"
+```
+
 **重置某篇文章计数**：
 
 ```bash
-wrangler kv key put --binding=VIEWS "pv:<slug>" "0"
+wrangler kv key put --binding=VIEWS --remote "pv:<slug>" "0"
 ```
 
 **手动触发归档任务**（调试 cron）：

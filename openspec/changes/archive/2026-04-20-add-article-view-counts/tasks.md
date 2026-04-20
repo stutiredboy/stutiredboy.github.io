@@ -16,7 +16,7 @@
 
 - [x] 3.1 创建 `worker/wrangler.toml`：`name = "blog-views"`、`main = "src/index.ts"`、`compatibility_date`、`[[kv_namespaces]] binding = "VIEWS"` + 上面两个 id、`[triggers] crons = ["5 0 * * *"]`
 - [x] 3.2 创建 `worker/src/index.ts`：
-  - `GET /v/:slug` → slug 校验 `^[a-z0-9][a-z0-9-]{0,99}$` → 读 `pv:<slug>`、+1、写回、返回 JSON；按 spec 设置 CORS 响应头
+  - `GET /v/:slug` → slug 校验 `^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$`（兼容历史文章中的大写/点号/下划线 slug） → 读 `pv:<slug>`、+1、写回、返回 JSON；按 spec 设置 CORS 响应头
   - `GET /v/site` → `site:pv` 读-加-写；计算 `sha256(ip + YYYYMMDD + SALT)` → 如果不在 `uv_today:<YYYYMMDD>` set 中则加入；返回 `{pv, uv: site_uv_total + today_size}`
   - `scheduled` 事件处理器：归档 `uv_today:<yesterday>` → 累加到 `site:uv` → 删除 set；幂等
   - 其他路径 → 404
@@ -80,13 +80,13 @@
 
 ## 8. 上线与观察
 
-- [ ] 8.1 git 提交所有改动，推送 `source` 分支触发 CI
-- [ ] 8.2 CI 完成后访问 `https://www.chenxiaosheng.com/`：DevTools Network 应见两次请求到 `views.chenxiaosheng.com/v/site`（首页）或 `/v/<slug> + /v/site`（文章页）；页脚和 meta 行应显示数字
-- [ ] 8.3 多刷 3-5 次，确认文章 PV 每次都 +1、整站 UV 不增（同 IP）、PV 每次 +1
-- [ ] 8.4 24h 后检查 CF Dashboard → Workers → blog-views：请求量 / 错误率 / KV ops 在预期范围；cron 在 UTC 00:05 成功触发
-- [ ] 8.5 验证跨日归档：次日早上检查 KV，`uv_today:<yesterday>` 已被删除、`site:uv` 累加了前一日 UV
+- [x] 8.1 git 提交所有改动，推送 `source` 分支触发 CI
+- [x] 8.2 CI 完成后访问 `https://www.chenxiaosheng.com/`：DevTools Network 应见两次请求到 `views.chenxiaosheng.com/v/site`（首页）或 `/v/<slug> + /v/site`（文章页）；页脚和 meta 行应显示数字
+- [x] 8.3 多刷 3-5 次，确认文章 PV 每次都 +1、整站 UV 不增（同 IP）、PV 每次 +1
+- [x] 8.4 24h 后检查 CF Dashboard → Workers → blog-views：请求量 / 错误率 / KV ops 在预期范围；cron 在 UTC 00:05 成功触发
+- [x] 8.5 验证跨日归档：次日早上检查 KV，`uv_today:<yesterday>` 已被删除、`site:uv` 累加了前一日 UV
 
 ## 9. 文档与后记
 
 - [x] 9.1 `worker/README.md` 写清楚：部署命令、KV key 布局、如何手动重置某 slug 计数、如何调整 SALT_SECRET
-- [ ] 9.2 在 `content/pages/about.md` 底部加一小段"关于阅读量"的说明（可选，看作者意愿）：透明披露 seed 存在
+- [x] 9.2 在 `content/pages/about.md` 底部加一小段"关于阅读量"的说明（可选，看作者意愿）：透明披露 seed 存在 —— 跳过

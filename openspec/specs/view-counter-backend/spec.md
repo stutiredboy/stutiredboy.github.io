@@ -64,16 +64,21 @@
 
 ### Requirement: Slug validation
 
-系统 MUST 对路径中的 slug 做严格校验：仅允许 `[a-z0-9][a-z0-9-]*`，长度 1-100。不符合的请求 MUST 响应 400 且不写 KV。
+系统 MUST 对路径中的 slug 做严格校验：首字符为 `[A-Za-z0-9]`，后续字符为 `[A-Za-z0-9._-]`，总长度 1-100。历史文章中存在含大写字母、点号、下划线的 slug（如 `how-to-top-up-U.S-AppleID-for-Chinese`、`mac_osx_iterm2_utf8_gbk_switch`、`aliyuncs.com-downgrade`），这些都 MUST 通过校验。不符合的请求 MUST 响应 400 且不写 KV。
 
-#### Scenario: 合法 slug
+#### Scenario: 合法 slug（kebab-case）
 
 - **WHEN** 请求 `/v/debian-add-cnnic-ca`
 - **THEN** 通过校验，进入计数流程
 
-#### Scenario: 含斜杠
+#### Scenario: 合法 slug（含大写、点号、下划线）
 
-- **WHEN** 请求 `/v/foo/bar` 或 `/v/../site`
+- **WHEN** 请求 `/v/how-to-top-up-U.S-AppleID-for-Chinese` 或 `/v/mac_osx_iterm2_utf8_gbk_switch` 或 `/v/aliyuncs.com-downgrade`
+- **THEN** 通过校验，进入计数流程
+
+#### Scenario: 含斜杠或路径穿越
+
+- **WHEN** 请求 `/v/foo/bar` 或 `/v/../site` 或 `/v/.hidden`
 - **THEN** 响应 400，KV 零写入
 
 #### Scenario: 超长
