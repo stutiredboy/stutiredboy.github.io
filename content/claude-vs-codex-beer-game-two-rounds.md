@@ -1,4 +1,4 @@
-Title: 7900 vs 727：让 Claude 和 Codex 干两杯啤酒试试
+Title: 啤酒游戏：让 Claude 和 Codex 干两杯啤酒试试
 Date: 2026-04-21 22:00:00
 Tags: ai, llm, claude, codex, homework, supply-chain
 Slug: claude-vs-codex-beer-game-two-rounds
