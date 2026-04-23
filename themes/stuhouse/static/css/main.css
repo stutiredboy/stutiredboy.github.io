@@ -618,14 +618,15 @@ hr {
 .article-comments {
     margin-top: var(--space-6);
     padding-top: var(--space-4);
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--border-strong);
 }
 
 .article-related-title,
 .article-about-title,
 .article-comments-title {
     margin: 0 0 var(--space-3) 0;
-    font-size: 1.05rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
     color: var(--text-muted);
     font-weight: 600;
 }
@@ -648,14 +649,23 @@ hr {
 
 .article-related-list li {
     padding: var(--space-2) 0;
+    padding-left: 1.4em;
+    position: relative;
+}
+
+.article-related-list li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--text-subtle);
 }
 
 .article-related-list a {
-    color: var(--text);
+    color: var(--link);
 }
 
 .article-related-list a:hover {
-    color: var(--accent);
+    color: var(--link-hover);
 }
 
 .article-about p {
