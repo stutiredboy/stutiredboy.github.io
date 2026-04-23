@@ -97,3 +97,12 @@ EXTRA_PATH_METADATA = {
 }
 
 LAST_GENERATOR_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# 评论系统：giscus + GitHub Discussions
+# 配置自 https://giscus.app/zh-CN 生成；仓库需已启用 Discussions 并安装 giscus App
+GISCUS_REPO = "stutiredboy/stutiredboy.github.io"
+GISCUS_REPO_ID = "MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+GISCUS_CATEGORY = "Comments"
+GISCUS_CATEGORY_ID = "DIC_kwDOAMZ9nc4C7eK0"
+GISCUS_MAPPING = "pathname"
+GISCUS_THEME = "preferred_color_scheme"

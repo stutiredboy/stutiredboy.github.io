@@ -1,0 +1,23 @@
+{% if SITEURL and article.comments|default('true')|lower != 'false' %}
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="{{ GISCUS_REPO }}"
+                data-repo-id="{{ GISCUS_REPO_ID }}"
+                data-category="{{ GISCUS_CATEGORY }}"
+                data-category-id="{{ GISCUS_CATEGORY_ID }}"
+                data-mapping="{{ GISCUS_MAPPING }}"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="{{ GISCUS_THEME }}"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+{% endif %}

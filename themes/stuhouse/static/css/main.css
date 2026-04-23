@@ -614,18 +614,30 @@ hr {
    ============================================ */
 
 .article-related,
-.article-about {
+.article-about,
+.article-comments {
     margin-top: var(--space-6);
     padding-top: var(--space-4);
     border-top: 1px solid var(--border);
 }
 
 .article-related-title,
-.article-about-title {
+.article-about-title,
+.article-comments-title {
     margin: 0 0 var(--space-3) 0;
     font-size: 1.05rem;
     color: var(--text-muted);
     font-weight: 600;
+}
+
+.article-comments-hint {
+    margin: 0 0 var(--space-3) 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.article-comments-container {
+    min-height: 2rem;
 }
 
 .article-related-list {

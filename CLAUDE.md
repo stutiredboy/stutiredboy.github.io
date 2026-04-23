@@ -17,7 +17,7 @@ Source for the Pelican-generated blog **"小生说大声讲"** (https://www.chen
 ```bash
 pip install -r requirements.txt                              # Pelican 4.9, pelican-related, pelican-sitemap, Markdown 3
 export PYTHONPATH=$PWD:$PYTHONPATH                           # so pelicanconf can import jinja_filters
-pelican content -o output -s pelicanconf.py -t themes/pelican-bootstrap3
+pelican content -o output -s pelicanconf.py -t themes/stuhouse
 pelican --listen                                             # local server on :8000 (optional)
 ```
 
@@ -43,9 +43,13 @@ There is no test suite, linter, or Makefile. CI (`.github/workflows/deploy.yml`)
 
 - `pelicanconf.py` prepends the repo root to `sys.path` so the top-level `jinja_filters.py` (exposes a `shuffle` Jinja filter) can be imported. The duplicate copy at `plugins/jinja_filters.py` is unused — the loaded plugins are `pelican_related`, `tag_cloud`, `sitemap` via `PLUGIN_PATHS = ["plugins"]`.
 - `tag_cloud` is a **vendored** plugin (`plugins/tag_cloud.py`), not a pip install. `pelican_related` and `sitemap` come from pip (see `requirements.txt`).
-- Theme is vendored under `themes/pelican-bootstrap3/` — edit templates there, not via a submodule.
-- Disqus and Google Analytics IDs (`DISQUS_SITENAME`, `GOOGLE_ANALYTICS`) are hardcoded in `pelicanconf.py`.
+- Theme is vendored under `themes/stuhouse/` — edit templates there, not via a submodule. (The older `pelican-bootstrap3` theme was retired in `2026-04-19-modernize-blog-theme`.)
+- No third-party tracking or comment IDs live in `pelicanconf.py`: Disqus, Google Analytics and AdSense were removed during the theme modernization. Runtime analytics (if any) come from a self-hosted Cloudflare Worker — see the `view-counter-*` specs.
 
 ## OpenSpec
 
-`openspec/` is configured but unused (no specs, no active changes — only an empty `archive/` dir). The project adopts the spec-driven workflow via the `openspec-*` / `opsx:*` skills, but there are no existing specs to follow yet. If the user invokes an OpenSpec skill, treat this as a fresh project.
+The project follows the spec-driven workflow via the `openspec-*` / `opsx:*` skills.
+
+- `openspec/specs/` currently holds three capability specs, all from the view-counts work: `view-counter-backend`, `view-counter-display`, `view-seed-generation`.
+- `openspec/changes/archive/` keeps completed changes as a dated record. Current archive: `2026-04-19-modernize-blog-theme` (retired `pelican-bootstrap3`, removed Disqus/GA/AdSense) and `2026-04-20-add-article-view-counts` (Cloudflare Worker + KV counter).
+- Active changes go under `openspec/changes/<YYYY-MM-DD>-<kebab-name>/` with `proposal.md`, `design.md`, `tasks.md`, and `specs/<capability>/spec.md`. Use the archived changes as a template for structure and tone.
