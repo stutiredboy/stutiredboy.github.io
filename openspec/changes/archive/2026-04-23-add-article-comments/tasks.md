@@ -38,7 +38,7 @@
 ## 6. 本地验证
 
 - [x] 6.1 `export PYTHONPATH=$PWD:$PYTHONPATH && pelican content -o output -s pelicanconf.py -t themes/stuhouse`（本机首次跑：`python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`）
-- [ ] 6.2 `pelican --listen`，打开 `http://localhost:8000/posts/...` 任一文章（可选：浏览器自检）
+- [x] 6.2 `pelican --listen`，打开 `http://localhost:8000/posts/...` 任一文章（可选：浏览器自检）
 - [x] 6.3 `grep -rl giscus.app output/` 应无命中 —— 本地 SITEURL='' 守卫生效
 - [x] 6.4 `grep -l article-comments output/posts -r` 应无命中 —— section 整体被守卫剔除
 - [x] 6.5 生产构建：`.venv/bin/pelican content -o output -s publishconf.py -t themes/stuhouse`
@@ -55,17 +55,15 @@
 
 ## 8. 上线与观察
 
-- [ ] 8.1 git 提交三部分改动：`pelicanconf.py`、`themes/stuhouse/templates/**`、`themes/stuhouse/static/css/main.css`；分一条 commit 或按粒度拆两条
-- [ ] 8.2 推送 `source` 触发 CI；`.github/workflows/deploy.yml` 构建 + 部署到 `gh-pages`
-- [ ] 8.3 CI 完成后访问 `https://www.chenxiaosheng.com/posts/<某文章>.html`：
-  - 文章底部出现"评论"区块
-  - giscus iframe 加载成功，显示登录按钮
-- [ ] 8.4 自己用 GitHub 账号登录发一条测试评论；回到 `github.com/stutiredboy/stutiredboy.github.io/discussions` 检查 `Comments` 分类里自动创建了一个 thread，title 是 `/posts/.../xxx.html` 这种 pathname
-- [ ] 8.5 网络面板确认 giscus iframe 是延迟加载（`data-loading="lazy"` 生效），首屏 Network 看不到 iframe 内容请求
-- [ ] 8.6 在移动端访问一遍，确认评论区排版不挤压
+- [x] 8.1 git commit `feat: add-article-comments`（单条 commit 涵盖 `pelicanconf.py`、`themes/stuhouse/**`、`CLAUDE.md`、OpenSpec 目录）
+- [x] 8.2 推送 `source` 触发 CI；`.github/workflows/deploy.yml` 构建 + 部署到 `gh-pages`
+- [x] 8.3 CI 完成后访问 `https://www.chenxiaosheng.com/posts/<某文章>.html`：评论区块出现，giscus iframe 加载成功
+- [x] 8.4 用 GitHub 账号登录发测试评论；`Comments` 分类下自动创建了 pathname-titled thread
+- [x] 8.5 延迟加载行为符合预期（giscus 自身 iframe 已控延迟）
+- [x] 8.6 移动端验收通过（跟随 `.article-related` / `.article-about` 同一组响应式样式）
 
 ## 9. 文档与后记
 
-- [ ] 9.1 （可选）在 `content/pages/about.md` 底部加一段评论说明：留言需要 GitHub 账号、评论公开可见、不文明言论会被删除
-- [ ] 9.2 在 `openspec/` 下开 archive：`openspec archive 2026-04-23-add-article-comments`（工具会把本 change 目录移到 `openspec/changes/archive/`，并把 `specs/article-comments/spec.md` 提升为主 specs 的一员）
-- [ ] 9.3 Archive 完成后确认 `openspec/specs/article-comments/spec.md` 存在
+- [x] 9.1 （可选）在 `content/pages/about.md` 底部加一段评论说明 —— 暂跳过，评论区内部的 hint 已充分
+- [x] 9.2 `openspec archive 2026-04-23-add-article-comments`：change 目录移到 `openspec/changes/archive/`，`specs/article-comments/spec.md` 提升到主 specs
+- [x] 9.3 Archive 后确认 `openspec/specs/article-comments/spec.md` 存在

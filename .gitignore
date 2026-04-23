@@ -8,3 +8,4 @@ __pycache__/
 scripts/disqus-export.xml
 scripts/disqus-export.xml.gz
 .playwright-mcp/
+.claude/settings.local.json
