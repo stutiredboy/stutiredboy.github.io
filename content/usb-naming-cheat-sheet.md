@@ -1,4 +1,4 @@
-Title: USB 命名混乱救命表：从 1.1 到 80Gbps
+Title: USB 命名混乱救命表：从 1.1 到 120Gbps
 Date: 2026-04-26 12:00:00
 Tags: usb, hardware, cheatsheet, thunderbolt
 Slug: usb-naming-cheat-sheet
@@ -6,8 +6,6 @@ Author: 小生说大声讲
 Summary: USB 标准命名乱到没朋友——同一个速率换了三个商标名，"SuperSpeed" 听起来比 "SuperSpeedPlus" 只慢一点点其实差两倍，USB 3.0/3.1/3.2 Gen 1 是同一个东西。在 Fabien Sanglard 的 USB Cheat Sheet 基础上补充了截至 2026.04 已经量产的 USB4 v2.0 / 80Gbps 部分，做成一张可以直接抄的对照表。
 
 ## 为什么需要这张表
-
-Fabien 写这张表的起因：他花了一整天追一个**根本不存在的 bug**，最后发现是自己把某个 USB 术语理解错了。
 
 USB 的命名乱到什么程度？看几个常踩的坑：
 
@@ -296,14 +294,6 @@ USB-C 真正强大的地方是这两组针脚——没有它们，USB 就是个�
 
 原文写于 2022 年，那会儿的天花板就是 USB4 40Gbps。**到 2026.04，新的 USB4 v2.0（USB-IF 现在统一叫 "USB 80Gbps"）已经过了 spec → silicon → 整机三道关，能在零售店里买到。**
 
-时间线很清楚：
-
-- **2022.10**：USB-IF 发布 USB4 v2.0 规范。
-- **2023.09**：Intel 公布 Thunderbolt 5（基于 USB4 v2.0 超集，命名上是 Intel 自己的品牌）。
-- **2024.10**：苹果在 M4 Pro / M4 Max 版 MacBook Pro 上首次落地 Thunderbolt 5 接口；同年 Razer Blade 18、ASRock 等也跟进。
-- **2024.11**：Elecom 等厂商拿到 USB-IF 认证的 80 Gbps 线缆出货。
-- **2025–2026**：80 Gbps 的 NVMe SSD 硬盘盒、扩展坞在 Amazon / 京东上铺货，单价从最初的 $200 降到 $80 档位。
-
 技术上和老 USB4 的关键差别：
 
 - **PAM3 信号**：每个 symbol 不再是 0/1 两态，而是 -1/0/+1 三态（每 symbol 携带 ~1.58 bit）。这是单 lane 速率从 20 Gbps 翻到 40 Gbps 的核心。
@@ -311,13 +301,6 @@ USB-C 真正强大的地方是这两组针脚——没有它们，USB 就是个�
 - **对称模式 80 Gbps**：4 lane × 40 Gbps = 160 Gbit 信号，扣编码后约 ~9 700 MiB/s 理论值；实测顺序读目前在 6 GB/s 左右（被 NVMe 主控和 PCIe 拓扑限制住）。
 - **非对称模式 120 / 40 Gbps**：3 lane 走一个方向、1 lane 走反方向。专门给 8K 显示、外置 GPU 这种"大头朝外"的场景。USB-IF 称这个档为 "USB 120Gbps"，Intel 在 Thunderbolt 5 里叫 "Bandwidth Boost"——同一回事。
 - **接口仍然是 USB-C，引脚数还是 12**。线长上限稍微放宽到 1 m（被动铜线）；超过 1 m 一般要 active 线。
-
-**没写进表里的**（截至 2026.04 还停在 spec / 验证阶段，没有量产 SoC 出货）：
-
-- **USB4 v2.x / USB 160Gbps** 的演进路线图，目前只在 USB-IF 工作组里讨论，没有公开 silicon。
-- **USB PD 3.2 / AVS（Adjustable Voltage Supply）的更细电压档**，2024 年起规范在动，但市面上 USB-IF 认证的 PD 3.2 适配器和 sink 还非常少，绝大部分 EPR 设备仍走 PD 3.1，写进表里只会误导人。
-- **光纤主动 USB4 v2.0 线缆** 据说能拉到 50 m+，但出货量目前还集中在工业、广电场景，消费侧买到的几乎都是被动铜线。
-
 
 ## 参考
 
