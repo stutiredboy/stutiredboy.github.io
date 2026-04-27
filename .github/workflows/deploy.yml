@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Hong_Kong
     permissions:
       contents: write
 

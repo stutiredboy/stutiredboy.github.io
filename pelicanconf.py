@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*- #
 from __future__ import unicode_literals
 
-import datetime
+from datetime import datetime
 import os
 import sys
+from zoneinfo import ZoneInfo
 
 # 确保项目根目录在 Python 路径中（用于 jinja_filters 导入）
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -96,7 +97,7 @@ EXTRA_PATH_METADATA = {
     'extra/robots.txt': {'path': 'robots.txt'},
 }
 
-LAST_GENERATOR_TIME = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+LAST_GENERATOR_TIME = datetime.now(ZoneInfo(TIMEZONE)).strftime("%Y-%m-%d %H:%M:%S")
 
 # 评论系统：giscus + GitHub Discussions
 # 配置自 https://giscus.app/zh-CN 生成；仓库需已启用 Discussions 并安装 giscus App
