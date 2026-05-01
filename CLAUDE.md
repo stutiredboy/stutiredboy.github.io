@@ -13,6 +13,7 @@ Source for the Pelican-generated blog **"小生说大声讲"** (https://www.chen
 - `main` field in `gitStatus` shows `gh-pages` because that's the default publish branch — PRs should still target `source`.
 
 ## Build / preview
+use python virtualenv `~/.venv`
 
 ```bash
 pip install -r requirements.txt                              # Pelican 4.9, pelican-related, pelican-sitemap, Markdown 3
