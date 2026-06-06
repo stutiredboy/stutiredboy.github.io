@@ -162,4 +162,4 @@ vibe coding 不是把需求丢给 AI 就万事大吉，真正花时间的，永�
 
 二是 **AI 替代不了"品味"和"较真"**。它能秒出一个能跑的版本，但"窗口为什么躲到后面"这种坑、"要不要联网渲染"这种取舍、"克制住不加哪些功能"这种判断，依然得人来定。工具越强，"想清楚自己要什么"反而越值钱。
 
-代码已经开源在 GitHub（[stutiredboy/md2](https://github.com/stutiredboy/md2)），MIT 协议，`swift run Markdown2 path/to/file.md` 就能跑。如果你也和我一样，只是想随手打开一个 Markdown 文件看一眼，欢迎试试，也欢迎拍砖。
+代码已经开源在 GitHub（[stutiredboy/Markdown2](https://github.com/stutiredboy/Markdown2)），MIT 协议。如果你也和我一样，只是想随手打开一个 Markdown 文件看一眼，欢迎试试，也欢迎拍砖。
