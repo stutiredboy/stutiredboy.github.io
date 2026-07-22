@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 # 确保项目根目录在 Python 路径中（用于 jinja_filters 导入）
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from jinja_filters import shuffle
+from pymdownx.superfences import fence_code_format
 
 JINJA_FILTERS = { 'shuffle' : shuffle }
 PLUGIN_PATHS = ["plugins"]
@@ -38,6 +39,15 @@ MARKDOWN = {
         'markdown.extensions.codehilite': {'css_class': 'highlight'},
         'markdown.extensions.extra': {},
         'markdown.extensions.meta': {},
+        'pymdownx.superfences': {
+            'custom_fences': [
+                {
+                    'name': 'mermaid',
+                    'class': 'mermaid',
+                    'format': fence_code_format
+                }
+            ]
+        },
     },
     'output_format': 'html5',
     "lazy_ol": False,

@@ -4,6 +4,8 @@ Tags: ai, agent, subagent, skill, architecture
 Slug: demystifying-skill-subagent-and-agent
 Author: 老树
 Summary: 本文通过一个真实的“仓库月度自动统计与总结报告”落地需求，深入剖析 Skill、Subagent 和 Agent 三者的本质区别、协作模式与持久化原理，帮助读者建立对 AI 原生架构最直观透彻的认识。
+Mermaid: true
+
 
 在大模型（LLM）和 AI 智能体（Agent）快速演进的今天，我们在使用类似 Claude Code、Google Antigravity、AutoGPT 等 AI 编程助手或 Agent 框架时，经常会听到几个核心词汇：**Agent**、**Subagent** 和 **Skill**。
 
@@ -123,7 +125,8 @@ def categorize_file(filepath):
 
 ### 3. 第三步：生成结构化月度报告
 
-最终生成的月报 [outputs/reports/monthly-2026-07.md](file:///Users/tiredboy/work/github/all_others/outputs/reports/monthly-2026-07.md) 包含了极其清晰的业务图景：
+最终生成的月报 `outputs/reports/monthly-2026-07.md` 包含了极其清晰的业务图景：
+
 - **总体概览**：代码新增 +621 行，清理 -45,831 行大文本与废弃文件。
 - **三大核心亮点**：
   1. 上线 `pdf-watermark` 水印 Agent 技能包；

@@ -39,3 +39,33 @@
     {% include 'includes/toc.html' %}
 </div>
 {% endblock %}
+
+{% block scripts %}
+{% if article.metadata.get('mermaid') %}
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+    var currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+    mermaid.initialize({ startOnLoad: false, theme: currentTheme });
+
+    var diagrams = document.querySelectorAll('pre.mermaid');
+    diagrams.forEach(function (el) {
+        var code = el.querySelector('code');
+        el.setAttribute('data-source', code ? code.textContent : el.textContent);
+        el.textContent = el.getAttribute('data-source');
+    });
+
+    mermaid.run();
+
+    document.documentElement.addEventListener('themechange', function (e) {
+        var newTheme = e.detail === 'dark' ? 'dark' : 'default';
+        mermaid.initialize({ startOnLoad: false, theme: newTheme });
+        document.querySelectorAll('pre.mermaid').forEach(function (el) {
+            el.removeAttribute('data-processed');
+            el.textContent = el.getAttribute('data-source');
+        });
+        mermaid.run();
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -11,6 +11,7 @@
             var next = current === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
             try { localStorage.setItem('theme', next); } catch (e) {}
+            document.documentElement.dispatchEvent(new CustomEvent('themechange', { detail: next }));
         });
 
         // Follow system when user hasn't set a manual preference.

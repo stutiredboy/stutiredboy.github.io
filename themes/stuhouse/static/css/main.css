@@ -571,6 +571,20 @@ hr {
     color: inherit;
 }
 
+/* Mermaid 图表 */
+.article-content pre.mermaid {
+    background: transparent;
+    padding: 0;
+    overflow-x: auto;
+    text-align: center;
+    font-family: var(--font-sans);
+}
+
+.article-content pre.mermaid svg {
+    max-width: 100%;
+    height: auto;
+}
+
 .highlight {
     position: relative;
 }
