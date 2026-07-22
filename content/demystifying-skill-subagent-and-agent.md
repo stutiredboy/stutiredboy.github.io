@@ -68,11 +68,11 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant User as 用户 / 定时任务 (Cron)
-    participant MainAgent as 主 Agent (Main Agent)
-    participant SubAgent as 专员 Subagent (repo_monthly_reporter)
-    participant SkillDir as 静态 Skill (skills/repo-monthly-report)
-    participant Report as 输出成果 (outputs/reports/)
+    participant User as "用户 / 定时任务 (Cron)"
+    participant MainAgent as "主 Agent (Main Agent)"
+    participant SubAgent as "专员 Subagent (repo_monthly_reporter)"
+    participant SkillDir as "静态 Skill (skills/repo-monthly-report)"
+    participant Report as "输出成果 (outputs/reports/)"
 
     User->>MainAgent: 触发“生成上月仓库报告”
     MainAgent->>SubAgent: 派发子任务 (invoke_subagent)
