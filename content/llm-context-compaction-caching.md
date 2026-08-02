@@ -641,16 +641,27 @@ Claude Code 把请求按"变化频率"分了三层，尽量让稳定的东西排
 
 #### （C）Claude Code 的缓存生命周期（TTL）
 
-```
-                    每次命中都会重置计时器
-   ┌──────────────────────────────────────────────┐
-   │                                              │
-请求 ──► 命中 ──► 命中 ──► 命中 ──┤ 闲置超过 TTL ├──► ❌ 冷启动
-                                  └──────────────┘     全量重算
-
-订阅计划（Pro/Max）：自动使用 1 小时 TTL
-API key / 第三方：默认 5 分钟，可设 ENABLE_PROMPT_CACHING_1H=1
-```
+<svg viewBox="0 0 760 235" width="100%" style="max-width:760px;height:auto;display:block;margin:1.2rem auto" role="img" aria-label="缓存 TTL 生命周期时间线" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <title>缓存 TTL 生命周期：连续请求保持缓存热，闲置超过 TTL 后冷启动</title>
+  <rect x="48" y="62" width="322" height="92" rx="6" fill="#2e7d32" opacity="0.10"/>
+  <rect x="370" y="62" width="218" height="92" rx="6" fill="#c0392b" opacity="0.09"/>
+  <text x="209" y="84" text-anchor="middle" fill="#38914a" font-size="12.5" font-weight="600">缓存热 · 每次命中都重置计时器</text>
+  <text x="479" y="84" text-anchor="middle" fill="#c0392b" font-size="12.5" font-weight="600">闲置超过 TTL</text>
+  <line x1="30" y1="118" x2="692" y2="118" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+  <path d="M692 118 l-9 -4.5 v9 z" fill="currentColor" opacity="0.5"/>
+  <text x="700" y="122" font-size="11" fill="currentColor" opacity="0.6">时间</text>
+  <line x1="322" y1="101" x2="608" y2="101" stroke="#c0392b" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.75"/>
+  <g fill="#2e7d32"><circle cx="85" cy="118" r="7"/><circle cx="160" cy="118" r="7"/><circle cx="235" cy="118" r="7"/><circle cx="310" cy="118" r="7"/></g>
+  <g fill="#ffffff" font-size="9.5" font-weight="700" text-anchor="middle"><text x="85" y="121.5">✓</text><text x="160" y="121.5">✓</text><text x="235" y="121.5">✓</text><text x="310" y="121.5">✓</text></g>
+  <text x="197" y="146" text-anchor="middle" fill="currentColor" opacity="0.75" font-size="11.5">连续对话：整个前缀按 0.1× 输入价读取</text>
+  <circle cx="620" cy="118" r="8" fill="#c0392b"/>
+  <text x="620" y="122" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700">✕</text>
+  <text x="620" y="146" text-anchor="middle" fill="#c0392b" font-size="11.5" font-weight="600">冷启动</text>
+  <text x="620" y="161" text-anchor="middle" fill="currentColor" opacity="0.7" font-size="10.5">全量重算，慢且贵</text>
+  <rect x="48" y="178" width="630" height="42" rx="6" fill="currentColor" opacity="0.06"/>
+  <text x="64" y="197" font-size="11.5" fill="currentColor" opacity="0.85">TTL：订阅计划自动 1 小时；API key / 第三方默认 5 分钟</text>
+  <text x="64" y="212" font-size="11.5" fill="currentColor" opacity="0.85">Subagent 恒为 5 分钟；超额动用 credits 时自动降回 5 分钟</text>
+</svg>
 
 - **Claude 订阅计划**：Claude Code **自动请求 1 小时 TTL**，休息一小时内回来仍能命中。
 - 但如果超出套餐额度、开始消耗 usage credits，会**自动降回 5 分钟 TTL**（因为此时 1 小时写入更贵）。
@@ -713,21 +724,23 @@ OpenAI 的缓存是**全自动**的，没有 `cache_control` 这种标注机制�
 
 现在把三个概念串起来。一个长会话的真实 token 曲线是这样的：
 
-```
- tokens
-      ▲
- 967K ┤- - - - - -✂- - - - - - - - - - - -✂- - - - - -   ← auto-compact 阈值
-      │          ╱│                       ╱│
-      │        ╱  │                     ╱  │
-      │      ╱    │                   ╱    │
-      │    ╱      │                 ╱      │
-      │  ╱        │               ╱        │
-  ~40K┤╱          └──────────────╱          └───────────
-      │            ▲                        ▲
-      │            └─ 压缩：贵一次，         └─ 又贵一次
-    0 └──────────────────────────────────────────────────▶ 时间
-       ├─缓存热─┤ ├──缓存热──┤ ├────缓存热────┤
-```
+<svg viewBox="0 0 760 310" width="100%" style="max-width:760px;height:auto;display:block;margin:1.2rem auto" role="img" aria-label="长会话上下文占用的锯齿曲线" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <title>长会话 token 曲线：每次压缩形成一个锯齿</title>
+  <text x="62" y="30" font-size="11.5" fill="currentColor" opacity="0.8">每个谷底 = 一次额外的模型调用 + 一次信息损失 + 一次对话层缓存重建</text>
+  <line x1="62" y1="45" x2="62" y2="250" stroke="currentColor" stroke-width="1.3" opacity="0.45"/>
+  <line x1="62" y1="250" x2="712" y2="250" stroke="currentColor" stroke-width="1.3" opacity="0.45"/>
+  <path d="M712 250 l-9 -4.5 v9 z" fill="currentColor" opacity="0.45"/>
+  <line x1="62" y1="72" x2="700" y2="72" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="6 4" opacity="0.85"/>
+  <text x="700" y="65" text-anchor="end" fill="#c0392b" font-size="11.5" font-weight="600">auto-compact 阈值（Sonnet 5 ≈ 967K）</text>
+  <polyline points="62,240 230,72 230,222 400,72 400,222 570,72 570,222 690,150" fill="none" stroke="#2d6cdf" stroke-width="2.5" stroke-linejoin="round"/>
+  <g fill="#c0392b"><circle cx="230" cy="222" r="4.5"/><circle cx="400" cy="222" r="4.5"/><circle cx="570" cy="222" r="4.5"/></g>
+  <g stroke="currentColor" opacity="0.35" stroke-width="1"><line x1="230" y1="250" x2="230" y2="257"/><line x1="400" y1="250" x2="400" y2="257"/><line x1="570" y1="250" x2="570" y2="257"/></g>
+  <g fill="#c0392b" font-size="11" font-weight="600" text-anchor="middle"><text x="230" y="270">压缩</text><text x="400" y="270">压缩</text><text x="570" y="270">压缩</text></g>
+  <g fill="currentColor" opacity="0.7" font-size="11" text-anchor="end"><text x="56" y="76">967K</text><text x="56" y="226">≈40K</text><text x="56" y="254">0</text></g>
+  <text x="712" y="270" text-anchor="end" fill="currentColor" opacity="0.65" font-size="11">会话时间 →</text>
+  <g fill="#2e7d32" opacity="0.20"><rect x="62" y="284" width="164" height="9" rx="3"/><rect x="234" y="284" width="162" height="9" rx="3"/><rect x="404" y="284" width="162" height="9" rx="3"/><rect x="574" y="284" width="116" height="9" rx="3"/></g>
+  <text x="376" y="306" text-anchor="middle" fill="currentColor" opacity="0.7" font-size="10.5">每一段绿条 = 一个缓存热的平台期，优化目标就是让它尽可能长</text>
+</svg>
 
 **每个锯齿的谷底 = 一次压缩 = 一次昂贵的额外调用 + 一次信息损失 + 一次对话层缓存重建。**
 
