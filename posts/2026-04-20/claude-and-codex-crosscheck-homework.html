@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我是怎么让 Claude 和 Codex 帮忙完成课程作业 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="这门《运营与供应链管理》课后有个「设施选址」的案例，我让 Claude 先做了一遍，又用 Codex 独立做了一遍，两个答案思路一致但数字和结论完全相反。把两份答案同时丢回 Claude 让它当裁判，结果它推翻了自己之前的解法——三处方法论错误被它一条条指出来，还配合 Python...">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2026-04-20/claude-and-codex-crosscheck-homework.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="我是怎么让 Claude 和 Codex 帮忙完成课程作业">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2026-04-20/claude-and-codex-crosscheck-homework.html">
+            <meta property="og:description" content="这门《运营与供应链管理》课后有个「设施选址」的案例，我让 Claude 先做了一遍，又用 Codex 独立做了一遍，两个答案思路一致但数字和结论完全相反。把两份答案同时丢回 Claude 让它当裁判，结果它推翻了自己之前的解法——三处方法论错误被它一条条指出来，还配合 Python 独立验证给出了修订版。这篇记录一下这个「左右互博」的过程，和我为什么觉得它比让单一模型深挖要靠谱。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="我是怎么让 Claude 和 Codex 帮忙完成课程作业">
+            <meta name="twitter:description" content="这门《运营与供应链管理》课后有个「设施选址」的案例，我让 Claude 先做了一遍，又用 Codex 独立做了一遍，两个答案思路一致但数字和结论完全相反。把两份答案同时丢回 Claude 让它当裁判，结果它推翻了自己之前的解法——三处方法论错误被它一条条指出来，还配合 Python 独立验证给出了修订版。这篇记录一下这个「左右互博」的过程，和我为什么觉得它比让单一模型深挖要靠谱。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="claude-and-codex-crosscheck-homework">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">我是怎么让 Claude 和 Codex 帮忙完成课程作业</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2026-04-20T22:00:00+08:00">2026-04-20 22:00</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 13 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/ai.html">ai</a> · <a href="https://www.chenxiaosheng.com/tag/llm.html">llm</a> · <a href="https://www.chenxiaosheng.com/tag/claude.html">claude</a> · <a href="https://www.chenxiaosheng.com/tag/codex.html">codex</a> · <a href="https://www.chenxiaosheng.com/tag/homework.html">homework</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <p>这学期有一门《运营与供应链管理》，第二次课留了个案例作业：南方超级医疗设备公司的设施选址。题目不难，标准的<strong>重心法</strong>（Center of Gravity）单仓库选址问题，考的是套公式 + ROI 判断。</p>
+<p>我照例先让 Claude 做了一份，给了一个看起来挺漂亮的参考答案。觉得不放心，开了一个新的会话用 Codex 再独立跑了一遍。拿到结果之后我愣住了：<strong>两份答案的思路完全一致，计算出来的最优坐标相差不大，但最终 ROI 正负相反、决策完全相反。</strong></p>
+<ul>
+<li>Claude：重心在 <strong>(7.42, 5.04)</strong>，年运输节约 $46,838，ROI −188%，<strong>结论：续租堪萨斯城，别搬</strong></li>
+<li>Codex：重心在 <strong>(7.58, 4.51)</strong>，年运输节约 $223,646，ROI +41.22%，<strong>结论：应当搬迁</strong></li>
+</ul>
+<p>两个都是基于同一份 PDF 案例、同一个重心法公式，怎么会算出一正一负？</p>
+<h2>左右互博：把裁判位置也交给 AI</h2>
+<p>我本来的计划是自己动手验算一遍，但看了一会儿发现这事没那么简单——重心法有两个版本（一次加权平均 vs Weiszfeld 迭代）、费率 R 的单位有两种理解（美元/担 vs 美元/担/英里）、外向成本又有两种建模方式。要真人判裁谁对谁错，我得先把讲义从头翻一遍。</p>
+<p>懒病发作，我干脆把两份答案一起丢回一个新的 Claude 会话，原话是这样的：</p>
+<blockquote>
+<p>你完成的解答位于：南方医疗设备公司设施选址_参考答案-Claude.md
+我使用其他模型解答的结果和你基本不一致，虽然思路是相同的，结果位于：南方医疗设备公司设施选址-案例解答-Codex.md
+请检查双方究竟谁的逻辑存在问题，并给出支撑理由，如有必要，请修正完善最终版本结论</p>
+</blockquote>
+<p>注意这里：Claude 开新会话后其实是没有前次对话记忆的，所以这份 <code>_参考答案-Claude.md</code> 对它而言就是一份陌生的答案，和 Codex 的那份在它眼里是对等的。这样它就没有「维护自己面子」的心理包袱。</p>
+<h2>Claude 翻出了自己的错</h2>
+<p>它做的第一件事是去读讲义 PDF 里重心法的原始公式。这一步关键——它不是在两份答案的输出之间找分歧，而是把两者都对照<strong>原题和教材</strong>做 ground truth 校对。</p>
+<p>几分钟后它给出了结论：</p>
+<blockquote>
+<p>Codex 的逻辑正确，Claude 的参考答案存在三处方法论错误。</p>
+</blockquote>
+<p>三处错误它一条条列了：</p>
+<p><strong>1. R 的单位错。</strong> 讲义里目标函数是 TC = Σ Vᵢ·Rᵢ·dᵢ，要求 Rᵢ 为「美元/担/英里」。案例表里给的是「美元/担（当前线路总费率）」，必须除以当前距离才能换算。<strong>案例原文第 2 页其实写得很清楚</strong>：「可估计出以仓库为起点的外向运输平均成本为 0.0235 美元/担/英里」——这句话就是在提示学生做单位换算。前一次 Claude 把这段忽略了，直接把美元/担当权重用，相当于把当前距离"二次放大"进了权重里，让远距离客户影响被高估。</p>
+<p><strong>2. 没迭代。</strong> 讲义 p.13 把步骤写得很明白：先用 X₀ = Σ(V·R·X)/Σ(V·R) 算一个<strong>初始坐标</strong>，然后根据 dᵢ 做 Weiszfeld 迭代直到收敛。前一次 Claude 算完初始坐标就收工了。</p>
+<p><strong>3. 外向费率结构错。</strong> 案例文本明确给了一个统一的外向均值 0.0235。前一次 Claude 反其道而行之，按每个客户的当前总费率和距离回推了每客户不同的每英里率。这会让 Chicago 显得每英里 0.050、Montreal 每英里 0.019，两者相差 2.6 倍——这种人为的不一致把新选址的外向成本虚推高了，把真实 $223K 的年节约压成虚假的 $47K。</p>
+<p>这三处错误串在一起，合力把最优点错误地向东北拉偏、又错误地抬高了新址的外向账单，最终得到"别搬"的结论。Codex 在这三点上都是按讲义和案例原文来的。</p>
+<h2>用 Python 作第三个独立裁判</h2>
+<p>到这一步其实已经够了，但我让 Claude 再做一件事：<strong>别用自己的文字推理下结论，写段 Python 从头算一遍，以程序的数值输出为准。</strong></p>
+<p>下面这段是它写的（我稍微整理了一下）：</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">math</span>
+<span class="n">k</span> <span class="o">=</span> <span class="mf">230.0</span>  <span class="c1"># 1 坐标单位 = 230 英里</span>
+
+<span class="c1"># (V, R_per_mile, X, Y) — 内向用个别每英里率，外向统一 0.02346</span>
+<span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="mi">61500</span><span class="p">,</span>  <span class="mf">0.01438521</span><span class="p">,</span> <span class="mf">3.60</span><span class="p">,</span> <span class="mf">3.90</span><span class="p">),</span>   <span class="c1"># 菲尼克斯</span>
+    <span class="p">(</span><span class="mi">120600</span><span class="p">,</span> <span class="mf">0.00791246</span><span class="p">,</span> <span class="mf">6.90</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">),</span>   <span class="c1"># 蒙特雷</span>
+    <span class="p">(</span><span class="mi">17000</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">,</span> <span class="mf">9.10</span><span class="p">),</span>   <span class="c1"># 西雅图</span>
+    <span class="p">(</span><span class="mi">32000</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">1.95</span><span class="p">,</span> <span class="mf">4.20</span><span class="p">),</span>   <span class="c1"># 洛杉矶</span>
+    <span class="p">(</span><span class="mi">12500</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">5.60</span><span class="p">,</span> <span class="mf">6.10</span><span class="p">),</span>   <span class="c1"># 丹佛</span>
+    <span class="p">(</span> <span class="mi">9500</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">7.80</span><span class="p">,</span> <span class="mf">3.60</span><span class="p">),</span>   <span class="c1"># 达拉斯</span>
+    <span class="p">(</span><span class="mi">29500</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">10.20</span><span class="p">,</span> <span class="mf">6.90</span><span class="p">),</span>  <span class="c1"># 芝加哥</span>
+    <span class="p">(</span><span class="mi">21000</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">11.30</span><span class="p">,</span> <span class="mf">3.95</span><span class="p">),</span>  <span class="c1"># 亚特兰大</span>
+    <span class="p">(</span><span class="mi">41300</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">14.00</span><span class="p">,</span> <span class="mf">6.55</span><span class="p">),</span>  <span class="c1"># 纽约</span>
+    <span class="p">(</span> <span class="mi">8600</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">12.70</span><span class="p">,</span> <span class="mf">7.80</span><span class="p">),</span>  <span class="c1"># 多伦多</span>
+    <span class="p">(</span><span class="mi">10700</span><span class="p">,</span>  <span class="mf">0.02346330</span><span class="p">,</span> <span class="mf">14.30</span><span class="p">,</span> <span class="mf">8.25</span><span class="p">),</span>  <span class="c1"># 蒙特利尔</span>
+<span class="p">]</span>
+
+<span class="c1"># 初始种子</span>
+<span class="n">X</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">V</span><span class="o">*</span><span class="n">R</span><span class="o">*</span><span class="n">Xi</span> <span class="k">for</span> <span class="n">V</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">Xi</span><span class="p">,</span><span class="n">Yi</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">V</span><span class="o">*</span><span class="n">R</span> <span class="k">for</span> <span class="n">V</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">Xi</span><span class="p">,</span><span class="n">Yi</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">V</span><span class="o">*</span><span class="n">R</span><span class="o">*</span><span class="n">Yi</span> <span class="k">for</span> <span class="n">V</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">Xi</span><span class="p">,</span><span class="n">Yi</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span> <span class="o">/</span> <span class="nb">sum</span><span class="p">(</span><span class="n">V</span><span class="o">*</span><span class="n">R</span> <span class="k">for</span> <span class="n">V</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">Xi</span><span class="p">,</span><span class="n">Yi</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span>
+
+<span class="c1"># Weiszfeld 迭代</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">d</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">V</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">Xi</span><span class="p">,</span><span class="n">Yi</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="n">di</span> <span class="o">=</span> <span class="n">k</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">X</span><span class="o">-</span><span class="n">Xi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Y</span><span class="o">-</span><span class="n">Yi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">di</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">R</span> <span class="o">/</span> <span class="n">di</span>
+        <span class="n">nx</span> <span class="o">+=</span> <span class="n">w</span><span class="o">*</span><span class="n">Xi</span><span class="p">;</span> <span class="n">ny</span> <span class="o">+=</span> <span class="n">w</span><span class="o">*</span><span class="n">Yi</span><span class="p">;</span> <span class="n">d</span> <span class="o">+=</span> <span class="n">w</span>
+    <span class="n">Xn</span><span class="p">,</span> <span class="n">Yn</span> <span class="o">=</span> <span class="n">nx</span><span class="o">/</span><span class="n">d</span><span class="p">,</span> <span class="n">ny</span><span class="o">/</span><span class="n">d</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Xn</span><span class="o">-</span><span class="n">X</span><span class="p">)</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Yn</span><span class="o">-</span><span class="n">Y</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-7</span><span class="p">:</span> <span class="k">break</span>
+    <span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">Xn</span><span class="p">,</span> <span class="n">Yn</span>
+
+<span class="k">def</span> <span class="nf">TC</span><span class="p">(</span><span class="n">Xp</span><span class="p">,</span> <span class="n">Yp</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">V</span><span class="o">*</span><span class="n">R</span> <span class="o">*</span> <span class="n">k</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">Xp</span><span class="o">-</span><span class="n">Xi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">Yp</span><span class="o">-</span><span class="n">Yi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">V</span><span class="p">,</span><span class="n">R</span><span class="p">,</span><span class="n">Xi</span><span class="p">,</span><span class="n">Yi</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;optimum = (</span><span class="si">{</span><span class="n">X</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">Y</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TC @ KC  (8.20, 6.00) = </span><span class="si">{</span><span class="n">TC</span><span class="p">(</span><span class="mf">8.20</span><span class="p">,</span><span class="w"> </span><span class="mf">6.00</span><span class="p">)</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TC @ Claude(7.42,5.04) = </span><span class="si">{</span><span class="n">TC</span><span class="p">(</span><span class="mf">7.42</span><span class="p">,</span><span class="w"> </span><span class="mf">5.04</span><span class="p">)</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TC @ Codex (7.58,4.51) = </span><span class="si">{</span><span class="n">TC</span><span class="p">(</span><span class="mf">7.58</span><span class="p">,</span><span class="w"> </span><span class="mf">4.51</span><span class="p">)</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TC @ optimum          = </span><span class="si">{</span><span class="n">TC</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">Y</span><span class="p">)</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>跑出来的输出：</p>
+<div class="highlight"><pre><span></span><code>optimum = (7.5806, 4.5084)
+TC @ KC  (8.20, 6.00) = 6,983,017
+TC @ Claude(7.42,5.04) = 6,792,698
+TC @ Codex (7.58,4.51) = 6,759,371
+TC @ optimum          = 6,759,371
+</code></pre></div>
+<p>几件事一次性水落石出：</p>
+<ul>
+<li>Weiszfeld 迭代收敛到 (7.5806, 4.5084)，和 Codex 的 (7.58, 4.51) 逐位对上</li>
+<li>Codex 那份的 TC $6,759,371 在正确方法下也<strong>正好是最优值</strong></li>
+<li>Claude 前一份的 (7.42, 5.04) 在正确方法下 TC 是 $6,792,698——<strong>比最优值贵了 $33K/年</strong>，连局部最优都不是</li>
+<li>堪萨斯城 TC $6,983,017 和题目给的 $6,982,104 差不到 0.02%（差异来自案例里距离和均值的四舍五入），说明用的参数都没偏</li>
+</ul>
+<p>然后年节约 $223,646，减去每年 $10 万新增租金，一次性搬迁投入 $30 万，<strong>年 ROI 41.22%，远高于 25% 阈值</strong>。正确结论是<strong>应当搬迁</strong>。</p>
+<h2>然后它把自己之前写错的那份改了</h2>
+<p>我让它把修订版直接覆盖原文件，同时在文件顶上标注修订说明。它交出的文件顶部是这样的：</p>
+<div class="highlight"><pre><span></span><code><span class="gh"># 案例：南方超级医疗设备公司设施选址 —— 参考答案（修订版）</span>
+
+<span class="k">&gt; </span><span class="ge">修订说明：本版本相对于初版修正了三处方法论错误——</span>
+<span class="k">&gt; </span><span class="ge">(1) 将运输费率 R 从「美元/担」换算为「美元/担/英里」；</span>
+<span class="k">&gt; </span><span class="ge">(2) 在初始种子 (X₀, Y₀) 的基础上补充 Weiszfeld 迭代；</span>
+<span class="k">&gt; </span><span class="ge">(3) 外向费率按案例原文统一取 0.02346 美元/担/英里，而非按客户回推。</span>
+<span class="k">&gt; </span><span class="ge">修订后结论从「维持堪萨斯城」转为「应搬迁至 (7.58, 4.51) 附近」。</span>
+</code></pre></div>
+<p>三个情景（Q1 基准、Q2 需求变化、Q3 费率上涨）的结论全部翻过来，ROI 从负值变成 41%–60% 区间，决策从"别搬"变成"都该搬"。</p>
+<h2>为什么「左右互博」比让单一模型深挖更靠谱</h2>
+<p>这件事让我后面做类似作业时固定下来了一套流程：<strong>一份答案让 A 模型做，一份让 B 模型做，再让 A 当裁判评 B，要求它必须回到原始材料（讲义/教材/题目原文）做 ground truth 校对，最后用 Python 当第三方复算。</strong></p>
+<p>为什么这么折腾？几个观察：</p>
+<p><strong>单一模型很难发现自己的方法论偏差。</strong> 如果我一开始就让 Claude 自己审自己那份答案，它大概率会在"既有框架"里找局部的算术错误，而不会去质疑 R 的单位、是否需要迭代这种<strong>框架本身</strong>的选择。Codex 那份答案的存在提供了一个<strong>不同的框架</strong>作为参照，这时候回到原题去校对才有意义。换句话说：两个答案的差异不在于谁算得更准，而在于<strong>把可能的解法空间暴露了出来</strong>。</p>
+<p><strong>当裁判比当选手更挑剔。</strong> 让 Claude 做题时它倾向于快速给出一个自洽的流程。让它当裁判时，它会去对照原文、逐字抠公式、做单位分析。同一个模型、同一个任务知识，输出质量差很远——角色不同，防御姿态不同。</p>
+<p><strong>Python 兜底是性价比最高的一步。</strong> 两个模型吵起来的时候，文字推理再漂亮也有可能都错。让它们最后落到一段可执行的代码上，数值一跑就有定论。这次 Python 确认 (7.5806, 4.5084) 是严格最优，也顺手把 Claude 自己给的 (7.42, 5.04) 彻底证伪了——文字说它"连局部最优都不是"显得没说服力，一行 <code>TC(7.42, 5.04) = 6,792,698 &gt; 6,759,371</code> 谁都没法赖。</p>
+<p><strong>模型之间没有「面子」问题。</strong> 前面提到我没告诉新会话的 Claude 那份错答案是它自己写的。这是有意为之——同一个账号、同一个模型，它如果意识到是在审自己的作业，有没有可能措辞会软一点？我不敢保证。切掉身份线索，让它<strong>以陌生答卷的姿态</strong>去评，才放得开。</p>
+<h2>我有不担心的地方，也有担心的地方</h2>
+<p>不担心的是：作业本身是死题、有唯一答案、可以程序化验证。在这类场景下 AI + AI + 代码的组合已经比我自己从头算可靠得多——我自己算大概率也会在哪一步单位换算上犯 Claude 初版犯的那种错。</p>
+<p>担心的是：不是所有作业都有"Python 可跑的 ground truth"。比如案例讨论题让写一份"定性分析报告"的时候，两个模型可能会写出两份看起来都通顺、实则都在偏差范围内的答卷，而我没有外部锚点去判对错。这种时候"左右互博"只能证伪明显的错误，不能正向保证正确。</p>
+<p>但即便如此，<strong>让 AI 看它同行的作业</strong>依然比<strong>让 AI 看自己的作业</strong>要诚实。这是我这次学到的最实用的一招。</p>
+<h2>尾声</h2>
+<p>借助 AI ，我弄清楚了重心法为什么要迭代、为什么 R 必须是每英里率——这两件事要是我自己硬看讲义，大概率和 Claude 初版踩一样的坑。把作业交给 AI 之后，我反而把原理学得更明白了。</p>
+<p>这件事我没推广到所有课——有些课的作业本来就是要自己算才算练到手（比如数理课）。但对那些"考的是方法，不是手算熟练度"的课，我现在的默认姿势就是两个模型互评 + 代码兜底。花的时间比自己硬做少得多，踩的坑反而更少。</p>
+<p>下次有类似的折腾再来记录。</p>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-15/peril-of-laziness-lost.html">LLM 让程序员的编程美德“懒惰”更显重要了</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-19/claude-refreshed-my-blog-this-weekend.html">Claude 在这个周末帮我翻新了博客</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-19/yao-shunyu-interview-takeaways.html">姚顺宇 4 小时访谈，通透有趣的灵魂~</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-21/claude-vs-codex-beer-game-two-rounds.html">啤酒游戏：让 Claude 和 Codex 干了这杯酒</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

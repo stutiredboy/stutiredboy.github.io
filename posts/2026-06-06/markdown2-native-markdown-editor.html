@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我只是想打开一个 Markdown 文件看一眼——于是 vibe coding 了一个编辑器 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="我的需求小到有点可笑：在 macOS 上随手双击打开一个 Markdown 文件看一眼，能顺手改两笔就更好。可挑遍主流编辑器，要么收费、要么是 Electron 套壳的庞然大物、要么年久失修、要么三天两头更新就崩。索性用 SwiftUI + AppKit 自己 vibe coding 了一个原生轻量的...">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2026-06-06/markdown2-native-markdown-editor.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="我只是想打开一个 Markdown 文件看一眼——于是 vibe coding 了一个编辑器">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2026-06-06/markdown2-native-markdown-editor.html">
+            <meta property="og:description" content="我的需求小到有点可笑：在 macOS 上随手双击打开一个 Markdown 文件看一眼，能顺手改两笔就更好。可挑遍主流编辑器，要么收费、要么是 Electron 套壳的庞然大物、要么年久失修、要么三天两头更新就崩。索性用 SwiftUI + AppKit 自己 vibe coding 了一个原生轻量的 Markdown2，本文记录这趟从"挑不到"到"自己造"的心路，以及途中那些有意思的坑。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="我只是想打开一个 Markdown 文件看一眼——于是 vibe coding 了一个编辑器">
+            <meta name="twitter:description" content="我的需求小到有点可笑：在 macOS 上随手双击打开一个 Markdown 文件看一眼，能顺手改两笔就更好。可挑遍主流编辑器，要么收费、要么是 Electron 套壳的庞然大物、要么年久失修、要么三天两头更新就崩。索性用 SwiftUI + AppKit 自己 vibe coding 了一个原生轻量的 Markdown2，本文记录这趟从"挑不到"到"自己造"的心路，以及途中那些有意思的坑。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="markdown2-native-markdown-editor">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">我只是想打开一个 Markdown 文件看一眼——于是 vibe coding 了一个编辑器</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2026-06-06T15:00:00+08:00">2026-06-06 15:00</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 14 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/markdown.html">markdown</a> · <a href="https://www.chenxiaosheng.com/tag/macos.html">macos</a> · <a href="https://www.chenxiaosheng.com/tag/swift.html">swift</a> · <a href="https://www.chenxiaosheng.com/tag/swiftui.html">swiftui</a> · <a href="https://www.chenxiaosheng.com/tag/vibe-coding.html">vibe-coding</a> · <a href="https://www.chenxiaosheng.com/tag/ai.html">ai</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <h2>一个小到可笑的需求</h2>
+<p>先说清楚我到底想要什么，因为这决定了后面所有的取舍：</p>
+<blockquote>
+<p>我只是想在 macOS 上<strong>随手打开一个 Markdown 文件看一眼</strong>，如果能顺便改两笔就更好——仅此而已。</p>
+</blockquote>
+<p>我不需要笔记库（vault）、不需要双向链接、不需要标签系统、不需要文件树、不需要发布到博客的一键流程、不需要 30 个主题。这些功能不是不好，而是它们都在解决"管理大量笔记"的问题，而我的问题是"<strong>此刻</strong>打开<strong>这一个</strong>文件"。</p>
+<p>这个需求小到，理论上应该有一大把现成软件能完美满足。但真当我一个个试过去，发现没有一个让我舒服的。</p>
+<h2>我试过的那些编辑器，以及为什么都不行</h2>
+<p>把候选者摊开，按我最在意的几个维度排一张表：</p>
+<table style="width: 100%;">
+    <tr>
+        <th>编辑器</th>
+        <th>实现方式</th>
+        <th>价格</th>
+        <th>维护状态</th>
+        <th>我的槽点</th>
+    </tr>
+    <tr>
+        <td><strong>Typora</strong></td>
+        <td>Electron / CEF</td>
+        <td>付费</td>
+        <td>活跃</td>
+        <td>体验确实是标杆，但收费 + Electron 套壳，进程动辄几百 MB</td>
+    </tr>
+    <tr>
+        <td><strong>MacDown</strong></td>
+        <td>原生 WebView</td>
+        <td>免费开源</td>
+        <td>年久失修</td>
+        <td>老牌良心货，但更新近乎停滞，对新语法支持滞后</td>
+    </tr>
+    <tr>
+        <td><strong>MacDown3000</strong></td>
+        <td>MacDown 衍生</td>
+        <td>免费</td>
+        <td>不稳定</td>
+        <td>每次跟着更新就容易"罢工"，可靠性堪忧</td>
+    </tr>
+    <tr>
+        <td><strong>Mark Text</strong></td>
+        <td>Electron</td>
+        <td>免费开源</td>
+        <td>基本停更</td>
+        <td>曾经很惊艳，如今 issue 堆积、长期没有新版</td>
+    </tr>
+    <tr>
+        <td><strong>Obsidian</strong></td>
+        <td>Electron</td>
+        <td>个人免费</td>
+        <td>活跃</td>
+        <td>强大但"重"，是知识库工具，为"打开一个文件"杀鸡用牛刀</td>
+    </tr>
+    <tr>
+        <td><strong>iA Writer</strong></td>
+        <td>原生</td>
+        <td>付费</td>
+        <td>活跃</td>
+        <td>原生、极简、很优雅，但要付费，且偏纯写作</td>
+    </tr>
+    <tr>
+        <td><strong>Marked 2</strong></td>
+        <td>原生</td>
+        <td>付费</td>
+        <td>活跃</td>
+        <td>只读预览器，不能编辑，定位和我的需求错位</td>
+    </tr>
+    <tr>
+        <td><strong>VS Code</strong></td>
+        <td>Electron</td>
+        <td>免费</td>
+        <td>活跃</td>
+        <td>它是 IDE，为看一个 md 启动整个编辑器，心理负担太大</td>
+    </tr>
+</table>
+
+<p>把这张表看下来，会发现它们恰好踩满了我的四条雷区：</p>
+<ol>
+<li><strong>要么收费</strong>——Typora、iA Writer、Marked 2，体验好但要掏钱，而我的需求廉价到不值得为它付费；</li>
+<li><strong>要么是 Electron 套壳</strong>——Mark Text、Obsidian、VS Code，随便开一个进程就吃掉几百 MB 内存，启动还有可感知的延迟，跟"随手看一眼"的轻快感背道而驰；</li>
+<li><strong>要么年久失修</strong>——MacDown 这样的老牌开源货，代码还在，但维护近乎停摆，新语法跟不上；</li>
+<li><strong>要么不稳定</strong>——MacDown 衍生出来的 MacDown3000，我用得最闹心，常常一更新就不能好好工作。</li>
+</ol>
+<p>最让我难受的是第 2 条。Markdown 这种纯文本格式，本应是最轻量的东西，结果主流方案却普遍建立在一整个浏览器内核之上。为了渲染几段文字和代码块，背一个 Chromium，怎么想都不对劲。</p>
+<h2>那就自己写一个吧</h2>
+<p>既然挑不到，那就自己造。正好赶上 AI 辅助编程（大家戏称 "vibe coding"）已经足够顺手，我决定亲自下场，做一个完全贴合自己需求的编辑器。给它起名 <strong>Markdown2</strong>——"Markdown Editor <strong>Too</strong>"，一个不太正经的双关：既是"另一个 Markdown 编辑器"，也是"我也想要一个 Markdown 编辑器"。</p>
+<p>立项时我给自己定了几条死规矩，全部是对前面四条雷区的正面回应：</p>
+<ul>
+<li><strong>原生，不用 Electron</strong>——用 SwiftUI + AppKit，做成真正的 macOS app，启动快、内存小；</li>
+<li><strong>轻量，专注阅读/编辑</strong>——单窗口，只有"编写"和"阅读"两种模式，不做文件管理、不做笔记库；</li>
+<li><strong>离线，不依赖网络</strong>——公式、图表的渲染资源全部内置打包，断网照样工作；</li>
+<li><strong>开源免费</strong>——MIT 协议，自己用得放心，也省得有人重蹈我"挑不到"的覆辙。</li>
+</ul>
+<p>技术栈选 Swift 而不是继续套 Electron，理由很直接：我想要的就是"原生的轻"。文本编辑这件事，AppKit 的 <code>NSTextView</code> 经过几十年打磨，底子比任何 Web 富文本都扎实；外层用 SwiftUI 搭界面和状态管理，写起来又足够现代。两者配合，正好是"原生底座 + 现代外壳"。</p>
+<p>整个项目用 Swift Package Manager 组织，拆成三层：</p>
+<ul>
+<li><code>MD2Core</code>——纯逻辑层，Markdown 解析、渲染成 HTML、大纲提取、语法高亮、文档统计，不碰 UI，方便写单元测试；</li>
+<li><code>MD2AppSupport</code>——承载启动激活这类与 AppKit 生命周期强相关的辅助逻辑；</li>
+<li><code>MD2App</code>——SwiftUI/AppKit 的应用层，窗口、编辑器、预览、设置都在这。</li>
+</ul>
+<p>逻辑和界面分层之后，核心的解析渲染能力是可以脱离 GUI 单独测试的，这让"vibe coding"产出的代码不至于变成一团没法验证的浆糊。</p>
+<h2>途中那些有意思的坑</h2>
+<p>vibe coding 不是把需求丢给 AI 就万事大吉，真正花时间的，永远是那些"看起来该工作却不工作"的细节。挑几个印象最深的讲讲——前两个是早期的小坑，后两个则是真正需要先想清楚、再让 AI 动手的复杂需求。</p>
+<h3>坑一：<code>swift run</code> 启动后，窗口躲到了别人后面</h3>
+<p>开发阶段我习惯用 <code>swift run Markdown2</code> 直接跑。结果发现一个诡异现象：app 进程确实起来了，但<strong>窗口总是藏在当前 app 的后面</strong>，前台焦点还赖在终端/编辑器上，等于这 app 没法正常用。</p>
+<p>排查下来，根因有点意思：SwiftPM 跑出来的是一个<strong>裸的 Mach-O 可执行文件</strong>，而不是被 LaunchServices 管理的 <code>.app</code> bundle。macOS 对"裸进程"和"正经 app"的窗口前台化待遇是不一样的——从裸进程里直接调 AppKit 的激活 API，并不足以可靠地把窗口抢到最前面。</p>
+<p>解决办法是加了一段"直接启动引导"（direct-launch bootstrap）：当 Markdown2 发现自己不是在 <code>.app</code> 里运行时，就在 <code>.build</code> 目录下临时合成一个 <code>Markdown2.app</code>，再通过 <code>NSWorkspace</code> 带激活地把这个 bundle 打开，然后原始的裸进程退出。被 bundle 拉起来的那个进程会跳过引导逻辑，正常进入主流程。后来又发现 SwiftUI 的 <code>WindowGroup</code> 在这条特殊启动路径下，偶尔会进了 <code>applicationDidFinishLaunching</code> 却没真正建出可用的初始窗口，于是干脆在 <code>AppDelegate</code> 里<strong>显式创建主 <code>NSWindow</code></strong>，把 SwiftUI 的 <code>ContentView</code> 塞进去托管，再加上几次延迟激活重试兜底。</p>
+<p>这个坑我专门写了回归测试，验证激活策略提升、窗口层级排序、以及对"迟到窗口"的延迟重试。它很典型地说明了一件事：<strong>AI 能飞快写出主干，但操作系统层面的边角行为，还是得人去抠</strong>。</p>
+<h3>坑二：公式和图表，到底要不要联网</h3>
+<p>很多 Markdown 编辑器渲染数学公式和图表时，是去 CDN 拉 KaTeX/Mermaid 这些前端库的。但这跟我"断网也能看"的原则冲突——很多时候我打开一个 md，恰恰是在没网或不想联网的场景。</p>
+<p>于是我把渲染资源全部<strong>内置打包进 app</strong>：</p>
+<ul>
+<li><strong>数学公式</strong>用内置的 <a href="https://katex.org/">KaTeX</a>，行内 <code>$...$</code> 和独占一行的 <code>$$...$$</code> 都支持，还带上了 mhchem 扩展，能写化学式 <code>\ce{H2SO4}</code>；</li>
+<li><strong>图表</strong>支持 <code>mermaid</code>、<code>flow</code>（<a href="https://flowchart.js.org/">flowchart.js</a>）和 <code>sequence</code>（<a href="https://bramp.github.io/js-sequence-diagrams/">js-sequence-diagrams</a>），引擎全部离线内置。</li>
+</ul>
+<p>代价是 app 体积大了一点，但换来"任何时候、任何网络环境下打开都一致"，我觉得非常值。顺带一提，这两块功能我是用 spec-driven 的方式做的——先写 proposal/design/spec，再让 AI 照着实现，archive 里留着 <code>add-math-support</code> 和 <code>add-diagram-rendering</code> 两个变更记录。给 vibe coding 套上一层规格约束，产出的可控性明显高很多。后面两个更复杂的需求，更是全靠这套流程才没翻车。</p>
+<h3>坑三：模式切换后，怎么还"停在原地"</h3>
+<p>这是个用着用着就越来越忍不了的体验问题：在编写/阅读两种模式之间切换时，视口<strong>总是弹回文档顶部</strong>。文档但凡比一屏长，每切一次就得重新滚回刚才看的地方，读改循环被打断得很烦。</p>
+<p>听起来像"记一下滚动位置"这么简单，真做起来才发现卡在一个根本性的错位上：<strong>编辑器和预览是两套完全不同的坐标系</strong>。编辑器认的是「源码第几行」，预览是一个 <code>WKWebView</code>，认的是「DOM 元素的像素滚动偏移」。我"刚才在第 180 行"，翻译成预览里该滚到哪个像素，并没有现成的换算。</p>
+<p>破局点是文档大纲：每个 <code>Heading</code> 节点<strong>同时带着源码 <code>line</code> 和 HTML 元素 <code>id</code></strong>——它天然就是横跨两套坐标系的那座桥。于是策略定为：切换时锚定到「光标/视口上方最近的那个标题」，按<strong>章节粒度</strong>对齐，不追求像素级或光标级精确——目标是"落回文档的同一部分"，而不是分毫不差。没有标题的文档、或标题之前的内容，则退化成按滚动比例（scroll-fraction）兜底，<strong>绝不静默跳回顶部</strong>。</p>
+<p>真正棘手的是异步：<code>WKWebView</code> 的滚动位置只能通过 <code>evaluateJavaScript</code> 回调<strong>异步读取</strong>，而 SwiftUI 的模式切换是同步发生的、旧视图瞬间就被销毁。所以根本不能"在切换那一刻才去问预览滚到哪了"——得在用户滚动时就<strong>持续把「当前视口顶部是哪个标题」缓存下来</strong>，等切换真正发生时直接拿现成的值用。我把纯粹的「行号↔标题」解析逻辑（比如"找出 <code>line</code> 不超过某行的最后一个标题"）抽进 <code>MD2Core</code> 做成纯函数，这样不依赖跑起来的 WebView 就能单测。</p>
+<p>这种需求，是没法一句话丢给 AI 的。得先把"用什么做锚、锚在什么粒度、异步怎么规避、没锚点时怎么兜底"这几件事一条条想清楚、写进 spec，AI 才可能写对——否则它大概率给你一个"在简单情况下能跑、一遇到长文档和异步就乱套"的版本。</p>
+<h3>坑四：藏不住的图表"闪一下"</h3>
+<p>这个 bug 是做坑三时<strong>顺手揪出来的</strong>：调试滚动位置时我注意到，预览加载完之后大约一秒，Mermaid 图表会肉眼可见地"闪"一下——先显示一段原始代码文本，然后才被引擎替换成渲染好的 SVG。</p>
+<p>根因有两层。其一，图表引擎是<strong>异步</strong>渲染的，在它 resolve 之前，DOM 里就摆着原始源码当占位文本给读者看到了；其二，前面提过预览的 <code>WKWebView</code> 每次切换模式都会<strong>重建</strong>，所以这个闪烁不只第一次出现，而是<strong>每切一次复发一次</strong>。</p>
+<p>修法是给占位状态做文章：源码仍然留在 DOM 里供引擎读取，但用 CSS <strong>不再把它当正常文本显示</strong>；等引擎渲染完成，再加一个约 120ms 的淡入，把生硬的"代码→图"硬切变成柔和过渡；同时给占位块预留一点 <code>min-height</code>，减少 SVG 撑开时的布局跳动。这里最容易踩的雷是<strong>别把错误兜底搞丢了</strong>——解析失败时仍然要把原始源码显示出来，绝不能让一个写错的图表变成一片空白。所以"渲染成功才隐藏、失败要回显"这条岔路必须在 spec 里写死，测试也要专门覆盖错误路径仍然可见。</p>
+<p>一个需求的调试过程牵出另一个隐藏问题，再各自立项、写 spec、补回归测试——这才是真实软件演进的样子，也是为什么我越来越离不开这套"先规格、后实现"的节奏。</p>
+<h2>现在的 Markdown2 长什么样</h2>
+<p>迭代到现在，它已经能覆盖我日常的全部需求：</p>
+<ul>
+<li><strong>单窗口、双模式</strong>：一个主界面，<code>Esc</code> 从编辑切到预览，预览里 <code>Cmd+双击</code> 切回编辑，手不离键，且切换时停留在同一章节、不会弹回顶部；</li>
+<li><strong>多窗口</strong>：每个文档独立开窗，从 Finder 双击打开时会复用那些还没动过的空白窗口，不会越开越乱；</li>
+<li><strong>大纲侧栏</strong>：按标题自动生成，长文档导航很顺；</li>
+<li><strong>自动保存 + 关闭确认</strong>：已保存的文档防抖自动保存，有未保存改动时关窗/退出会提示；</li>
+<li><strong>状态栏</strong>：字数、字符数、行数、预计阅读时间一眼可见；</li>
+<li><strong>够用的 Markdown 渲染</strong>：标题、强调、链接、图片、引用、各类列表、GFM 表格、带语法高亮的围栏代码（Python/Go/Rust/Swift 等十来种语言）、YAML front matter、<code>[TOC]</code>，外加前面说的离线公式与图表；</li>
+<li><strong>文件类型关联</strong>：打包后把 <code>.md</code>/<code>.markdown</code> 注册给自己，双击直达。</li>
+</ul>
+<p>它<strong>不做</strong>的事同样清晰：脚注、PDF/DOCX 导出、图片上传拖拽、打字机模式、主题管理、笔记库——这些都不在"随手打开看一眼"的射程内，我刻意没碰。约束自己不做什么，往往比堆功能更难，但这恰恰是我对那些"功能太复杂"的编辑器最大的不满，不能自己又掉进同一个坑。</p>
+<h2>一点心路体会</h2>
+<p>回头看这趟，从"挑不到一个趁手的 Markdown 编辑器"到"两天攒出一个自己用着舒服的原生 app"，最大的感受有两条。</p>
+<p>一是 <strong>AI 把"自己造一个轮子"的门槛拉得很低了</strong>。放在以前，为了这么个小需求去啃 AppKit、SwiftUI、KaTeX 内嵌，光是查文档就能劝退我；现在 vibe coding 让我能把精力集中在"我到底想要什么、哪里还不对"上，而不是卡在 API 细节里。</p>
+<p>二是 <strong>AI 替代不了"品味"和"较真"</strong>。它能秒出一个能跑的版本，但"窗口为什么躲到后面"这种坑、"要不要联网渲染"这种取舍、"克制住不加哪些功能"这种判断，依然得人来定。工具越强，"想清楚自己要什么"反而越值钱。</p>
+<p>代码已经开源在 GitHub（<a href="https://github.com/stutiredboy/Markdown2">stutiredboy/Markdown2</a>），MIT 协议。如果你也和我一样，只是想随手打开一个 Markdown 文件看一眼，欢迎试试，也欢迎拍砖。</p>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-21/claude-vs-codex-beer-game-two-rounds.html">啤酒游戏：让 Claude 和 Codex 干了这杯酒</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-19/yao-shunyu-interview-takeaways.html">姚顺宇 4 小时访谈，通透有趣的灵魂~</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-17/changxin-storage-dram.html">借长鑫科技的东风，把存储这件事一次讲透</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

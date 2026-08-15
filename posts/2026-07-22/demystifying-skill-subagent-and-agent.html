@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="本文通过一个真实的“仓库月度自动统计与总结报告”落地需求，深入剖析 Skill、Subagent 和 Agent 三者的本质区别、协作模式与持久化原理，帮助读者建立对 AI 原生架构最直观透彻的认识。">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">
+            <meta property="og:description" content="本文通过一个真实的“仓库月度自动统计与总结报告”落地需求，深入剖析 Skill、Subagent 和 Agent 三者的本质区别、协作模式与持久化原理，帮助读者建立对 AI 原生架构最直观透彻的认识。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构">
+            <meta name="twitter:description" content="本文通过一个真实的“仓库月度自动统计与总结报告”落地需求，深入剖析 Skill、Subagent 和 Agent 三者的本质区别、协作模式与持久化原理，帮助读者建立对 AI 原生架构最直观透彻的认识。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="demystifying-skill-subagent-and-agent">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2026-07-22T11:45:00+08:00">2026-07-22 11:45</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 12 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/ai.html">ai</a> · <a href="https://www.chenxiaosheng.com/tag/agent.html">agent</a> · <a href="https://www.chenxiaosheng.com/tag/subagent.html">subagent</a> · <a href="https://www.chenxiaosheng.com/tag/skill.html">skill</a> · <a href="https://www.chenxiaosheng.com/tag/architecture.html">architecture</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <p>在大模型（LLM）和 AI 智能体（Agent）快速演进的今天，我们在使用类似 Claude Code、Google Antigravity、AutoGPT 等 AI 编程助手或 Agent 框架时，经常会听到几个核心词汇：<strong>Agent</strong>、<strong>Subagent</strong> 和 <strong>Skill</strong>。</p>
+<p>很多开发者往往会感到困惑：
+- <em>“Skill 和 Agent 到底有什么区别？不都是给 AI 用的工具吗？”</em>
+- <em>“既然主 Agent 已经能干活了，为什么还需要 Subagent？”</em>
+- <em>“Subagent 到底是保存在内存里的一个虚无概念，还是一个真正的代码实体？”</em></p>
+<p>为了彻底说清楚这三者的概念与工程落地，本文将结合一个真实的实战需求——<strong>“每月自动统计代码仓库变化并生成结构化月报”</strong>，手把手拆解这套 AI 原生架构。</p>
+<hr>
+<h2>一、 形象比喻：企业团队的运作模型</h2>
+<p>要搞懂这三者的关系，最直观的方式就是对比一个<strong>现代企业项目团队</strong>的日常分工：</p>
+<pre class="mermaid"><code>flowchart TD
+    subgraph 企业团队模型
+        Manager["主 Agent (项目负责人 / PM)"]
+        Worker["Subagent (专职分析员工)"]
+        SOP["Skill (SOP 操作手册 &amp; 工具脚本)"]
+
+        Manager --&gt;|派发任务| Worker
+        Worker --&gt;|读取标准并执行工具| SOP
+        Worker --&gt;|交付成果报告| Manager
+    end</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">维度</th>
+<th style="text-align: left;">Agent (主智能体)</th>
+<th style="text-align: left;">Subagent (子智能体)</th>
+<th style="text-align: left;">Skill (技能/工具包)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>现实比喻</strong></td>
+<td style="text-align: left;"><strong>项目负责人 / PM</strong></td>
+<td style="text-align: left;"><strong>专职员工 / 专项专员</strong></td>
+<td style="text-align: left;"><strong>SOP 操作手册 / 员工指南 / 工具箱</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>本质属性</strong></td>
+<td style="text-align: left;">全局控制中枢，负责响应用户输入与任务调度。</td>
+<td style="text-align: left;">动态派生的独立 LLM 线程/会话，专注解决单一复杂子任务。</td>
+<td style="text-align: left;">静态的指令集、规范文件（如 Markdown SOP）及可执行脚本。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>上下文 (Context)</strong></td>
+<td style="text-align: left;">包含与用户对话的全部主历史。</td>
+<td style="text-align: left;"><strong>完全隔离</strong>的独立上下文空间，不受主对话噪音干扰。</td>
+<td style="text-align: left;">没有上下文，它是被读取的文件与调用的工具。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>生命周期</strong></td>
+<td style="text-align: left;">贯穿整个 Chat Session 过程。</td>
+<td style="text-align: left;">被唤醒时启动，完成特定任务后提交结果并结束。</td>
+<td style="text-align: left;">长期静态保存在项目 Git 仓库中。</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>核心一句话：</strong>
+<strong>Skill 告诉 Agent“标准和工具是什么”；Subagent 是真正“带上工具、在独立房间里闭门干活的员工”。</strong></p>
+</blockquote>
+<hr>
+<h2>二、 真实需求场景：每月仓库变化统计与月报生成</h2>
+<p>假设我们在一个项目中需要增加一个自动化能力：<strong>每月自动统计本仓库的代码提交、文档新增、模块变动，并形成一份有深度、有分类总结的月度 Markdown 报告</strong>。</p>
+<h3>为什么单纯靠“主 Agent + 提示词”很笨重？</h3>
+<p>如果直接让主 Agent 在当前对话窗口里去干这件事情：
+1. <strong>上下文严重污染</strong>：主 Agent 需要读取近 30 天几十上百条提交记录和几百个文件的变更 diff。这些巨量日志会瞬间塞满主对话窗口的 Context Window。
+2. <strong>效率与成本低下</strong>：海量的中间数据会使后续每句聊天的 Token 消耗急剧增加，甚至导致主 Agent “头晕遗忘”之前的上下文。</p>
+<p>因此，完美的解法就是：<strong>Skill + Subagent 协同架构</strong>。</p>
+<hr>
+<h2>三、 架构设计与落地实现</h2>
+<p>整个系统的运作流程如下图所示：</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant User as "用户 / 定时任务 (Cron)"
+    participant MainAgent as "主 Agent (Main Agent)"
+    participant SubAgent as "专员 Subagent (repo_monthly_reporter)"
+    participant SkillDir as "静态 Skill (skills/repo-monthly-report)"
+    participant Report as "输出成果 (outputs/reports/)"
+
+    User-&gt;&gt;MainAgent: 触发“生成上月仓库报告”
+    MainAgent-&gt;&gt;SubAgent: 派发子任务 (invoke_subagent)
+    Note over SubAgent: 启动独立 Context 空间
+    SubAgent-&gt;&gt;SkillDir: 1. 读取 SKILL.md 指南 SOP
+    SubAgent-&gt;&gt;SkillDir: 2. 执行 extract_git_metrics.py 脚本
+    SkillDir--&gt;&gt;SubAgent: 返回 JSON 格式硬指标数据
+    Note over SubAgent: 3. 对 Git Log 进行语义归纳与分类
+    SubAgent-&gt;&gt;Report: 4. 生成 monthly-YYYY-MM.md 报告
+    SubAgent--&gt;&gt;MainAgent: 汇报完成情况与文件路径
+    MainAgent--&gt;&gt;User: 最终答复与成果呈现</code></pre>
+<h3>1. 第一步：打造 Skill（静态 SOP 与工具箱）</h3>
+<p>在仓库中建立 <code>skills/repo-monthly-report/</code> 目录：</p>
+<ol>
+<li><strong><code>SKILL.md</code> (标准操作流程指南)</strong>：
+   定义了报告的四大归纳维度（如 AI 技能库、投资模型、学术论文、项目清理）、报告保存路径规范（<code>outputs/reports/monthly-YYYY-MM.md</code>）以及标准的 Markdown 结构模板。</li>
+<li><strong><code>scripts/extract_git_metrics.py</code> (数据提取脚本)</strong>：
+   用 Python 自动化提取过去指定天数的提交总数、贡献者、增删代码行数及按业务模块分类的文件列表。</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="c1"># extract_git_metrics.py 核心片段</span>
+<span class="k">def</span> <span class="nf">categorize_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;根据文件路径进行业务模块分类&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">filepath</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;articles/&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;学术论文/文章 (articles/)&quot;</span>
+    <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;invest/&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;投资/金融模型 (invest/)&quot;</span>
+    <span class="k">elif</span> <span class="n">filepath</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;skills/&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;AI Agent Skills (skills/)&quot;</span>
+    <span class="c1"># ...其他分类逻辑</span>
+</code></pre></div>
+<h3>2. 第二步：定义并派生 Subagent（动态分析员工）</h3>
+<p>主 Agent 通过声明并派生一个名为 <code>repo_monthly_reporter</code> 的子智能体：</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;repo_monthly_reporter&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;role&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Repo Monthly Reporting Specialist&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;system_prompt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;你是一个专业的仓库月报生成子智能体。严格遵守 skills/repo-monthly-report/SKILL.md 规范，运行 Python 统计脚本，对业务模块进行深度语义归纳，生成月报保存至 outputs/reports/。&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>随后主 Agent 执行 <code>invoke_subagent</code> 派发任务：
+<strong>Subagent 启动后，在自己独立的 Context 空间内加载 Skill，运行 Python 脚本提取了 18 个变更文件与 -45,831 行数据，并完成了深度语义总结。</strong></p>
+<h3>3. 第三步：生成结构化月度报告</h3>
+<p>最终生成的月报 <code>outputs/reports/monthly-2026-07.md</code> 包含了极其清晰的业务图景：</p>
+<ul>
+<li><strong>总体概览</strong>：代码新增 +621 行，清理 -45,831 行大文本与废弃文件。</li>
+<li><strong>三大核心亮点</strong>：</li>
+<li>上线 <code>pdf-watermark</code> 水印 Agent 技能包；</li>
+<li>新增《价值平均定投法》金融知识文档与配套 Excel 工具；</li>
+<li>彻底清理老旧爬虫数据集与临时产物。</li>
+</ul>
+<hr>
+<h2>四、 核心追问：Subagent 究竟保存在哪里？</h2>
+<p>在实际工程中，很多人会好奇：<strong>Subagent 到底是一个保存在硬盘上的实体，还是仅仅一串临时提示词？</strong></p>
+<p>答案是：<strong>它既有运行态的实体，也有静态配置的储存</strong>。</p>
+<h3>1. 运行态实体 (Runtime Entity)</h3>
+<p>当 Subagent 被派生时，系统真正为其建立了独立的进程与存储路径。
+例如本次运行中，Subagent 的完整推理过程、思维链以及中间工具调用历史，真实地保存在本地磁盘上：
+<code>~/.gemini/antigravity/brain/&lt;subagent-conversation-id&gt;/.system_generated/logs/transcript.jsonl</code></p>
+<p>这也正是为什么它的运行不会占用或污染主 Agent 的 Context 窗口。</p>
+<h3>2. 配置与定义持久化 (Persistence)</h3>
+<ul>
+<li><strong>动态注册（会话级 Session Scope）</strong>：通过 <code>define_subagent</code> 工具在运行内存中注册，仅对当前 Chat Session 有效，重启后注册表中不保留。</li>
+<li><strong>静态配置文件（项目级 Project Scope）</strong>：将 Subagent 的 Prompt 和角色写入项目的配置文件（如 <code>AGENTS.md</code> 或 <code>.claude/agents/</code>），这样每次打开客户端或任何人拉取仓库代码，系统均会自动识别并加载该 Subagent。</li>
+</ul>
+<div class="highlight"><pre><span></span><code>[仓库根目录]
+├── skills/                      &lt;-- 静态 Skill 目录 (跟随 Git 永久持久化)
+│   └── repo-monthly-report/
+│       ├── SKILL.md
+│       └── scripts/extract_git_metrics.py
+├── AGENTS.md                    &lt;-- 静态 Subagent 配置文件 (项目级持久化)
+└── outputs/reports/             &lt;-- 成果输出路径
+</code></pre></div>
+<hr>
+<h2>五、 工程总结：何时用 Skill？何时用 Subagent？</h2>
+<p>在设计 AI 原生系统或进行 Agentic Workflow 开发时，可以遵循以下<strong>三分法原则</strong>：</p>
+<ol>
+<li><strong>写成 Skill</strong>：</li>
+<li>凡是<strong>静态的操作流程 (SOP)</strong>、代码规范、文档模板、纯 Python/Shell 工具脚本，通通写成 Skill 放在 <code>skills/</code> 目录下。它是纯粹的知识与工具沉淀。</li>
+<li><strong>定义 Subagent</strong>：</li>
+<li>凡是需要<strong>大量上下文消耗</strong>（如读大量日志、审阅成百上千行代码）、<strong>并发处理</strong>、或<strong>特定专业角色设定</strong>（如专业 Code Review 员、安全审计员、月报撰写专员）的任务，定义为 Subagent。</li>
+<li><strong>主 Agent 负责调度</strong>：</li>
+<li>主 Agent 保持轻量，专注于倾听用户的复杂指令，做顶层任务拆解，并发派给对应的 Subagent 去完成。</li>
+</ol>
+<p>通过这套架构，我们不仅实现了一个自动化的仓库月报工具，更彻底搞懂了 AI 原生开发中最核心的三大基石理念。</p>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-19/yao-shunyu-interview-takeaways.html">姚顺宇 4 小时访谈，通透有趣的灵魂~</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-17/changxin-storage-dram.html">借长鑫科技的东风，把存储这件事一次讲透</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-21/claude-vs-codex-beer-game-two-rounds.html">啤酒游戏：让 Claude 和 Codex 干了这杯酒</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-06-06/markdown2-native-markdown-editor.html">我只是想打开一个 Markdown 文件看一眼——于是 vibe coding 了一个编辑器</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+    var currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+    mermaid.initialize({ startOnLoad: false, theme: currentTheme });
+
+    var diagrams = document.querySelectorAll('pre.mermaid');
+    diagrams.forEach(function (el) {
+        var code = el.querySelector('code');
+        el.setAttribute('data-source', code ? code.textContent : el.textContent);
+        el.textContent = el.getAttribute('data-source');
+    });
+
+    mermaid.run();
+
+    document.documentElement.addEventListener('themechange', function (e) {
+        var newTheme = e.detail === 'dark' ? 'dark' : 'default';
+        mermaid.initialize({ startOnLoad: false, theme: newTheme });
+        document.querySelectorAll('pre.mermaid').forEach(function (el) {
+            el.removeAttribute('data-processed');
+            el.textContent = el.getAttribute('data-source');
+        });
+        mermaid.run();
+    });
+</script>
+</body>
+</html>

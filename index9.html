@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小生说大声讲</title>
+
+            <meta name="description" content="记录和整理自己的经验，仅供自己参考。">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/index9.html">
+            <meta property="og:type" content="website">
+            <meta property="og:title" content="小生说大声讲">
+            <meta property="og:url" content="https://www.chenxiaosheng.com">
+            <meta property="og:description" content="记录和整理自己的经验，仅供自己参考。">
+            <meta property="og:site_name" content="小生说大声讲">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body>
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="post-list-wrapper">
+    <ul class="post-list">
+        <li class="post-list-item">
+            <time class="post-list-date" datetime="2013-09-09T16:18:00+08:00">2013-09-09</time>
+            <div class="post-list-body">
+                <h2 class="post-list-title"><a href="https://www.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html">配置Bind使用MySQL dlz模式</a></h2>
+                <p class="post-list-summary">** 安装MySQL/Bind with dlz ** 略过，bind dlz安装，只需在编译的时候增加 --with-dlz-mysql 选项即可。 ** 创建 MySQL 数据库 ** 根据自己的需求创建即可，如使用如下命令创 …</p>
+            </div>
+        </li>
+        <li class="post-list-item">
+            <time class="post-list-date" datetime="2013-09-09T15:02:00+08:00">2013-09-09</time>
+            <div class="post-list-body">
+                <h2 class="post-list-title"><a href="https://www.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html">Django multiple select option with title</a></h2>
+                <p class="post-list-summary">from django import forms from django.utils.encoding import force_unicode from django.utils.html import escape, conditional_escape class SelectMultipleWithTitle(forms.SelectMultiple): """ multiple select optihon with title """ def render_option(self, selected_choices, option_value, option_label): option_value = force_unicode(option_value) selected_html = (option_value in selected_choices) and u' selected="selected"' or '' return u'<option value="%s"%s …</p>
+            </div>
+        </li>
+        <li class="post-list-item">
+            <time class="post-list-date" datetime="2013-09-08T13:03:00+08:00">2013-09-08</time>
+            <div class="post-list-body">
+                <h2 class="post-list-title"><a href="https://www.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html">install Facebook scribe on Debian Squeeze</a></h2>
+                <p class="post-list-summary">系统: Debian Squeeze 6.0 amd64 thrift: 0.8.0 hadoop: 0.20.2 cdh3 hadoop-0.20_0.20.2+923.142 scribe: git current version 首先安装各种库，包括但不局限于: python-dev maven2 ant sun-java6-jre sun-java6-jdk bison flex gcc make autoconf …</p>
+            </div>
+        </li>
+        <li class="post-list-item">
+            <time class="post-list-date" datetime="2013-09-08T12:51:00+08:00">2013-09-08</time>
+            <div class="post-list-body">
+                <h2 class="post-list-title"><a href="https://www.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html">Windows OpenVPN GUI记住用户名和密码</a></h2>
+                <p class="post-list-summary">日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。 如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦</p>
+            </div>
+        </li>
+        <li class="post-list-item">
+            <time class="post-list-date" datetime="2013-09-08T12:25:00+08:00">2013-09-08</time>
+            <div class="post-list-body">
+                <h2 class="post-list-title"><a href="https://www.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html">Debian系统添加全局根证书（CNNIC）</a></h2>
+                <p class="post-list-summary">鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。本篇文章介绍了如何将CNNIC CA添加至Debian操作系统全局根证书。</p>
+            </div>
+        </li>
+    </ul>
+
+    <nav class="pagination" aria-label="分页">
+            <a class="pagination-prev" href="https://www.chenxiaosheng.com/index8.html">← 上一页</a>
+
+        <span class="pagination-info">第 9 / 9 页</span>
+
+            <span class="pagination-next pagination-disabled">下一页 →</span>
+    </nav>
+</div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

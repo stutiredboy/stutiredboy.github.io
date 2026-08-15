@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一次「安全」的变更将 redis cluster 送进了孤岛 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="一次「安全」的变更将 redis cluster 送进了孤岛">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2018-07-16/redis-cluster-bind-bug.html">
+            <meta property="og:description" content="一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="一次「安全」的变更将 redis cluster 送进了孤岛">
+            <meta name="twitter:description" content="一次以为安全的，天衣无缝的升级，却将 redis cluster 集群送进了孤岛。对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="redis-cluster-bind-bug">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">一次「安全」的变更将 redis cluster 送进了孤岛</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2018-07-16T00:51:00+08:00">2018-07-16 00:51</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 12 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/redis.html">redis</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <p>鉴于 redis 没有有效的鉴权方法（特别是 redis cluster），为了防止人为疏忽导致系统防火墙未被有效开启，我们决定对线上的 redis 增加显示监听内网 IP 配置：</p>
+<blockquote>
+<p>bind 127.0.0.1 ${本机内网 IP}</p>
+</blockquote>
+<p>在我们看来，这是一个不可能出现问题的变更，因此也没有专门安排测试。事实证明，没有保持敬畏之心的我们还是太天真了！</p>
+<p>线上配置发布后，重启 redis 服务，一切都很顺利，进程成功启动。然后，灾难开始降临，业务开始反馈 redis 缓存无法读写，查看 redis 日志，发现：</p>
+<blockquote>
+<p>Cluster state changed: fail</p>
+</blockquote>
+<p>尝试通过 redis-cli 连接进行操作，连接没有问题，但当我们尝试执行 <code>get a</code> 操作时，集却群反馈错误：</p>
+<blockquote>
+<p>-CLUSTERDOWN The cluster is down</p>
+</blockquote>
+<p>首要事件是保证服务可用，我们第一时间回退配置，重启后 redis 服务恢复正常。</p>
+<h3>问题回放</h3>
+<p>开启 Debug 模式，发现有大量的 createing socket: invalid argument 怀疑是 redis 拿了 bind 中的第一个 IP 为节点 IP，导致集群中所有节点的 IP 为 127.0.0.1，因此集群的通信出现问题（事后 review 代码确认跟第一个 IP 有关系，但不是导致所有节点的 IP 为 127.0.0.1）。</p>
+<div class="highlight"><pre><span></span><code>1616:M 02 Jul 11:02:25.407 # Cluster state changed: ok
+......
+13236:M 02 Jul 11:02:27.104 . Unable to connect to Cluster Node [10.x.x.x]:16379 -&gt; creating socket: Invalid argument
+13236:M 02 Jul 11:02:27.104 . Unable to connect to Cluster Node [10.x.x.x]:16379 -&gt; creating socket: Invalid argument
+......
+1616:M 02 Jul 11:02:38.438 # Cluster state changed: fail
+</code></pre></div>
+<p>有了上面的怀疑之后，我们尝试修改 bind 的配置，将 127.0.0.1 放到后面，即：</p>
+<blockquote>
+<p>bind ${本机内网 IP} 127.0.0.1</p>
+</blockquote>
+<p>重启集群发现问题果然没有出现，感觉自己好机智（进行源码分析后，发现自己还是想的太简单了）。</p>
+<h3>源码分析</h3>
+<p>redis 版本：3.2.11</p>
+<ol>
+<li>
+<p>根据 <code>Cluster state changed: fail</code> 我们定位到，redis 是在 cluster.c 的 clusterUpdateState 函数里进行集群的状态判断：</p>
+<ul>
+<li>当节点状态为 CLUSTER_NODE_FAIL 或 CLUSTER_NODE_PFAIL 时，节点被标记为不可达；</li>
+<li>当不可达的 master 节点大于 quorum 时，集群被标记为不可用；</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="cm">/* Compute the cluster size, that is the number of master nodes</span>
+<span class="cm">     * serving at least a single slot.</span>
+<span class="cm">     *</span>
+<span class="cm">     * At the same time count the number of reachable masters having</span>
+<span class="cm">     * at least one slot. */</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">     </span><span class="p">...</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">flags</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">CLUSTER_NODE_FAIL</span><span class="o">|</span><span class="n">CLUSTER_NODE_PFAIL</span><span class="p">))</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">                    </span><span class="n">reachable_masters</span><span class="o">++</span><span class="p">;</span>
+<span class="w">     </span><span class="p">...</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="cm">/* If we are in a minority partition, change the cluster state</span>
+<span class="cm">     * to FAIL. */</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">needed_quorum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">server</span><span class="p">.</span><span class="n">cluster</span><span class="o">-&gt;</span><span class="n">size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">reachable_masters</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">needed_quorum</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">new_state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CLUSTER_FAIL</span><span class="p">;</span>
+<span class="w">            </span><span class="n">among_minority_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mstime</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="cm">/* Log a state change */</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">new_state</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">server</span><span class="p">.</span><span class="n">cluster</span><span class="o">-&gt;</span><span class="n">state</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="p">....</span>
+<span class="w">        </span><span class="cm">/* Change the state and log the event. */</span>
+<span class="w">        </span><span class="n">serverLog</span><span class="p">(</span><span class="n">LL_WARNING</span><span class="p">,</span><span class="s">&quot;Cluster state changed: %s&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="n">new_state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">CLUSTER_OK</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;ok&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;fail&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">server</span><span class="p">.</span><span class="n">cluster</span><span class="o">-&gt;</span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">new_state</span><span class="p">;</span>
+<span class="w">        </span><span class="p">...</span>
+<span class="w">    </span><span class="p">}</span>
+</code></pre></div>
+</li>
+<li>
+<p>redis cluster 主要是通过 cluster.c 中的 clusterCron 定期判断收集集群的状态，也是在这个函数里我们发现了最主要的探测函数 <code>anetTcpNonBlockBindConnect</code> 及非常符合异常特征的参数名称 <code>NET_FIRST_BIND_ADDR</code></p>
+<div class="highlight"><pre><span></span><code><span class="w">            </span><span class="n">fd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">anetTcpNonBlockBindConnect</span><span class="p">(</span><span class="n">server</span><span class="p">.</span><span class="n">neterr</span><span class="p">,</span><span class="w"> </span><span class="n">node</span><span class="o">-&gt;</span><span class="n">ip</span><span class="p">,</span>
+<span class="w">                </span><span class="n">node</span><span class="o">-&gt;</span><span class="n">port</span><span class="o">+</span><span class="n">CLUSTER_PORT_INCR</span><span class="p">,</span><span class="w"> </span><span class="n">NET_FIRST_BIND_ADDR</span><span class="p">);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">fd</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">-1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="cm">/* We got a synchronous error from connect before</span>
+<span class="cm">                 * clusterSendPing() had a chance to be called.</span>
+<span class="cm">                 * If node-&gt;ping_sent is zero, failure detection can&#39;t work,</span>
+<span class="cm">                 * so we claim we actually sent a ping now (that will</span>
+<span class="cm">                 * be really sent as soon as the link is obtained). */</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">node</span><span class="o">-&gt;</span><span class="n">ping_sent</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">node</span><span class="o">-&gt;</span><span class="n">ping_sent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mstime</span><span class="p">();</span>
+<span class="w">                </span><span class="n">serverLog</span><span class="p">(</span><span class="n">LL_DEBUG</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Unable to connect to &quot;</span>
+<span class="w">                    </span><span class="s">&quot;Cluster Node [%s]:%d -&gt; %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">node</span><span class="o">-&gt;</span><span class="n">ip</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">node</span><span class="o">-&gt;</span><span class="n">port</span><span class="o">+</span><span class="n">CLUSTER_PORT_INCR</span><span class="p">,</span>
+<span class="w">                    </span><span class="n">server</span><span class="p">.</span><span class="n">neterr</span><span class="p">);</span>
+<span class="w">                </span><span class="k">continue</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+</code></pre></div>
+</li>
+<li>
+<p><code>anetTcpNonBlockBindConnect</code> 函数位于 anet.c 文件中，该函数调用了另一个函数 <code>anetTcpGenericConnect</code>，<code>NET_FIRST_BIND_ADDR</code> 在这里的实际作用为 source addr，问题原因已经呼之欲出了。我们再次定位 <code>anetTcpGenericConnect</code> 函数，找到以下内容：</p>
+<div class="highlight"><pre><span></span><code><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">source_addr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int</span><span class="w"> </span><span class="n">bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">            </span><span class="cm">/* Using getaddrinfo saves us from self-determining IPv4 vs IPv6 */</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">rv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getaddrinfo</span><span class="p">(</span><span class="n">source_addr</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">hints</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">bservinfo</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="n">anetSetError</span><span class="p">(</span><span class="n">err</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">gai_strerror</span><span class="p">(</span><span class="n">rv</span><span class="p">));</span>
+<span class="w">                </span><span class="k">goto</span><span class="w"> </span><span class="n">error</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bservinfo</span><span class="p">;</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">;</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">b</span><span class="o">-&gt;</span><span class="n">ai_next</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">bind</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">b</span><span class="o">-&gt;</span><span class="n">ai_addr</span><span class="p">,</span><span class="n">b</span><span class="o">-&gt;</span><span class="n">ai_addrlen</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">-1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="n">bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">                    </span><span class="k">break</span><span class="p">;</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="n">freeaddrinfo</span><span class="p">(</span><span class="n">bservinfo</span><span class="p">);</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">bound</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="n">anetSetError</span><span class="p">(</span><span class="n">err</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;bind: %s&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">strerror</span><span class="p">(</span><span class="n">errno</span><span class="p">));</span>
+<span class="w">               </span><span class="k">goto</span><span class="w"> </span><span class="n">error</span><span class="p">;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+</code></pre></div>
+</li>
+<li>
+<p>通过以上内容，我们可以确认 redis cluster 在健康检测，建立 socket 连接时，尝试绑定了 socket 源地址，那么 <code>NET_FIRST_BIND_ADDR</code> 内容究竟是什么呢？这个我们在 server.h 文件中找到了答案，确实是 bind 配置中的第一个 IP，也就是我们这里的 127.0.0.1</p>
+<div class="highlight"><pre><span></span><code><span class="cm">/* Get the first bind addr or NULL */</span>
+<span class="cp">#define NET_FIRST_BIND_ADDR (server.bindaddr_count ? server.bindaddr[0] : NULL)</span>
+</code></pre></div>
+</li>
+</ol>
+<h3>问题结论</h3>
+<ol>
+<li>redis cluster 在检测节点健康状态时，尝试与其它节点建立连接，但强制使用了 bind 配置中的第一个 IP 为建立 socket 的源地址</li>
+<li>以上案例，当配置了监听 127.0.0.1 时，redis cluster 将尝试使用本地地址 127.0.0.1 去和一个外部节点建立链接，因此失败了；</li>
+<li>基本的解决方法：使用 bind 配置时，确保将可进行通讯的 IP 放在第一个；</li>
+<li>有没有其它问题：如果这是一个新建的 cluster 集群，那么在使用 redis-trib.rb 进行初始化集群时，该配置将导致 redis-trib.rb 工具长期阻塞，无法成功执行；</li>
+<li>所有支持 cluster 的 redis 版本均受影响（包括 unstable 分支）；</li>
+</ol>
+<h3>其它</h3>
+<p>私以为强制使用 bind 第一个 IP 进行通讯的方法略有不妥，如果检测健康状态时一定需要指定源地址的话，兴许做出如下调整会有一定的优势：</p>
+<ul>
+<li>当未初始化时（集群节点未明确 IP 地址），建立 socket 连接，不要指定源地址，由操作系统自行分配源地址即可；</li>
+<li>当 redis cluster 初始化时，可以使用初始化时指定的节点 IP 做为源地址；</li>
+<li>redis 在 anet.c 文件里，其实还提供了 <code>anetTcpNonBlockBestEffortBindConnect</code> 函数，这个函数如果通过绑定源地址建立 socket 链接失败后，会再次尝试由系统分配源地址的方式（不绑定），健康检查函数换成这个也不失为一个好办法；</li>
+</ul>
+<p>最（chao）后（xi）：对于这次故障，没有借口，我们不能也不该出现这样的失误！我们将认真复盘改进自动化运维技术和发布验证流程，敬畏每一行代码，敬畏每一份托付。</p>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-06-06/markdown2-native-markdown-editor.html">我只是想打开一个 Markdown 文件看一眼——于是 vibe coding 了一个编辑器</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-19/cpu-gpu-tpu-ai-infra.html">CPU、GPU、TPU 到底谁更“聪明”？从逻辑运算到光互连，一篇看懂 AI Infra</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-15/hammerspoon-screen-sharing-and-smb-automount.html">用 Hammerspoon 搞定远程锁屏与 SMB 动态挂载</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记一次 TiDB 时区设置异常问题排查 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="两个配置一模一样的 TiDB 集群，在执行 SELECT NOW(); 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。OS、TiDB 配置是统一管理的，究竟是什么原因导致的呢？">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="记一次 TiDB 时区设置异常问题排查">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2019-10-12/tidb-time_zone-settings.html">
+            <meta property="og:description" content="两个配置一模一样的 TiDB 集群，在执行 SELECT NOW(); 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。OS、TiDB 配置是统一管理的，究竟是什么原因导致的呢？">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="记一次 TiDB 时区设置异常问题排查">
+            <meta name="twitter:description" content="两个配置一模一样的 TiDB 集群，在执行 SELECT NOW(); 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。OS、TiDB 配置是统一管理的，究竟是什么原因导致的呢？">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="tidb-time_zone-settings">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">记一次 TiDB 时区设置异常问题排查</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2019-10-12T22:27:00+08:00">2019-10-12 22:27</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 21 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/dm.html">dm</a> · <a href="https://www.chenxiaosheng.com/tag/mysql.html">mysql</a> · <a href="https://www.chenxiaosheng.com/tag/tidb.html">tidb</a> · <a href="https://www.chenxiaosheng.com/tag/pingcap.html">pingcap</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <p>收到同事的反馈，两个配置一模一样的 TiDB 集群，在执行 <code>SELECT NOW();</code> 操作的时候出现了不一样的结果，A 集群的时间与系统时间一致，B 集群的时间比系统时间少了 8 小时。</p>
+<p><img alt="请在这里输入图片描述" src="/static/20191012150952.png"></p>
+<p>由于我们的 OS、TiDB 配置是统一管理的，所以我并不怀疑是因为两个集群当前配置不一样导致的。第一反应肯定是因为在 TiDB 启动之前用了错误的时区（UTC），然后 TiDB 引用了错误的时区导致的这个时间问题。根据常规经验，重启一下 TiDB 进程问题应该能解决。</p>
+<p>然而这一次失望了，重启 TiDB 之后，并没有发生什么变化。跟同事要了服务器信息，直接登录到机器上看一下吧。以下是整体的排查过程。</p>
+<h3>先确认是不是，再查为什么</h3>
+<p>首先还是确认是不是有这个问题（再研究为什么），根据<a href="https://pingcap.com/docs-cn/v3.0/how-to/configure/time-zone/#%E6%97%B6%E5%8C%BA%E6%94%AF%E6%8C%81">官方文档</a>，检查了 <code>time_zone</code> 信息，并没有发现异常，有问题的集群和没问题的集群配置也是完全一样的。</p>
+<p><div class="highlight"><pre><span></span><code>mysql&gt; SELECT @@global.time_zone, @@session.time_zone;
++--------------------+---------------------+
+| @@global.time_zone | @@session.time_zone |
++--------------------+---------------------+
+| SYSTEM             | SYSTEM              |
++--------------------+---------------------+
+1 row in set (0.01 sec)
+
+mysql&gt; SHOW GLOBAL VARIABLES LIKE &#39;%time_zone&#39;;
++------------------+--------+
+| Variable_name    | Value  |
++------------------+--------+
+| system_time_zone | CST    |
+| time_zone        | SYSTEM |
++------------------+--------+
+2 rows in set (0.00 sec)
+
+mysql&gt;
+</code></pre></div>
+虽然这里没有发现明显问题，但我们还是发现了一个疑点：我们的服务器，不可能会有 <code>CST</code> 这个时区设置（我们用的是 HKT），但 <code>CST</code> 这个很明显不是问题的原因。</p>
+<h3>日志是一定要看的</h3>
+<p>几乎可以这么说，日志就是为了排查问题而诞生的，任何不能马上判断的问题，都应该去翻一下日志，对服务的健康情况进行判断。因为是时区相关的问题，所以直接对 TiDB 的日志做了一个 <code>fgrep -i timezone tidb.log</code> 的操作，没想到真的发现了错误日志，毫无波折，就是这么惊喜。（TiDB 日志打印出来是完整一行的，以下内容我稍微格式化了一下，转化为真正的换行）：</p>
+<p><div class="highlight"><pre><span></span><code>[019/10/09 16:21:42.111 +08:00] [ERROR] [time.go:81] [&quot;locate timezone files failed&quot;] [] [stack=&quot;github.com/pingcap/tidb/util/timeutil.InferSystemTZ
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/util/timeutil/time.go:81
+github.com/pingcap/tidb/session.writeSystemTZ
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/bootstrap.go:786
+github.com/pingcap/tidb/session.doDMLWorks
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/bootstrap.go:935
+github.com/pingcap/tidb/session.bootstrap
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/bootstrap.go:290
+github.com/pingcap/tidb/session.runInBootstrapSession
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/session.go:1541
+github.com/pingcap/tidb/session.BootstrapSession
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/session.go:1460
+main.createStoreAndDomain
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/tidb-server/main.go:205
+main.main
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/tidb-server/main.go:171
+runtime.main
+/usr/local/go/src/runtime/proc.go:200&quot;]
+</code></pre></div>
+几乎可以直接肯定是因为这个报错导致的问题了，但还是需要靠撸代码来证明一下的。</p>
+<h3>撸代码</h3>
+<p>根据上述的错误日志，可以知道最终实际执行出错的函数在 <code>util/timeutil/time.go</code> 的 <code>InferSystemTZ</code> 函数里，我们来看下这个函数做了什么：</p>
+<p><div class="highlight"><pre><span></span><code><span class="c1">// InferSystemTZ reads system timezone from `TZ`, the path of the soft link of `/etc/localtime`. If both of them are failed, system timezone will be set to `UTC`.</span>
+<span class="c1">// It is exported because we need to use it during bootstap stage. And it should be only used at that stage.</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">InferSystemTZ</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// consult $TZ to find the time zone to use.</span>
+<span class="w">  </span><span class="c1">// no $TZ means use the system default /etc/localtime.</span>
+<span class="w">  </span><span class="c1">// $TZ=&quot;&quot; means use UTC.</span>
+<span class="w">  </span><span class="c1">// $TZ=&quot;foo&quot; means use /usr/share/zoneinfo/foo.</span>
+<span class="w">  </span><span class="nx">tz</span><span class="p">,</span><span class="w"> </span><span class="nx">ok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">syscall</span><span class="p">.</span><span class="nx">Getenv</span><span class="p">(</span><span class="s">&quot;TZ&quot;</span><span class="p">)</span>
+<span class="w">  </span><span class="k">switch</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="p">!</span><span class="nx">ok</span><span class="p">:</span>
+<span class="w">    </span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">err1</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">filepath</span><span class="p">.</span><span class="nx">EvalSymlinks</span><span class="p">(</span><span class="s">&quot;/etc/localtime&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err1</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">name</span><span class="p">,</span><span class="w"> </span><span class="nx">err2</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">inferTZNameFromFileName</span><span class="p">(</span><span class="nx">path</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="nx">err2</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">name</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">      </span><span class="nx">logutil</span><span class="p">.</span><span class="nx">Logger</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()).</span><span class="nx">Error</span><span class="p">(</span><span class="s">&quot;infer timezone failed&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">zap</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">err2</span><span class="p">))</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">logutil</span><span class="p">.</span><span class="nx">Logger</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()).</span><span class="nx">Error</span><span class="p">(</span><span class="s">&quot;locate timezone files failed&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">zap</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">err1</span><span class="p">))</span>
+<span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="nx">tz</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">tz</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s">&quot;UTC&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">source</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">zoneSources</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">os</span><span class="p">.</span><span class="nx">Stat</span><span class="p">(</span><span class="nx">source</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nx">tz</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">tz</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;UTC&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+可以看到，TiDB 设置时区的逻辑是首先获取操作系统的 TZ 变量，再从 <code>/etc/localtime</code> 的实际软链地址提取，最后 fallback 为 UTC。这个逻辑还是与<a href="https://pingcap.com/docs-cn/v3.0/how-to/configure/time-zone/#%E6%97%B6%E5%8C%BA%E6%94%AF%E6%8C%81">官方文档</a>的描述一致的。但是我们的机器上肯定是有 <code>/etc/localtime</code> 文件的，文件肯定也是正确的，为什么会失败呢？再来看一下上述代码里最终分析  <code>/etc/localtime</code> 的函数 <code>inferTZNameFromFileName</code> 都做了什么？</p>
+<p><div class="highlight"><pre><span></span><code><span class="c1">// inferTZNameFromFileName gets IANA timezone name from zoneinfo path.</span>
+<span class="c1">// TODO: It will be refined later. This is just a quick fix.</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">inferTZNameFromFileName</span><span class="p">(</span><span class="nx">path</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// phase1 only support read /etc/localtime which is a softlink to zoneinfo file</span>
+<span class="w">  </span><span class="nx">substr</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="s">&quot;zoneinfo&quot;</span>
+<span class="w">  </span><span class="c1">// macOs MoJave changes the sofe link of /etc/localtime from</span>
+<span class="w">  </span><span class="c1">// &quot;/var/db/timezone/tz/2018e.1.0/zoneinfo/Asia/Shanghai&quot;</span>
+<span class="w">  </span><span class="c1">// to &quot;/usr/share/zoneinfo.default/Asia/Shanghai&quot;</span>
+<span class="w">  </span><span class="nx">substrMojave</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="s">&quot;zoneinfo.default&quot;</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nx">idx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">strings</span><span class="p">.</span><span class="nx">Index</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">substrMojave</span><span class="p">);</span><span class="w"> </span><span class="nx">idx</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">string</span><span class="p">(</span><span class="nx">path</span><span class="p">[</span><span class="nx">idx</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="nx">substrMojave</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]),</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nx">idx</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">strings</span><span class="p">.</span><span class="nx">Index</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span><span class="w"> </span><span class="nx">substr</span><span class="p">);</span><span class="w"> </span><span class="nx">idx</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">string</span><span class="p">(</span><span class="nx">path</span><span class="p">[</span><span class="nx">idx</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="nx">substr</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">:]),</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;path %s is not supported&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">path</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+代码的注释里明确写了<strong>只支持 /etc/localtime 为软链接</strong>，代码的逻辑也是通过截取 <code>/etc/localtime</code> 软链指向的具体文件路径来获得时区信息。看一下我们服务器上的这个文件：</p>
+<p><div class="highlight"><pre><span></span><code>$ ls -alh /etc/localtime
+-rw-r--r-- 1 root root 1.2K 10月 12 10:11 /etc/localtime
+</code></pre></div>
+果然是一个文件而不是一个软链接。这下又带来了两个疑问：</p>
+<ol>
+<li>如果我改成软链再重启 TiDB 能不能解决问题呢？实践证明，不能解决。这里不再赘述。</li>
+<li>函数逻辑很明确是 fallback 了 UTC，根据 <code>SELECT NOW();</code> 早了 8 小时也可以确认是 UTC，可为什么 <code>system_time_zone</code> 是 CST 呢？</li>
+</ol>
+<h4>看到的（CST）和实际的（UTC）不一样？</h4>
+<p>TiDB 在拿不到正确的时区，回落至 UTC 时，最终 UTC 是怎么设置的呢？我们再来看一下上面的错误日志：</p>
+<p><div class="highlight"><pre><span></span><code>github.com/pingcap/tidb/session.writeSystemTZ
+/home/jenkins/workspace/release_tidb_3.0/go/src/github.com/pingcap/tidb/session/bootstrap.go:786
+</code></pre></div>
+在 <code>session/bootstrap.go</code> 我们找到：</p>
+<p><div class="highlight"><pre><span></span><code><span class="c1">// writeSystemTZ writes system timezone info into mysql.tidb</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">writeSystemTZ</span><span class="p">(</span><span class="nx">s</span><span class="w"> </span><span class="nx">Session</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">sql</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">`INSERT HIGH_PRIORITY INTO %s.%s VALUES (&quot;%s&quot;, &quot;%s&quot;, &quot;TiDB Global System Timezone.&quot;) ON DUPLICATE KEY UPDATE VARIABLE_VALUE=&quot;%s&quot;`</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">mysql</span><span class="p">.</span><span class="nx">SystemDB</span><span class="p">,</span><span class="w"> </span><span class="nx">mysql</span><span class="p">.</span><span class="nx">TiDBTable</span><span class="p">,</span><span class="w"> </span><span class="nx">tidbSystemTZ</span><span class="p">,</span><span class="w"> </span><span class="nx">timeutil</span><span class="p">.</span><span class="nx">InferSystemTZ</span><span class="p">(),</span><span class="w"> </span><span class="nx">timeutil</span><span class="p">.</span><span class="nx">InferSystemTZ</span><span class="p">())</span>
+<span class="w">  </span><span class="nx">mustExecute</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span><span class="w"> </span><span class="nx">sql</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+TiDB 首次启动时，拿到时区信息后，将时区信息写到了 mysql.SystemDB.mysql.TiDBTable，也就是 mysql.tidb，其中 <code>VARIABLE_NAME</code> 为 <code>tidbSystemTZ</code>，也即 <code>system_tz</code></p>
+<p><div class="highlight"><pre><span></span><code><span class="w">  </span><span class="c1">// The variable name in mysql.tidb table and it will be used when we want to know</span>
+<span class="w">  </span><span class="c1">// system timezone.</span>
+<span class="w">  </span><span class="nx">tidbSystemTZ</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;system_tz&quot;</span>
+</code></pre></div>
+继续直接登录机器看一下这张参数的内容在两个集群中有什么不一样： </p>
+<p><img alt="请在这里输入图片描述" src="/static/20191012164104.png"></p>
+<p>可以看到，确实是设置了 UTC，那么也可以非常明确是由于这个值引起的了。经过测试，可以通过如下两种方式解决：</p>
+<ol>
+<li>更新 mysql.tidb 中 system_tz 为正确的时区，如我们这里为 HKT，并重启 tidb-server 进程后，问题可以得到解决。</li>
+<li>
+<p>根据<a href="https://pingcap.com/docs-cn/v3.0/how-to/configure/time-zone/#%E6%97%B6%E5%8C%BA%E6%94%AF%E6%8C%81">官方文档</a>设置 <code>time_zone</code> 变量，问题可以得到解决。如果有需要，可以把 <code>system_tz</code> 也修改了，tidb-server 不会自行进行调整：</p>
+<p><img alt="请在这里输入图片描述" src="/static/20191012165413.png"></p>
+</li>
+</ol>
+<h3>为什么</h3>
+<p>到这里，我们可以很明确 TiDB 参数这里导致时间不对的情况了。但是还有几个疑问还没有得到解决：</p>
+<ol>
+<li>
+<p>为什么同样的配置，有一个集群是正常的，一个集群又用了 UTC 呢？</p>
+<p>这个情况主要是因为我们的机器有一个初始化的过程，在没有完成初始化的时候，<code>/etc/localtime</code> 确实是一个软链接，并且指向了 <code>/usr/share/zoneinfo/Asia/Hong_Kong</code>，当我们的 tidb-server 进程在这个文件被修改之前启动时，会使用正确的时区。但同时，我们在机器上部署了 puppet 进行统一的配置管理，puppet 会做一个类似 <code>cp /usr/share/zoneinfo/Asia/Hong_Kong /etc/localtime</code> 的操作，将 <code>/etc/localtime</code> 替换为一个文件，这个时候，tidb-server 无法正确分析时区信息，导致 fall back 至 UTC。简单示意如下：
+<img alt="请在这里输入图片描述" src="/static/20191012172800.png"></p>
+</li>
+<li>
+<p>为什么 <code>SELECT @@global.time_zone, @@session.time_zone;</code> 看到的是 CST，但不管是我们的机器还是 TiDB 配置文件都没有引用 CST 这个时区，CST 从哪里来的？</p>
+<p>属于 tidb-server 的默认行为，tidb-server 初次启动时，会默认设置为 CST。可以参考 <code>session/bootstrap.go</code> 和 <code>sessionctx/variable/sysvar.go</code> 这里不再展开。</p>
+</li>
+<li>
+<p><code>system_tz</code>、<code>@@global.time_zone</code>、<code>@@sessio.time_zone</code> 的关系是什么？<code>system_tz</code> 和 <code>time_zone</code> 两者的生效逻辑是怎样的？</p>
+<ul>
+<li><code>@@session.time_zone</code> 在新建连接时，值主要依赖于 <code>@@global.time_zone</code>，session 值等同于 global，默认都为 SYSTEM，即 <code>system_tz</code> 值；</li>
+<li>如果单独修改了 <code>@@session.time_zone</code> ，则当前连接的 time_zone 以 session 设置为准；</li>
+<li>tidb-server 在每次启动的时候会从 mysql.tidb 加载 <code>system_tz</code> 值，并设置系统时区。这也是为什么我们在更新了 <code>system_tz</code> 并重启 tidb-server 后，可以获取到正确时间的原因；</li>
+</ul>
+<p>tidb-server 启动时通过 mysql.tidb 设置系统时区的相关代码可以在 <code>session/session.go</code> 找到：</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="c1">// loadSystemTZ loads systemTZ from mysql.tidb</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">loadSystemTZ</span><span class="p">(</span><span class="nx">se</span><span class="w"> </span><span class="o">*</span><span class="nx">session</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">sql</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="s">`select variable_value from mysql.tidb where variable_name = &#39;system_tz&#39;`</span>
+<span class="w">  </span><span class="nx">rss</span><span class="p">,</span><span class="w"> </span><span class="nx">errLoad</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">se</span><span class="p">.</span><span class="nx">Execute</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">(),</span><span class="w"> </span><span class="nx">sql</span><span class="p">)</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nx">errLoad</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">errLoad</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// the record of mysql.tidb under where condition: variable_name = &quot;system_tz&quot; should shall only be one.</span>
+<span class="w">  </span><span class="k">defer</span><span class="w"> </span><span class="kd">func</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">rss</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">Close</span><span class="p">();</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">logutil</span><span class="p">.</span><span class="nx">Logger</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">()).</span><span class="nx">Error</span><span class="p">(</span><span class="s">&quot;close result set error&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">zap</span><span class="p">.</span><span class="nx">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">))</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}()</span>
+<span class="w">  </span><span class="nx">req</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">rss</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">NewChunk</span><span class="p">()</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">rss</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">Next</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">(),</span><span class="w"> </span><span class="nx">req</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">req</span><span class="p">.</span><span class="nx">GetRow</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="nx">GetString</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
+
+<span class="c1">// BootstrapSession runs the first time when the TiDB server start.</span>
+<span class="kd">func</span><span class="w"> </span><span class="nx">BootstrapSession</span><span class="p">(</span><span class="nx">store</span><span class="w"> </span><span class="nx">kv</span><span class="p">.</span><span class="nx">Storage</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="nx">domain</span><span class="p">.</span><span class="nx">Domain</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</code></pre></div>
+<h3>小结</h3>
+<ol>
+<li>其实还蛮普通的一个问题，只是之前碰到比较多的情况是在环境初始化没完成时就启动服务，导致服务出现状况。这次 TiDB 这里刚好反过来，环境初始化未操作之前反而是正常的，初始化之后异常了；</li>
+<li>问题的线索其实完完整整的保存在了日志中，流程是否有可以优化的空间有待考证商榷，但日志在排查问题的时候是一定要首先关注的；</li>
+<li>
+<p><code>/etc/localtime</code> 直接使用文件不是一个合理的方式，TZ 环境变量的优先级也高于 <code>/etc/localtime</code>。这个可以参考 <a href="http://man7.org/linux/man-pages/man5/localtime.5.html">man 文档</a>：</p>
+<div class="highlight"><pre><span></span><code>Because the timezone identifier is extracted from the symlink target 
+name of /etc/localtime, this file may not be a normal file or
+hardlink.
+</code></pre></div>
+</li>
+</ol>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html">网易游戏 MySQL-MongoDB 运维及 DBA 招聘</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2019-09-29/tidb-dm-syncer.html">TiDB DM 数据库同步 STEP BY STEP</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-15/hammerspoon-screen-sharing-and-smb-automount.html">用 Hammerspoon 搞定远程锁屏与 SMB 动态挂载</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2019-09-07/mysql-large-seconds_behind_master.html">MySQL Seconds_Behind_Master 忽大忽小？莫慌</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

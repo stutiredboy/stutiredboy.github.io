@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上下文、压缩与缓存：大模型使用者必须搞懂的三个概念 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="100 万上下文到底指什么？什么时候该压缩、Claude Code 与 Codex 各自何时自动触发？缓存为什么会失效、失效了到底损失什么？本文以 Anthropic 与 OpenAI 官方文档为准，用 7 张图把这三个概念串成一条因果链，并给出可直接照做的日常实践。">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="上下文、压缩与缓存：大模型使用者必须搞懂的三个概念">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">
+            <meta property="og:description" content="100 万上下文到底指什么？什么时候该压缩、Claude Code 与 Codex 各自何时自动触发？缓存为什么会失效、失效了到底损失什么？本文以 Anthropic 与 OpenAI 官方文档为准，用 7 张图把这三个概念串成一条因果链，并给出可直接照做的日常实践。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="上下文、压缩与缓存：大模型使用者必须搞懂的三个概念">
+            <meta name="twitter:description" content="100 万上下文到底指什么？什么时候该压缩、Claude Code 与 Codex 各自何时自动触发？缓存为什么会失效、失效了到底损失什么？本文以 Anthropic 与 OpenAI 官方文档为准，用 7 张图把这三个概念串成一条因果链，并给出可直接照做的日常实践。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="llm-context-compaction-caching">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2026-08-02T22:50:00+08:00">2026-08-02 22:50</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 62 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/ai.html">ai</a> · <a href="https://www.chenxiaosheng.com/tag/llm.html">llm</a> · <a href="https://www.chenxiaosheng.com/tag/claude.html">claude</a> · <a href="https://www.chenxiaosheng.com/tag/codex.html">codex</a> · <a href="https://www.chenxiaosheng.com/tag/context.html">context</a> · <a href="https://www.chenxiaosheng.com/tag/cache.html">cache</a> · <a href="https://www.chenxiaosheng.com/tag/agent.html">agent</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <blockquote>
+<p>面向日常重度使用 Claude Code / Codex 等 AI 编程工具的工程师。所有涉及 Claude 与 Codex 的技术细节均以官方文档为准，文末附完整出处。</p>
+</blockquote>
+<h2>0. 先给一个心智模型</h2>
+<p>这三个概念不是并列关系，而是一条因果链：</p>
+<pre class="mermaid"><code>flowchart LR
+    A["&lt;b&gt;上下文窗口&lt;/b&gt;&lt;br/&gt;模型单次能看到的全部内容&lt;br/&gt;（有硬上限）"]
+    B["&lt;b&gt;压缩 Compaction&lt;/b&gt;&lt;br/&gt;窗口快满了怎么办&lt;br/&gt;把历史换成摘要"]
+    C["&lt;b&gt;缓存 Prompt Caching&lt;/b&gt;&lt;br/&gt;每轮都重发全部历史&lt;br/&gt;不想每次都重新计费"]
+
+    A -- "容量不够 → 必须取舍" --&gt; B
+    A -- "每轮重发 → 重复计算" --&gt; C
+    B -- "压缩改写了前缀&lt;br/&gt;必然打断缓存" --&gt; C
+
+    style A fill:#2d6cdf,stroke:#1b4a9c,color:#ffffff
+    style B fill:#c0392b,stroke:#7d2519,color:#ffffff
+    style C fill:#1e8449,stroke:#125230,color:#ffffff</code></pre>
+<p>一句话概括三者的取舍差异，这是全文最重要的一句：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>触发时发生什么</th>
+<th>代价</th>
+<th>会不会丢信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>缓存失效</strong></td>
+<td>重新计算整个前缀</td>
+<td><strong>变贵 + 变慢</strong></td>
+<td><strong>不会</strong>，模型看到的内容完全一致</td>
+</tr>
+<tr>
+<td><strong>上下文压缩</strong></td>
+<td>历史被摘要替换</td>
+<td>一次额外的模型调用</td>
+<td><strong>会</strong>，细节永久丢失</td>
+</tr>
+</tbody>
+</table>
+<p>很多人把两者混为一谈。<strong>缓存失效只是钱和延迟的问题，压缩才是真正会伤害任务质量的操作。</strong> 后面所有的实践建议都从这条区别推导而来。</p>
+<hr>
+<h2>1. 上下文（Context Window）</h2>
+<h3>1.1 官方定义</h3>
+<p>Anthropic 官方文档的定义是：</p>
+<blockquote>
+<p>"The 'context window' refers to all the text a language model can reference when generating a response, including the response itself."</p>
+<p>—— 上下文窗口指的是模型生成回复时能够引用的全部文本，<strong>包括回复本身</strong>。</p>
+</blockquote>
+<p>有两个要点常被误解：</p>
+<p><strong>第一，它不是模型的知识，是模型的"工作记忆"。</strong> 官方特别强调它 "is different from the large corpus of data the language model was trained on"（区别于训练语料）。训练知识是模型权重里固化的东西；上下文窗口是这一次请求临时塞进去的东西。</p>
+<p><strong>第二，输出也占窗口。</strong> "100 万上下文"不是"你可以输入 100 万 token，模型再额外输出"，而是<strong>输入 + 输出总共不超过 100 万</strong>。</p>
+<h3>1.2 所以"100 万上下文"到底指什么</h3>
+<p>指的是<strong>单次 API 请求中，输入与输出 token 数之和的上限是 1,000,000</strong>。</p>
+<p>具体到什么东西会占用它，官方列举得非常清楚：</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph W["一次请求的上下文窗口"]
+        direction TB
+        subgraph IN["输入侧（Input）"]
+            direction TB
+            I1["System Prompt&lt;br/&gt;系统提示词"]
+            I2["Tool Definitions&lt;br/&gt;工具定义 / MCP schema"]
+            I3["历史消息&lt;br/&gt;user / assistant 全部轮次"]
+            I4["Tool Results&lt;br/&gt;工具返回：文件内容、命令输出、搜索结果"]
+            I5["图片 / PDF / 文档"]
+        end
+        subgraph OUT["输出侧（Output）"]
+            direction TB
+            O1["Extended Thinking&lt;br/&gt;模型的思考过程"]
+            O2["文本回复"]
+            O3["Tool Use 请求"]
+        end
+        IN --&gt; OUT
+    end
+
+    style IN fill:#eaf2fd,stroke:#2d6cdf,color:#1a1a1a
+    style OUT fill:#fdf3e7,stroke:#e67e22,color:#1a1a1a</code></pre>
+<p>原文表述：</p>
+<blockquote>
+<p>"Everything in the request counts toward the context window: the system prompt, every message in <code>messages</code> (including tool results, images, and documents), and your tool definitions. The output Claude generates for the turn, including its extended thinking, counts too."</p>
+</blockquote>
+<p>一个反直觉但很重要的补充：<strong>缓存过的内容照样占窗口</strong>。</p>
+<blockquote>
+<p>"Cached prompt prefixes still occupy the context window: prompt caching changes what you pay for those tokens, not whether they count."</p>
+</blockquote>
+<p>缓存省的是钱和时间，不是空间。</p>
+<h3>1.3 关键推论：模型是无状态的，每轮都在重发全部历史</h3>
+<p>这是理解后面一切的基础。Claude Code 官方文档说得最直白：</p>
+<blockquote>
+<p>"The model doesn't remember anything between requests, so Claude Code re-sends the full context: the system prompt, your project context, every prior message and tool result, and your new message."</p>
+</blockquote>
+<p>也就是说，你在终端里看到的"连续对话"是个幻觉。实际发生的是：</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph R1["第 1 轮请求"]
+        direction LR
+        a1["系统提示&lt;br/&gt;+工具"] --&gt; b1["用户 1"]
+    end
+    subgraph R2["第 2 轮请求"]
+        direction LR
+        a2["系统提示&lt;br/&gt;+工具"] --&gt; b2["用户 1"] --&gt; c2["助手 1"] --&gt; d2["用户 2"]
+    end
+    subgraph R3["第 3 轮请求"]
+        direction LR
+        a3["系统提示&lt;br/&gt;+工具"] --&gt; b3["用户 1"] --&gt; c3["助手 1"] --&gt; d3["用户 2"] --&gt; e3["助手 2"] --&gt; f3["用户 3"]
+    end
+
+    R1 --&gt; R2 --&gt; R3
+
+    style a1 fill:#d5e8d4,color:#1a1a1a
+    style a2 fill:#d5e8d4,color:#1a1a1a
+    style a3 fill:#d5e8d4,color:#1a1a1a
+    style f3 fill:#ffe6cc,color:#1a1a1a
+    style d2 fill:#ffe6cc,color:#1a1a1a
+    style b1 fill:#ffe6cc,color:#1a1a1a</code></pre>
+<p>绿色部分每轮完全相同，橙色是每轮新增的部分。<strong>正因为绝大部分内容重复，缓存才有意义；也正因为历史只增不减，窗口才会满，才需要压缩。</strong></p>
+<h3>1.4 Context Rot：为什么"塞满"是个坏主意</h3>
+<p>官方明确警告：更大的窗口不等于更好的效果。</p>
+<blockquote>
+<p>"more context isn't automatically better. As token count grows, accuracy and recall degrade, a phenomenon known as <em>context rot</em>. This makes curating what's in context just as important as how much space is available."</p>
+</blockquote>
+<p><strong>上下文腐烂（context rot）</strong>：随着 token 数增长，模型的准确率和召回率会下降。所以"精心筛选放什么进去"和"有多大空间"同等重要。</p>
+<p>这直接影响你该怎么用工具：一个跑了 3 小时、塞满了 50 个文件内容的 session，即使还没到窗口上限，效果也已经在衰减了。主动 <code>/clear</code> 往往比死撑到自动压缩更好。</p>
+<h3>1.5 当前主流模型的窗口大小</h3>
+<p><strong>Claude 系列</strong>（官方文档）：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>上下文窗口</th>
+<th>单次最大输出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude Fable 5 / Mythos 5</td>
+<td>1M</td>
+<td>128K</td>
+</tr>
+<tr>
+<td>Claude Opus 5 / 4.8 / 4.7 / 4.6</td>
+<td>1M</td>
+<td>128K</td>
+</tr>
+<tr>
+<td>Claude Sonnet 5 / Sonnet 4.6</td>
+<td>1M</td>
+<td>128K</td>
+</tr>
+<tr>
+<td>Claude Sonnet 4.5 及其他更早模型</td>
+<td>200K</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>要点：</p>
+<ul>
+<li>1M 是<strong>默认值</strong>，不需要 beta header：<em>"For every model with a 1M-token context window, 1M is the default: you don't need a beta header."</em></li>
+<li>1M 按<strong>标准价格</strong>计费，超过 200K 没有溢价：<em>"A 900k-token request is billed at the same per-token rate as a 9k-token request."</em></li>
+<li>单次请求最多 600 张图片或 PDF 页（200K 窗口的模型是 100 张）。</li>
+<li>⚠️ <strong>Claude 4.7 及之后的模型换了新分词器，同样的文本会多出约 30% 的 token</strong>（<em>"This tokenizer produces approximately 30% more tokens for the same text"</em>）。所以拿 4.6 的 token 数经验去估 4.7+ 会偏低。</li>
+</ul>
+<p><strong>OpenAI GPT-5.6 Sol</strong>（官方模型页）：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>上下文窗口</td>
+<td>1,050,000</td>
+</tr>
+<tr>
+<td>单次最大输出</td>
+<td>128,000</td>
+</tr>
+<tr>
+<td>长上下文计费门槛</td>
+<td><strong>超过 272K 输入 token 的请求，整个请求按 2× 输入价、1.5× 输出价计费</strong></td>
+</tr>
+</tbody>
+</table>
+<p>原文：<em>"Prompts with &gt;272K input tokens are priced at 2x input and 1.5x output for the full request."</em></p>
+<p>这个 272K 门槛非常关键，也是 Codex 社区里各种"为什么是 272K"讨论的根源——<strong>它是一条计费红线，不是能力上限</strong>。特别注意措辞是 "for the full request"：一旦越线，<strong>整个请求</strong>都按 2 倍输入价计费，而不只是超出的那部分 token。所以在接近 272K 时主动压缩，省下的不是一点边际成本，而是整轮请求的一半。</p>
+<h3>1.6 窗口满了会发生什么（API 层面）</h3>
+<ul>
+<li><strong>输入本身就超了</strong>：所有模型都返回 400 <code>invalid_request_error</code>（"prompt is too long"）。</li>
+<li><strong>输入 + <code>max_tokens</code> 超了</strong>：Claude 4.5 及更新的模型会接受请求，生成到上限时以 <code>stop_reason: "model_context_window_exceeded"</code> 停止；更早的模型直接报校验错误。</li>
+</ul>
+<h3>1.7 一个容易被忽略的机制：Context Awareness</h3>
+<p>Claude Sonnet 5 / Sonnet 4.6 / Sonnet 4.5 / Haiku 4.5 具备<strong>上下文感知</strong>能力——API 会自动往系统提示里注入模型的 token 预算：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&lt;budget:token_budget&gt;</span>200000<span class="nt">&lt;/budget:token_budget&gt;</span>
+</code></pre></div>
+<p>每次工具调用后还会追加剩余量提示：</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&lt;system_warning&gt;</span>Token<span class="w"> </span>usage:<span class="w"> </span>35000/200000;<span class="w"> </span>165000<span class="w"> </span>remaining<span class="nt">&lt;/system_warning&gt;</span>
+</code></pre></div>
+<p>这让模型能"知道自己还剩多少余量"，从而主动规划长任务节奏，而不是盲目往下做。这些标签是 API 自动注入的，你不需要也不应该自己发送。</p>
+<p>Opus 4.7 及之后的 Opus、Fable 5、Mythos 5 <strong>不接收</strong>这些注入标签，改用 beta 的 task budgets 机制。</p>
+<h3>1.8 Extended Thinking 与窗口的关系</h3>
+<p>思考（thinking）token 的计费与占用规则值得单独说明：</p>
+<ul>
+<li>thinking token 属于 <code>max_tokens</code> 的一部分，<strong>按输出 token 计费</strong>，计入速率限制。</li>
+<li><strong>历史思考块是否保留，取决于模型</strong>：</li>
+<li>Opus 4.5+、Sonnet 4.6+、Fable 5、Mythos 5：<strong>默认保留</strong>，作为后续请求的输入 token 计费。</li>
+<li>更早的 Opus/Sonnet 与所有 Haiku：API 自动剥离历史思考块（你传回去它也会自动删），为对话内容腾出空间。</li>
+<li><strong>唯一必须回传 thinking 块的场景</strong>：工具调用循环中，提交 <code>tool_result</code> 时必须原样带上对应的完整 thinking 块（含签名）。API 用密码学签名校验，改动就会报错。</li>
+</ul>
+<hr>
+<h2>2. 压缩（Compaction）</h2>
+<h3>2.1 什么情况下应该压缩</h3>
+<p>先区分三种"腾空间"的手段，它们代价完全不同：</p>
+<table>
+<thead>
+<tr>
+<th>手段</th>
+<th>做了什么</th>
+<th>信息损失</th>
+<th>缓存影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>压缩（Compaction）</strong></td>
+<td>历史 → 一段摘要</td>
+<td>大，细节永久丢失</td>
+<td>打断（对话层前缀完全变了）</td>
+</tr>
+<tr>
+<td><strong>上下文编辑（Context Editing）</strong></td>
+<td>只清除旧的工具结果 / 思考块</td>
+<td>中，仅丢工具输出</td>
+<td>打断（清除位置之后失效）</td>
+</tr>
+<tr>
+<td><strong>清空（/clear、开新 session）</strong></td>
+<td>全部丢弃</td>
+<td>全部（但你是主动的）</td>
+<td>重建，但系统提示层可能仍命中</td>
+</tr>
+</tbody>
+</table>
+<p><strong>该压缩的时机（按优先级）：</strong></p>
+<ol>
+<li>✅ <strong>任务与任务之间的自然断点</strong> —— 最佳时机。你已经不需要上一个任务的细节了，压缩几乎零损失。</li>
+<li>✅ <strong>快到窗口上限，但当前任务还没做完</strong> —— 不得不压，让它压。</li>
+<li>❌ <strong>任务做到一半、正在调试细节时</strong> —— 最糟。摘要会丢掉你刚建立起来的关键上下文。</li>
+<li>❌ <strong>换新任务时</strong> —— 这时应该 <code>/clear</code> 而不是 <code>/compact</code>。压缩会把无关的旧任务摘要一直背在身上，既占 token 又干扰模型。</li>
+</ol>
+<p>Claude Code 官方给的建议正是这一条：</p>
+<blockquote>
+<p>"run <code>/compact</code> at a natural break in your work, such as between tasks, instead of waiting for auto-compaction to trigger mid-task."</p>
+</blockquote>
+<h3>2.2 压缩的通用流程</h3>
+<pre class="mermaid"><code>flowchart TD
+    A["对话持续增长"] --&gt; B{"input tokens&lt;br/&gt;达到触发阈值？"}
+    B -- 否 --&gt; A
+    B -- 是 --&gt; C["额外发起一次模型调用&lt;br/&gt;让模型总结当前全部历史"]
+    C --&gt; D["生成摘要&lt;br/&gt;（Claude 包在 &amp;lt;summary&amp;gt;&amp;lt;/summary&amp;gt; 中）"]
+    D --&gt; E["用摘要替换掉阈值之前的全部内容"]
+    E --&gt; F["带着摘要继续任务"]
+    F --&gt; A
+
+    style C fill:#fdebd0,stroke:#e67e22,color:#1a1a1a
+    style E fill:#fadbd8,stroke:#c0392b,color:#1a1a1a</code></pre>
+<p>注意 <strong>C 这一步是一次真实的、额外的模型调用</strong>——它要消耗 token、计费、占用速率限制。这是压缩的隐性成本。</p>
+<h3>2.3 Claude：官方 API 的服务端压缩</h3>
+<p>Anthropic 提供了<strong>服务端压缩</strong>（beta），是官方推荐的长会话上下文管理方案：</p>
+<blockquote>
+<p>"Server-side compaction is the recommended strategy for managing context in long-running conversations and agentic workflows."</p>
+</blockquote>
+<p><strong>配置方式：</strong></p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;context_management&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;edits&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;compact_20260112&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;trigger&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;input_tokens&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150000</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>需要 beta header：<code>anthropic-beta: compact-2026-01-12</code></p>
+<p><strong>关键参数与规则：</strong></p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>默认触发阈值</td>
+<td><code>input_tokens = 150,000</code></td>
+</tr>
+<tr>
+<td>阈值下限</td>
+<td><strong>必须 ≥ 50,000</strong></td>
+</tr>
+<tr>
+<td>触发类型</td>
+<td>目前仅支持 <code>input_tokens</code></td>
+</tr>
+<tr>
+<td><code>pause_after_compaction</code></td>
+<td>为 <code>true</code> 时压缩后返回 <code>stop_reason: "compaction"</code>，让你有机会插入内容</td>
+</tr>
+<tr>
+<td><code>instructions</code></td>
+<td>自定义摘要提示词，<strong>完全替换</strong>默认提示词（不是追加）</td>
+</tr>
+<tr>
+<td>支持模型</td>
+<td>Fable 5、Mythos 5、Mythos Preview、Opus 5、Opus 4.8–4.6、Sonnet 5、Sonnet 4.6</td>
+</tr>
+</tbody>
+</table>
+<p><strong>执行后发生什么：</strong> 响应里会出现一个 <code>compaction</code> 块。后续请求中，<em>"the API automatically drops all content blocks prior to the <code>compaction</code> block and continues from the summary."</em>——API 自动丢弃压缩块之前的所有内容。你必须把这个 compaction 块原样传回去。</p>
+<p><strong>计费方式（重要）：</strong> 压缩会多出一次采样迭代，<code>usage</code> 里用 <code>iterations</code> 数组分开记账：</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;usage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;input_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">23000</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;output_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;iterations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;compaction&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;input_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">180000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;output_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3500</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;message&quot;</span><span class="p">,</span><span class="w">    </span><span class="nt">&quot;input_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">23000</span><span class="p">,</span><span class="w">  </span><span class="nt">&quot;output_tokens&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>⚠️ <strong>顶层的 <code>input_tokens</code> / <code>output_tokens</code> 只反映非压缩迭代</strong>。要算真实总消耗，必须把 <code>iterations</code> 全部加起来。只看顶层字段会严重低估账单。</p>
+<h3>2.4 Claude：更精细的替代方案——Context Editing</h3>
+<p>如果压缩太"重"（一次性丢掉所有细节），可以用 <strong>context editing</strong>（beta header：<code>context-management-2025-06-27</code>）：</p>
+<p><strong>工具结果清除</strong> <code>clear_tool_uses_20250919</code>：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>trigger</code></td>
+<td>100,000 input tokens</td>
+<td>何时开始清除</td>
+</tr>
+<tr>
+<td><code>keep</code></td>
+<td>3 tool uses</td>
+<td>保留最近几组工具调用/结果</td>
+</tr>
+<tr>
+<td><code>clear_at_least</code></td>
+<td>无</td>
+<td>至少清除多少 token，否则不动手</td>
+</tr>
+<tr>
+<td><code>exclude_tools</code></td>
+<td>无</td>
+<td>永不清除哪些工具的结果</td>
+</tr>
+<tr>
+<td><code>clear_tool_inputs</code></td>
+<td><code>false</code></td>
+<td>是否连工具入参一起清</td>
+</tr>
+</tbody>
+</table>
+<p>它在<strong>服务端、模型看到 prompt 之前</strong>执行，客户端保留完整历史，无需同步。被清除的结果会替换成占位文本，让模型知道"这里原本有东西，被清掉了"。</p>
+<p><strong>思考块清除</strong> <code>clear_thinking_20251015</code>：用 <code>keep: {"type": "thinking_turns", "value": N}</code> 保留最近 N 轮，或 <code>keep: "all"</code>。</p>
+<p>⚠️ 两者同时使用时，<code>clear_thinking_20251015</code> <strong>必须排在前面</strong>。</p>
+<p><strong>与缓存的关系（官方明确）：</strong>
+- 清除工具结果<strong>会使缓存前缀失效</strong>，每次清除都产生 cache write 成本。所以官方建议用 <code>clear_at_least</code> 确保"清得够多，值回缓存重建的钱"。
+- 思考块<strong>保留时缓存命中、被清时缓存失效</strong>。要最大化缓存命中率就设 <code>keep: "all"</code>。</p>
+<h3>2.5 Claude Code：自动压缩的实际行为</h3>
+<p><strong>触发时机</strong>：接近窗口上限时自动触发。官方对 Sonnet 5 给出了具体数字：</p>
+<blockquote>
+<p>"Sessions auto-compact before the window fills, at about <strong>967K tokens</strong> by default; set <code>CLAUDE_CODE_AUTO_COMPACT_WINDOW</code> to choose a different threshold."</p>
+</blockquote>
+<p>即约 96.7% 的位置（1M 窗口）。<code>/context</code> 命令能看到实时占用明细以及预留的 autocompact buffer。</p>
+<p><strong>压缩顺序</strong>：不是一上来就摘要，而是分两步：</p>
+<blockquote>
+<p>"It clears older tool outputs first, then summarizes the conversation if needed."</p>
+</blockquote>
+<p>先清旧的工具输出，不够再总结对话。这个设计很合理——工具输出（文件内容、命令回显）通常是最占空间又最容易重新获取的。</p>
+<p><strong>压缩后什么活下来了</strong>（官方表格，这张表非常实用）：</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>压缩后的状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>系统提示、输出风格</td>
+<td><strong>不变</strong>（本来就不在消息历史里）</td>
+</tr>
+<tr>
+<td>项目根 <code>CLAUDE.md</code>、无作用域 rules</td>
+<td><strong>从磁盘重新注入</strong></td>
+</tr>
+<tr>
+<td>Auto memory (<code>MEMORY.md</code>)</td>
+<td><strong>从磁盘重新注入</strong></td>
+</tr>
+<tr>
+<td>带 <code>paths:</code> frontmatter 的 rules</td>
+<td>❌ <strong>丢失</strong>，直到再次读到匹配文件</td>
+</tr>
+<tr>
+<td>子目录里的嵌套 <code>CLAUDE.md</code></td>
+<td>❌ <strong>丢失</strong>，直到再次读到该目录下的文件</td>
+</tr>
+<tr>
+<td>已调用的 Skill 正文</td>
+<td>重新注入，但<strong>每个 skill 上限 5,000 token、总计 25,000 token，超出时最旧的先丢</strong></td>
+</tr>
+<tr>
+<td>Hooks</td>
+<td>不受影响（hooks 是代码，不占上下文）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>这张表能直接指导你的工程实践：</strong></p>
+<ol>
+<li><strong>必须跨压缩存活的规则，绝不要用 <code>paths:</code> frontmatter，放进项目根 <code>CLAUDE.md</code>。</strong> 官方原话：<em>"If a rule must persist across compaction, drop the <code>paths:</code> frontmatter or move it to the project-root CLAUDE.md."</em></li>
+<li><strong>Skill 的关键指令放在 <code>SKILL.md</code> 最前面。</strong> 因为截断保留的是开头：<em>"Truncation keeps the start of the file, so put the most important instructions near the top."</em></li>
+</ol>
+<p><strong>其他细节：</strong></p>
+<ul>
+<li><code>/compact focus on the auth bug fix</code> —— 可以带指令，让摘要保留你指定的重点，而不是让模型猜。</li>
+<li>也可以在 <code>CLAUDE.md</code> 里加一个 "Compact Instructions" 章节，长期生效。</li>
+<li>v2.1.198 起，摘要请求会继承 session 的 extended thinking 配置。</li>
+<li><strong>压缩抖动保护</strong>：如果单个文件或工具输出大到"每次压缩完立刻又填满"，Claude Code 会在尝试几次后停止自动压缩并报错，而不是无限循环。</li>
+</ul>
+<h3>2.6 Codex：压缩机制与配置</h3>
+<p><strong>手动压缩</strong> <code>/compact</code>，官方描述：</p>
+<blockquote>
+<p>"Summarize the visible chat to free tokens. Use after long runs so Codex retains key points without blowing the context window."</p>
+</blockquote>
+<p><strong>清空</strong> <code>/clear</code>：</p>
+<blockquote>
+<p>"Reset the visible UI and chat context together when you want a fresh start."</p>
+</blockquote>
+<p><strong>自动压缩的配置项</strong>（<code>config.toml</code>，官方配置参考）：</p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>官方描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>model_auto_compact_token_limit</code></td>
+<td>"Token threshold that triggers automatic history compaction (unset uses model defaults)."</td>
+</tr>
+<tr>
+<td><code>model_auto_compact_token_limit_scope</code></td>
+<td><code>total</code>（默认）或 <code>body_after_prefix</code>——"Controls whether the auto-compaction threshold counts the full active context (<code>total</code>, the default) or only growth after the carried compaction-window prefix (<code>body_after_prefix</code>)."</td>
+</tr>
+<tr>
+<td><code>model_context_window</code></td>
+<td>"Context window tokens available to the active model."</td>
+</tr>
+<tr>
+<td><code>compact_prompt</code></td>
+<td>内联覆盖压缩提示词</td>
+</tr>
+<tr>
+<td><code>experimental_compact_prompt_file</code></td>
+<td>从文件加载压缩提示词（实验特性）</td>
+</tr>
+</tbody>
+</table>
+<p><code>model_auto_compact_token_limit_scope</code> 这个参数值得多说一句：<code>total</code> 是拿<strong>整个活动上下文</strong>去比阈值；<code>body_after_prefix</code> 只算<strong>压缩窗口前缀之后新增的部分</strong>。后者能避免"摘要本身越滚越大导致压缩越来越频繁"的问题，长会话下更稳。</p>
+<p>Codex TUI 会显示 <code>100% context left</code> 之类的剩余量指示器，可以直接观察。</p>
+<blockquote>
+<p>⚠️ 注意：社区广泛流传的"阈值会被静默钳制到窗口 90%"、"压缩后保留 20,000 token 的最近用户消息"等说法来自第三方逆向分析，<strong>未见于 OpenAI 官方文档</strong>，版本间也可能变化，此处不作为事实引用。</p>
+</blockquote>
+<p><strong>Codex 背后的 API 能力</strong>：OpenAI 在 Responses API 层提供两种压缩方式——
+- <strong>服务端压缩</strong>：请求里带 <code>context_management</code> + <code>compact_threshold</code>，流式响应过程中一旦越线就触发压缩，在同一个流里发出 compaction item 再继续推理。
+- <strong>独立端点</strong> <code>/responses/compact</code>：完全无状态、ZDR 友好。你把整个上下文窗口发过去，它返回一个压缩后的窗口。</p>
+<p>两者返回的都是一个<strong>加密的 compaction item</strong>——<em>"It is opaque and not intended to be human-interpretable."</em> 这是与 Anthropic 的显著差异：Claude 的摘要是明文可读的 <code>&lt;summary&gt;</code>，OpenAI 的是加密不透明对象。</p>
+<h3>2.7 压缩对本次 session / 任务的影响</h3>
+<p>这是提问里最实际的一问，分四个层面回答：</p>
+<p><strong>① 信息层面：细节永久丢失，且丢失是不可逆的</strong></p>
+<p>摘要是有损的。压缩前你说过的"注意这个接口的超时要设 3s 不是 30s"，如果模型没判断它重要，就没了。<strong>Claude Code 官方的原话是 "detailed instructions from early in the conversation may be lost"。</strong></p>
+<p>→ <strong>对策</strong>：持久化的约束写进 <code>CLAUDE.md</code>（Codex 写进 <code>AGENTS.md</code>），别指望对话历史。</p>
+<p><strong>② 连续性层面：模型会"忘记"自己刚才在干什么的细节</strong></p>
+<p>摘要的目的是"提供连续性以便在新的上下文中继续推进"，但它保留的是<strong>状态和下一步</strong>，不是过程。已经排查过、排除掉的错误路径最容易在摘要中丢失，导致模型压缩后又走一遍老路。</p>
+<p>→ <strong>对策</strong>：压缩前把关键结论落到文件（笔记、TODO、代码注释），文件是跨压缩最可靠的记忆。</p>
+<p><strong>③ 成本层面：压缩本身要花钱，而且可能很贵</strong></p>
+<p>压缩要额外跑一次全历史的总结。在 Claude Code 里有一个巨大的成本差异：</p>
+<blockquote>
+<p>"While the cache is warm, that request reads your prefix from the cache, so a mid-session <code>/compact</code> costs a fraction of what the context size suggests... After a break longer than the cache lifetime, there is no cache left to read, so the summarization request reprocesses the full history as uncached input. <strong>This is why <code>/compact</code> costs the most when you resume an old session.</strong>"</p>
+</blockquote>
+<p><strong>缓存热的时候压缩很便宜；隔夜回来再压缩最贵。</strong> 这条直接推出一个实践：想压缩就趁热压，别等第二天。</p>
+<p><strong>④ 缓存层面：压缩必然打断对话层缓存</strong></p>
+<blockquote>
+<p>"By design, this invalidates the conversation layer, since the next request has a new, shorter history that doesn't share a prefix with the old one."</p>
+</blockquote>
+<p>但好消息是：压缩<strong>之后</strong>那一轮反而不慢——因为新的对话层只有一小段摘要，重建缓存的成本很低。慢和贵的是压缩这一步本身。</p>
+<p><strong>⑤ 质量层面：这是唯一的正面影响</strong></p>
+<p>别忘了压缩也有好处。官方指出：<em>"as a conversation grows, response quality degrades, so compaction replaces older content with a concise summary."</em> 在 context rot 严重时，压缩掉一堆无关历史反而会<strong>提升</strong>回答质量。</p>
+<blockquote>
+<p>💡 <strong>一个比压缩更好的选择：<code>/rewind</code></strong>
+如果你只是走错了路想退回去，用 <code>/rewind</code> 而不是 <code>/compact</code>。
+官方原话：<em>"Rewinding truncates back to a prefix that is already cached, rather than building a new one as compaction does."</em>
+回退到的前缀<strong>本来就在缓存里</strong>，几乎零成本，而且不丢信息——只是把错误的分支砍掉。</p>
+</blockquote>
+<hr>
+<h2>3. 缓存（Prompt Caching）</h2>
+<h3>3.1 什么是缓存</h3>
+<p>回到 1.3 节的结论：每一轮请求，绝大部分内容和上一轮完全相同。缓存就是让服务端<strong>复用已经算过的部分</strong>。</p>
+<p>Claude Code 文档的描述最清晰：</p>
+<blockquote>
+<p>"The API caches by matching the start of each request, called the <strong>prefix</strong>, against content it recently processed. On a normal turn, the prefix is the entire previous request and only the latest exchange is new. <strong>The match is exact, so a change anywhere in the prefix recomputes everything after it. There is no per-file or per-segment caching.</strong>"</p>
+</blockquote>
+<p>三个必须记住的性质：</p>
+<ol>
+<li><strong>只匹配前缀</strong>，不是任意片段。</li>
+<li><strong>精确匹配</strong>，改一个字符就不算命中。</li>
+<li><strong>改动点之后的全部内容都要重算</strong>——所以越靠前的改动越致命。</li>
+</ol>
+<pre class="mermaid"><code>flowchart TB
+    subgraph OK["✅ 命中：只在末尾追加"]
+        direction LR
+        K1["系统提示"] --&gt; K2["历史 1-5"] --&gt; K3["新消息"]
+    end
+    subgraph BAD["❌ 未命中：改了靠前的内容"]
+        direction LR
+        B1["系统提示&lt;br/&gt;（变了！）"] --&gt; B2["历史 1-5"] --&gt; B3["新消息"]
+    end
+
+    style K1 fill:#d5e8d4,stroke:#2e7d32,color:#1a1a1a
+    style K2 fill:#d5e8d4,stroke:#2e7d32,color:#1a1a1a
+    style K3 fill:#ffe6cc,stroke:#e67e22,color:#1a1a1a
+    style B1 fill:#f8cecc,stroke:#c0392b,color:#1a1a1a
+    style B2 fill:#f8cecc,stroke:#c0392b,color:#1a1a1a
+    style B3 fill:#f8cecc,stroke:#c0392b,color:#1a1a1a</code></pre>
+<p>绿色 = 缓存读取（便宜），橙色 = 新写入，红色 = 全部重算。</p>
+<h3>3.2 缓存命中率</h3>
+<p><strong>命中率</strong>指的是本轮输入 token 中，从缓存读取的比例。Anthropic 在响应的 <code>usage</code> 里给了两个字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cache_read_input_tokens</code></td>
+<td>本轮从缓存读取的 token，按标准输入价的 <strong>10%</strong> 计费</td>
+</tr>
+<tr>
+<td><code>cache_creation_input_tokens</code></td>
+<td>本轮写入缓存的 token，按标准输入价的 <strong>1.25×</strong>（5 分钟）或 <strong>2×</strong>（1 小时）计费</td>
+</tr>
+<tr>
+<td><code>input_tokens</code></td>
+<td>⚠️ <strong>只是最后一个缓存断点之后的 token</strong>，不是全部输入</td>
+</tr>
+</tbody>
+</table>
+<p>总输入 = <code>cache_read</code> + <code>cache_creation</code> + <code>input_tokens</code></p>
+<p>判断标准很简单：</p>
+<blockquote>
+<p>"A high read-to-creation ratio means caching is working well. <strong>If creation stays high turn after turn, something is changing in your prefix.</strong>"</p>
+</blockquote>
+<p>如果 creation 一直居高不下，说明你的前缀里有东西每轮都在变，需要排查。</p>
+<p>OpenAI 对应的字段是 <code>cached_tokens</code>。</p>
+<h3>3.3 计费影响：缓存到底省多少</h3>
+<p>Anthropic 的倍率（官方定价页）：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>倍率</th>
+<th>有效期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5 分钟缓存写入</td>
+<td><strong>1.25×</strong> 基础输入价</td>
+<td>5 分钟</td>
+</tr>
+<tr>
+<td>1 小时缓存写入</td>
+<td><strong>2×</strong> 基础输入价</td>
+<td>1 小时</td>
+</tr>
+<tr>
+<td>缓存读取（命中）</td>
+<td><strong>0.1×</strong> 基础输入价</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<p>官方给出的回本计算：</p>
+<blockquote>
+<p>"A cache hit costs 10% of the standard input price, which means caching <strong>pays off after just one cache read</strong> for the 5-minute duration (1.25x write), or <strong>after two cache reads</strong> for the 1-hour duration (2x write)."</p>
+</blockquote>
+<p><strong>举个实感数字</strong>。假设你在 Claude Code 里用 Opus 5（$5/MTok 输入），会话累积了 300K token 的上下文，接下来还要来回 20 轮：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>计算</th>
+<th>成本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无缓存</td>
+<td>20 轮 × 300K × $5/M</td>
+<td><strong>$30.00</strong></td>
+</tr>
+<tr>
+<td>缓存全部命中</td>
+<td>1 次写入 300K × $6.25/M + 19 次读取 × 300K × $0.50/M</td>
+<td><strong>$4.73</strong></td>
+</tr>
+<tr>
+<td>中途切了一次模型</td>
+<td>上述 + 再写一次 300K × $6.25/M</td>
+<td><strong>$6.60</strong></td>
+</tr>
+</tbody>
+</table>
+<p>结论：<strong>缓存能把长会话成本压到约六分之一；而中途切一次模型多花的 $1.88，约等于 12 轮正常缓存命中对话的成本</strong>（每轮命中 300K × $0.50/M = $0.15）。这就是"随手切个模型试试"的真实代价。</p>
+<p>各家的定价（Anthropic 官方）：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>基础输入</th>
+<th>5m 写入</th>
+<th>1h 写入</th>
+<th>命中</th>
+<th>输出</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fable 5 / Mythos 5</td>
+<td>$10</td>
+<td>$12.50</td>
+<td>$20</td>
+<td><strong>$1</strong></td>
+<td>$50</td>
+</tr>
+<tr>
+<td>Opus 5 / 4.8 / 4.7 / 4.6</td>
+<td>$5</td>
+<td>$6.25</td>
+<td>$10</td>
+<td><strong>$0.50</strong></td>
+<td>$25</td>
+</tr>
+<tr>
+<td>Sonnet 5（8/31 前优惠价）</td>
+<td>$2</td>
+<td>$2.50</td>
+<td>$4</td>
+<td><strong>$0.20</strong></td>
+<td>$10</td>
+</tr>
+<tr>
+<td>Sonnet 4.6 / 4.5</td>
+<td>$3</td>
+<td>$3.75</td>
+<td>$6</td>
+<td><strong>$0.30</strong></td>
+<td>$15</td>
+</tr>
+<tr>
+<td>Haiku 4.5</td>
+<td>$1</td>
+<td>$1.25</td>
+<td>$2</td>
+<td><strong>$0.10</strong></td>
+<td>$5</td>
+</tr>
+</tbody>
+</table>
+<p><em>单位：美元 / 百万 token</em></p>
+<h3>3.4 计费之外：缓存失效还影响延迟</h3>
+<p>提问里问"缓存失效的影响，理解主要是计费？"——<strong>不完全是</strong>。官方描述失效的后果时，钱和速度是并列的：</p>
+<blockquote>
+<p>"some actions invalidate the cache and make the next response <strong>slower and more expensive</strong> while it rebuilds."</p>
+</blockquote>
+<p>重新处理 300K token 的首 token 延迟（TTFT）会非常明显。在交互式使用中，这个"卡一下"的体感往往比账单更让人难受。</p>
+<p>但要再次强调 <strong>缓存失效不影响正确性</strong>——模型看到的内容一模一样，只是重新算了一遍。这和压缩有本质区别。</p>
+<h3>3.5 什么情况下缓存会失效</h3>
+<h4>（A）API 层面的失效规则</h4>
+<p><strong>层级结构</strong>：缓存按 <code>tools</code> → <code>system</code> → <code>messages</code> 的顺序建立。</p>
+<blockquote>
+<p>"Changes at each level invalidate that level and all subsequent levels."</p>
+</blockquote>
+<pre class="mermaid"><code>flowchart TB
+    T["&lt;b&gt;Tools&lt;/b&gt; 工具定义"] --&gt; S["&lt;b&gt;System&lt;/b&gt; 系统提示"] --&gt; M["&lt;b&gt;Messages&lt;/b&gt; 对话消息"]
+
+    T -. "改动 → 全部失效" .-&gt; X1["💥 tools + system + messages"]
+    S -. "改动 → 向下失效" .-&gt; X2["💥 system + messages"]
+    M -. "改动 → 只影响自己" .-&gt; X3["💥 messages"]
+
+    style T fill:#f8cecc,stroke:#c0392b,color:#1a1a1a
+    style S fill:#fdebd0,stroke:#e67e22,color:#1a1a1a
+    style M fill:#d5e8d4,stroke:#2e7d32,color:#1a1a1a</code></pre>
+<p><strong>完整失效对照表</strong>（Anthropic 官方，✓ = 该层缓存仍有效，✘ = 失效）：</p>
+<table>
+<thead>
+<tr>
+<th>变化项</th>
+<th>Tools</th>
+<th>System</th>
+<th>Messages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工具定义（名称/描述/参数）改动</td>
+<td>✘</td>
+<td>✘</td>
+<td>✘</td>
+</tr>
+<tr>
+<td>开关 web search</td>
+<td>✓</td>
+<td>✘</td>
+<td>✘</td>
+</tr>
+<tr>
+<td>开关 citations</td>
+<td>✓</td>
+<td>✘</td>
+<td>✘</td>
+</tr>
+<tr>
+<td>切换 speed 设置</td>
+<td>✓</td>
+<td>✘</td>
+<td>✘</td>
+</tr>
+<tr>
+<td>改 <code>tool_choice</code></td>
+<td>✓</td>
+<td>✓</td>
+<td>✘</td>
+</tr>
+<tr>
+<td>增删图片（任意位置）</td>
+<td>✓</td>
+<td>✓</td>
+<td>✘</td>
+</tr>
+<tr>
+<td>改 thinking 参数</td>
+<td>视模型</td>
+<td>视模型</td>
+<td>✘</td>
+</tr>
+<tr>
+<td>改 <code>output_config.effort</code></td>
+<td>视模型</td>
+<td>视模型</td>
+<td>✘</td>
+</tr>
+</tbody>
+</table>
+<p><strong>其他会导致未命中的情况：</strong></p>
+<ul>
+<li><strong>切换模型</strong> —— 每个模型有独立缓存，内容一样也不通用。</li>
+<li><strong>超过 TTL 未使用</strong> —— 5 分钟（默认）或 1 小时。</li>
+<li><strong>低于最小可缓存长度</strong> —— 达不到就静默不缓存，<strong>不报错</strong>：</li>
+</ul>
+<blockquote>
+<p>"Any requests to cache fewer than this number of tokens will be processed without caching, and <strong>no error is returned</strong>."</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>最小可缓存 token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opus 5、Fable 5、Mythos 5</td>
+<td><strong>512</strong></td>
+</tr>
+<tr>
+<td>Opus 4.8、Sonnet 5、Sonnet 4.6/4.5、Opus 4.1/4、Sonnet 4</td>
+<td><strong>1,024</strong></td>
+</tr>
+<tr>
+<td>Mythos Preview、Opus 4.7、Haiku 3.5</td>
+<td><strong>2,048</strong></td>
+</tr>
+<tr>
+<td>Opus 4.6、Opus 4.5、Haiku 4.5</td>
+<td><strong>4,096</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>跨组织 / 跨 workspace</strong> —— 缓存在组织之间完全隔离，部分平台还按 workspace 隔离。</li>
+<li><strong>断点放错位置</strong>（最常见的工程错误）——把 <code>cache_control</code> 放在每次都变的块上（比如带时间戳的块）。官方给了明确解释：</li>
+</ul>
+<blockquote>
+<p>"The lookback does not find stable content behind your breakpoint and cache it. <strong>It finds entries that prior requests already wrote, and writes happen only at breakpoints.</strong>"</p>
+</blockquote>
+<p>正确做法：断点放在<strong>最后一个不变的块</strong>上。</p>
+<ul>
+<li><strong>工具 JSON key 顺序不稳定</strong> —— 某些语言序列化时 key 顺序随机，会静默破坏缓存。</li>
+</ul>
+<p><strong>其他限制</strong>：最多 4 个显式缓存断点；回溯窗口最多 20 个块。</p>
+<h4>（B）Claude Code 层面的失效规则</h4>
+<p>Claude Code 把请求按"变化频率"分了三层，尽量让稳定的东西排前面：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>内容</th>
+<th>何时变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>System prompt</strong></td>
+<td>核心指令、工具定义、输出风格</td>
+<td>工具集变化，或 Claude Code 升级</td>
+</tr>
+<tr>
+<td><strong>Project context</strong></td>
+<td><code>CLAUDE.md</code>、auto memory、无作用域 rules</td>
+<td>session 启动，或 <code>/clear</code>、<code>/compact</code> 之后</td>
+</tr>
+<tr>
+<td><strong>Conversation</strong></td>
+<td>你的消息、Claude 的回复、工具结果</td>
+<td>每一轮</td>
+</tr>
+</tbody>
+</table>
+<p>另外两个<strong>不在 prompt 文本里、但同样属于缓存 key</strong> 的东西：</p>
+<ul>
+<li><strong>模型</strong>：每个模型独立缓存。</li>
+<li><strong>Effort level</strong>：同一模型的不同 effort 也是独立缓存。</li>
+</ul>
+<p><strong>❌ 会打断缓存的操作（官方完整清单）：</strong></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>切换模型</strong> <code>/model</code></td>
+<td>整个历史重算。<strong><code>opusplan</code> 每次进出 plan mode 都是一次模型切换</strong>；Fable 5/Opus 5 的自动模型 fallback 也算</td>
+</tr>
+<tr>
+<td><strong>改 effort level</strong> <code>/effort</code></td>
+<td>会话中改动时 Claude Code 会先弹确认框</td>
+</tr>
+<tr>
+<td><strong>打开 fast mode</strong></td>
+<td>增加了一个属于缓存 key 的请求头。<strong>每次会话只付一次</strong>，之后开关都不再打断</td>
+</tr>
+<tr>
+<td><strong>连接/断开 MCP server</strong></td>
+<td>⚠️ 仅当工具定义被加载进前缀时。<strong>默认的 deferred tools 模式下不受影响</strong></td>
+</tr>
+<tr>
+<td><strong>启用/禁用插件</strong></td>
+<td>仅当插件提供 MCP server 时。Skills / commands / agents / hooks / LSP / themes <strong>都不打断</strong></td>
+</tr>
+<tr>
+<td><strong>deny 整个工具</strong></td>
+<td>如 <code>Bash</code>、<code>WebFetch</code> 这种裸工具名的 deny 规则。带作用域的如 <code>Bash(rm *)</code> <strong>不打断</strong></td>
+</tr>
+<tr>
+<td><strong>执行压缩</strong></td>
+<td>见 2.7</td>
+</tr>
+<tr>
+<td><strong>升级 Claude Code</strong></td>
+<td>系统提示/工具定义变了。⚠️ <strong>升级后 resume 长会话可能是你发出过的最贵的一次请求</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>✅ 不会打断缓存的操作：</strong></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>为什么安全</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>编辑仓库里的文件</td>
+<td>文件内容只在被读取时进入上下文；改文件只会追加一条 <code>&lt;system-reminder&gt;</code></td>
+</tr>
+<tr>
+<td>会话中编辑 <code>CLAUDE.md</code></td>
+<td>不打断缓存，<strong>但改动也不生效</strong>——要等 <code>/clear</code>、<code>/compact</code> 或重启</td>
+</tr>
+<tr>
+<td>改输出风格</td>
+<td>同上，不打断也不生效</td>
+</tr>
+<tr>
+<td>切换权限模式</td>
+<td>不改系统提示（<code>opusplan</code> 的 plan mode 除外）</td>
+</tr>
+<tr>
+<td>调用 skills / commands</td>
+<td>作为 user message 追加在末尾</td>
+</tr>
+<tr>
+<td><code>/recap</code></td>
+<td>把摘要作为命令输出追加，而非替换历史</td>
+</tr>
+<tr>
+<td><strong><code>/rewind</code></strong></td>
+<td>回退到的前缀本来就在缓存里</td>
+</tr>
+<tr>
+<td>启动 subagent</td>
+<td>子代理有自己独立的上下文和缓存，父会话前缀不受影响</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 官方建议一句话总结：
+<em>"Pick your model and effort level at the top of a session, then save <code>/compact</code> for natural breaks between tasks. The fewer changes you make mid-task, the higher your cache hit rate."</em></p>
+</blockquote>
+<h4>（C）Claude Code 的缓存生命周期（TTL）</h4>
+<p><svg viewBox="0 0 760 235" width="100%" style="max-width:760px;height:auto;display:block;margin:1.2rem auto" role="img" aria-label="缓存 TTL 生命周期时间线" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <title>缓存 TTL 生命周期：连续请求保持缓存热，闲置超过 TTL 后冷启动</title>
+  <rect x="48" y="62" width="322" height="92" rx="6" fill="#2e7d32" opacity="0.10"/>
+  <rect x="370" y="62" width="218" height="92" rx="6" fill="#c0392b" opacity="0.09"/>
+  <text x="209" y="84" text-anchor="middle" fill="#38914a" font-size="12.5" font-weight="600">缓存热 · 每次命中都重置计时器</text>
+  <text x="479" y="84" text-anchor="middle" fill="#c0392b" font-size="12.5" font-weight="600">闲置超过 TTL</text>
+  <line x1="30" y1="118" x2="692" y2="118" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+  <path d="M692 118 l-9 -4.5 v9 z" fill="currentColor" opacity="0.5"/>
+  <text x="700" y="122" font-size="11" fill="currentColor" opacity="0.6">时间</text>
+  <line x1="322" y1="101" x2="608" y2="101" stroke="#c0392b" stroke-width="1.2" stroke-dasharray="4 3" opacity="0.75"/>
+  <g fill="#2e7d32"><circle cx="85" cy="118" r="7"/><circle cx="160" cy="118" r="7"/><circle cx="235" cy="118" r="7"/><circle cx="310" cy="118" r="7"/></g>
+  <g fill="#ffffff" font-size="9.5" font-weight="700" text-anchor="middle"><text x="85" y="121.5">✓</text><text x="160" y="121.5">✓</text><text x="235" y="121.5">✓</text><text x="310" y="121.5">✓</text></g>
+  <text x="197" y="146" text-anchor="middle" fill="currentColor" opacity="0.75" font-size="11.5">连续对话：整个前缀按 0.1× 输入价读取</text>
+  <circle cx="620" cy="118" r="8" fill="#c0392b"/>
+  <text x="620" y="122" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700">✕</text>
+  <text x="620" y="146" text-anchor="middle" fill="#c0392b" font-size="11.5" font-weight="600">冷启动</text>
+  <text x="620" y="161" text-anchor="middle" fill="currentColor" opacity="0.7" font-size="10.5">全量重算，慢且贵</text>
+  <rect x="48" y="178" width="630" height="42" rx="6" fill="currentColor" opacity="0.06"/>
+  <text x="64" y="197" font-size="11.5" fill="currentColor" opacity="0.85">TTL：订阅计划自动 1 小时；API key / 第三方默认 5 分钟</text>
+  <text x="64" y="212" font-size="11.5" fill="currentColor" opacity="0.85">Subagent 恒为 5 分钟；超额动用 credits 时自动降回 5 分钟</text>
+</svg></p>
+<ul>
+<li><strong>Claude 订阅计划</strong>：Claude Code <strong>自动请求 1 小时 TTL</strong>，休息一小时内回来仍能命中。</li>
+<li>但如果超出套餐额度、开始消耗 usage credits，会<strong>自动降回 5 分钟 TTL</strong>（因为此时 1 小时写入更贵）。</li>
+<li><strong>API key / Bedrock / Google Cloud / Foundry</strong>：默认 5 分钟，设 <code>ENABLE_PROMPT_CACHING_1H=1</code> 开启 1 小时。</li>
+<li>调试用：<code>FORCE_PROMPT_CACHING_5M=1</code> 强制 5 分钟。</li>
+</ul>
+<h4>（D）Claude Code 的缓存作用域（容易踩坑）</h4>
+<blockquote>
+<p>"In Claude Code, the cache is effectively scoped to <strong>one machine and directory</strong>."</p>
+</blockquote>
+<p>系统提示里嵌入了工作目录、平台、shell、OS 版本、auto-memory 路径，所以：</p>
+<ul>
+<li>❌ <strong>不同目录的两个 session 互不命中</strong> —— <strong>包括同一个仓库的不同 git worktree</strong>。</li>
+<li>✅ 同一目录下<strong>并行</strong>的多个 session <strong>会共享缓存</strong>。</li>
+<li>⚠️ <strong>顺序</strong>启动的 session 只有在启动时的 git 状态快照一致时才共享（系统提示还捕获了分支和最近提交）。</li>
+</ul>
+<p><strong>Subagent 与 Fork 的差别很重要：</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>缓存行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Subagent</strong></td>
+<td>全新的系统提示和工具集，<strong>从零建缓存</strong>；即使订阅计划也只用 5 分钟 TTL。父会话前缀不受影响</td>
+</tr>
+<tr>
+<td><strong>Fork</strong></td>
+<td>完整继承父会话的系统提示、工具、历史，<strong>第一次请求就命中父会话的缓存</strong></td>
+</tr>
+</tbody>
+</table>
+<p>这解释了为什么"用 subagent 做大量文件调研"是划算的：它把大读取隔离在自己的窗口里，父会话的上下文和缓存都保持干净。</p>
+<h3>3.6 OpenAI / Codex 的缓存管理</h3>
+<p>OpenAI 的缓存是<strong>全自动</strong>的，没有 <code>cache_control</code> 这种标注机制。</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>规则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>启用方式</td>
+<td>自动，无需改代码</td>
+</tr>
+<tr>
+<td>最小前缀</td>
+<td><strong>1,024 token</strong>（"Caching is available for prefixes containing at least 1,024 tokens"）</td>
+</tr>
+<tr>
+<td>缓存内容</td>
+<td>system / user / assistant 消息、user 消息里的图片、<code>messages</code> 数组与 <code>tools</code> 列表、结构化输出 schema</td>
+</tr>
+<tr>
+<td>保留时长（GPT-5.6+）</td>
+<td><strong>"for at least 30 minutes, but OpenAI may retain it longer"</strong></td>
+</tr>
+<tr>
+<td>保留时长（更早模型）</td>
+<td><strong>"generally remain active for 5 to 10 minutes of inactivity, up to a maximum of one hour"</strong></td>
+</tr>
+<tr>
+<td>观测字段</td>
+<td><code>cached_tokens</code></td>
+</tr>
+<tr>
+<td>写入成本（GPT-5.6+）</td>
+<td><strong>1.25×</strong> 未缓存输入价</td>
+</tr>
+<tr>
+<td>路由优化</td>
+<td><code>prompt_cache_key</code>——共享长前缀的请求用同一个 key，<strong>建议每个 key 保持约 15 请求/分钟</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>未命中的原因</strong>：前缀不精确匹配，或隐式断点里包含了变化的元素（时间戳、工具调用历史、用户输入）。</p>
+<p><strong>官方最佳实践</strong>与 Anthropic 完全一致：静态/重复内容放开头，变化的、用户相关的信息放末尾。</p>
+<blockquote>
+<p><strong>两家的核心差异对照</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Anthropic</th>
+<th>OpenAI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>缓存控制</td>
+<td>显式 <code>cache_control</code>（也支持自动模式）</td>
+<td>全自动，无手动控制</td>
+</tr>
+<tr>
+<td>最小长度</td>
+<td>512 ~ 4,096（按模型）</td>
+<td>1,024</td>
+</tr>
+<tr>
+<td>TTL</td>
+<td>5 分钟 / 1 小时（可选，价格不同）</td>
+<td>GPT-5.6+ 至少 30 分钟</td>
+</tr>
+<tr>
+<td>写入溢价</td>
+<td>1.25×（5m）/ 2×（1h）</td>
+<td>1.25×</td>
+</tr>
+<tr>
+<td>命中折扣</td>
+<td><strong>0.1×</strong>（省 90%）</td>
+<td>显著折扣</td>
+</tr>
+<tr>
+<td>路由控制</td>
+<td>无需（按前缀哈希）</td>
+<td><code>prompt_cache_key</code></td>
+</tr>
+<tr>
+<td>压缩摘要</td>
+<td>明文 <code>&lt;summary&gt;</code></td>
+<td>加密不透明对象</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<hr>
+<h2>4. 三者的相互作用</h2>
+<p>现在把三个概念串起来。一个长会话的真实 token 曲线是这样的：</p>
+<p><svg viewBox="0 0 760 310" width="100%" style="max-width:760px;height:auto;display:block;margin:1.2rem auto" role="img" aria-label="长会话上下文占用的锯齿曲线" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <title>长会话 token 曲线：每次压缩形成一个锯齿</title>
+  <text x="62" y="30" font-size="11.5" fill="currentColor" opacity="0.8">每个谷底 = 一次额外的模型调用 + 一次信息损失 + 一次对话层缓存重建</text>
+  <line x1="62" y1="45" x2="62" y2="250" stroke="currentColor" stroke-width="1.3" opacity="0.45"/>
+  <line x1="62" y1="250" x2="712" y2="250" stroke="currentColor" stroke-width="1.3" opacity="0.45"/>
+  <path d="M712 250 l-9 -4.5 v9 z" fill="currentColor" opacity="0.45"/>
+  <line x1="62" y1="72" x2="700" y2="72" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="6 4" opacity="0.85"/>
+  <text x="700" y="65" text-anchor="end" fill="#c0392b" font-size="11.5" font-weight="600">auto-compact 阈值（Sonnet 5 ≈ 967K）</text>
+  <polyline points="62,240 230,72 230,222 400,72 400,222 570,72 570,222 690,150" fill="none" stroke="#2d6cdf" stroke-width="2.5" stroke-linejoin="round"/>
+  <g fill="#c0392b"><circle cx="230" cy="222" r="4.5"/><circle cx="400" cy="222" r="4.5"/><circle cx="570" cy="222" r="4.5"/></g>
+  <g stroke="currentColor" opacity="0.35" stroke-width="1"><line x1="230" y1="250" x2="230" y2="257"/><line x1="400" y1="250" x2="400" y2="257"/><line x1="570" y1="250" x2="570" y2="257"/></g>
+  <g fill="#c0392b" font-size="11" font-weight="600" text-anchor="middle"><text x="230" y="270">压缩</text><text x="400" y="270">压缩</text><text x="570" y="270">压缩</text></g>
+  <g fill="currentColor" opacity="0.7" font-size="11" text-anchor="end"><text x="56" y="76">967K</text><text x="56" y="226">≈40K</text><text x="56" y="254">0</text></g>
+  <text x="712" y="270" text-anchor="end" fill="currentColor" opacity="0.65" font-size="11">会话时间 →</text>
+  <g fill="#2e7d32" opacity="0.20"><rect x="62" y="284" width="164" height="9" rx="3"/><rect x="234" y="284" width="162" height="9" rx="3"/><rect x="404" y="284" width="162" height="9" rx="3"/><rect x="574" y="284" width="116" height="9" rx="3"/></g>
+  <text x="376" y="306" text-anchor="middle" fill="currentColor" opacity="0.7" font-size="10.5">每一段绿条 = 一个缓存热的平台期，优化目标就是让它尽可能长</text>
+</svg></p>
+<p><strong>每个锯齿的谷底 = 一次压缩 = 一次昂贵的额外调用 + 一次信息损失 + 一次对话层缓存重建。</strong></p>
+<p>优化的目标因此非常明确：<strong>让锯齿尽可能少，让每段"缓存热"的平台期尽可能长。</strong></p>
+<pre class="mermaid"><code>flowchart TD
+    Start["长会话进行中"] --&gt; Q1{"要换任务了吗？"}
+    Q1 -- 是 --&gt; Clear["&lt;b&gt;/clear&lt;/b&gt;&lt;br/&gt;最干净：不背历史包袱&lt;br/&gt;也避免 context rot"]
+    Q1 -- 否 --&gt; Q2{"走错路了想退回？"}
+    Q2 -- 是 --&gt; Rewind["&lt;b&gt;/rewind&lt;/b&gt;&lt;br/&gt;✅ 前缀已在缓存&lt;br/&gt;✅ 不丢信息"]
+    Q2 -- 否 --&gt; Q3{"要做大量文件调研？"}
+    Q3 -- 是 --&gt; Sub["&lt;b&gt;subagent&lt;/b&gt;&lt;br/&gt;大读取隔离在子窗口&lt;br/&gt;父会话上下文与缓存不受影响"]
+    Q3 -- 否 --&gt; Q4{"接近窗口上限？"}
+    Q4 -- 否 --&gt; Go["继续，什么都别动&lt;br/&gt;保持缓存热"]
+    Q4 -- 是 --&gt; Q5{"当前任务做完了？"}
+    Q5 -- 是 --&gt; Compact["&lt;b&gt;/compact focus on ...&lt;/b&gt;&lt;br/&gt;趁缓存热压，最便宜"]
+    Q5 -- 否 --&gt; Wait["先把手上这一步收尾&lt;br/&gt;结论落到文件&lt;br/&gt;再压缩"]
+
+    style Clear fill:#d5e8d4,stroke:#2e7d32,color:#1a1a1a
+    style Rewind fill:#d5e8d4,stroke:#2e7d32,color:#1a1a1a
+    style Sub fill:#d5e8d4,stroke:#2e7d32,color:#1a1a1a
+    style Go fill:#d5e8d4,stroke:#2e7d32,color:#1a1a1a
+    style Compact fill:#fdebd0,stroke:#e67e22,color:#1a1a1a
+    style Wait fill:#fdebd0,stroke:#e67e22,color:#1a1a1a</code></pre>
+<hr>
+<h2>5. 日常实践：怎么用好一个 session</h2>
+<h3>5.1 会话开始时（决定了后面 80% 的效率）</h3>
+<ol>
+<li>
+<p><strong>一开始就把模型和 effort 定下来，中途别换。</strong>
+   这是投入产出比最高的一条。中途切模型 = 整个历史重算。官方的观察很有意思：为了省钱切到"更便宜"的模型，重建缓存的开销可能比继续用原模型还贵。</p>
+</li>
+<li>
+<p><strong>要用 fast mode 就在会话开头开。</strong></p>
+<blockquote>
+<p>"turning it on at the start of a session costs less than turning it on deep into a long one."
+   开头开：几乎无成本。第 200K token 时开：整个历史按 fast mode 价重算。</p>
+</blockquote>
+</li>
+<li>
+<p><strong>该配的 MCP server、插件一次配好。</strong>
+   在 deferred tools 默认模式下 MCP 变动是安全的，但如果你的环境走 LLM gateway 或用了 <code>alwaysLoad</code>，工具定义就在前缀里，中途变动 = 全量重算。</p>
+</li>
+<li>
+<p><strong>稳定的约束写进 <code>CLAUDE.md</code> / <code>AGENTS.md</code>，不要写在对话里。</strong>
+   这是唯一能跨压缩、跨 <code>/clear</code> 存活的地方。</p>
+</li>
+</ol>
+<h3>5.2 会话进行中</h3>
+<ol>
+<li>
+<p><strong>保持追加，避免修改。</strong>
+   这是所有缓存优化的第一性原理。Claude Code 的很多设计——plan mode 做成可调用的工具而不是切换工具集、MCP 工具延迟加载——都是为了这一条。</p>
+</li>
+<li>
+<p><strong>大规模调研交给 subagent。</strong>
+   一次 <code>grep</code> 全仓库 + 读 20 个文件，可能就是 50K token。放进 subagent，父会话只收到一段摘要。</p>
+</li>
+<li>
+<p><strong>走错路用 <code>/rewind</code>，不要用 <code>/compact</code>。</strong>
+   前者回到已缓存的前缀且不丢信息，后者两样都占。</p>
+</li>
+<li>
+<p><strong>会话中改 <code>CLAUDE.md</code> 是无效的。</strong>
+   官方明确：改了不生效，Claude 还在用 session 启动时加载的版本。要生效必须 <code>/clear</code>、<code>/compact</code> 或重启。<strong>这是很多人反复踩的坑</strong>——改完配置发现 Claude 完全没变化，以为是模型不听话。</p>
+</li>
+<li>
+<p><strong>定期 <code>/context</code> 看占用。</strong>
+   看看是不是某个 MCP server 或某次巨大的文件读取吃掉了大部分空间。</p>
+</li>
+</ol>
+<h3>5.3 关于休息和恢复</h3>
+<ol>
+<li>
+<p><strong>知道你的 TTL 是多少。</strong></p>
+<ul>
+<li>订阅计划：1 小时。<strong>午休一小时回来，缓存大概率还在。</strong></li>
+<li>API key：默认 5 分钟。<strong>接杯水回来可能就冷了</strong>，除非设了 <code>ENABLE_PROMPT_CACHING_1H=1</code>。</li>
+</ul>
+</li>
+<li>
+<p><strong>要长时间离开前，先决定回来怎么办。</strong></p>
+<ul>
+<li>短暂离开（TTL 内）：什么都不用做。</li>
+<li>长时间离开且任务未完成：<strong>离开前趁缓存热执行 <code>/compact</code></strong>。等第二天回来再压缩，是最贵的一种压缩方式。</li>
+<li>长时间离开且任务已完成：直接关掉。下次 <code>/clear</code> 开新的。</li>
+</ul>
+</li>
+<li>
+<p><strong>升级 Claude Code 之后不要立刻 resume 长会话。</strong>
+    官方警告：<em>"the first turn back into a long session can be the most expensive request you send."</em> 升级后更适合开新会话。</p>
+</li>
+</ol>
+<h3>5.4 关于目录（容易忽略的一条）</h3>
+<ol>
+<li><strong>固定在同一个目录工作。</strong>
+    缓存实际上是按机器 + 目录隔离的。频繁在 worktree 之间跳，等于每次都是冷启动。同一目录并行开多个 session 反而是共享缓存的。</li>
+</ol>
+<h3>5.5 健康度自检</h3>
+<table>
+<thead>
+<tr>
+<th>症状</th>
+<th>可能原因</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>每轮都慢，<code>cache_creation</code> 持续很高</td>
+<td>前缀里有东西每轮在变</td>
+<td>查 MCP server 是否在反复重连；查是否有动态工具更新</td>
+</tr>
+<tr>
+<td>刚 resume 就特别慢特别贵</td>
+<td>缓存已过期，或升级过 Claude Code</td>
+<td>正常现象；考虑改用 <code>/clear</code> 开新会话</td>
+</tr>
+<tr>
+<td>自动压缩报错停止</td>
+<td>单个文件/工具输出过大导致"压缩抖动"</td>
+<td>别再整读那个大文件；改用 grep 定位或交给 subagent</td>
+</tr>
+<tr>
+<td>改了 <code>CLAUDE.md</code> 但没生效</td>
+<td>会话中编辑不生效</td>
+<td><code>/clear</code> 或重启</td>
+</tr>
+<tr>
+<td>压缩后模型"忘了"之前的约定</td>
+<td>规则用了 <code>paths:</code> frontmatter，或在嵌套 <code>CLAUDE.md</code> 里</td>
+<td>移到项目根 <code>CLAUDE.md</code>，去掉 <code>paths:</code></td>
+</tr>
+<tr>
+<td>Skill 指令压缩后失效</td>
+<td>超出 5K/skill 或 25K 总量被截断</td>
+<td>关键指令挪到 <code>SKILL.md</code> 开头</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>6. 速查表</h2>
+<h3>压缩阈值</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>阈值</th>
+<th>可调方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anthropic API 服务端压缩</td>
+<td>默认 150,000 input tokens（下限 50,000）</td>
+<td><code>trigger.value</code></td>
+</tr>
+<tr>
+<td>Anthropic 工具结果清除</td>
+<td>默认 100,000 input tokens</td>
+<td><code>trigger.value</code></td>
+</tr>
+<tr>
+<td>Claude Code（Sonnet 5, 1M 窗口）</td>
+<td>约 967K tokens</td>
+<td><code>CLAUDE_CODE_AUTO_COMPACT_WINDOW</code></td>
+</tr>
+<tr>
+<td>Codex CLI</td>
+<td>未公开默认值（"unset uses model defaults"）</td>
+<td><code>model_auto_compact_token_limit</code></td>
+</tr>
+</tbody>
+</table>
+<h3>缓存 TTL</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>TTL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anthropic API 默认</td>
+<td>5 分钟</td>
+</tr>
+<tr>
+<td>Anthropic API 可选</td>
+<td>1 小时（写入 2×）</td>
+</tr>
+<tr>
+<td>Claude Code + 订阅计划</td>
+<td>1 小时（自动）</td>
+</tr>
+<tr>
+<td>Claude Code + 订阅超额用 credits</td>
+<td>自动降到 5 分钟</td>
+</tr>
+<tr>
+<td>Claude Code + API key / 第三方</td>
+<td>5 分钟（<code>ENABLE_PROMPT_CACHING_1H=1</code> 可改）</td>
+</tr>
+<tr>
+<td>Claude Code subagent</td>
+<td>5 分钟（即使订阅计划）</td>
+</tr>
+<tr>
+<td>OpenAI GPT-5.6+</td>
+<td>至少 30 分钟</td>
+</tr>
+<tr>
+<td>OpenAI 更早模型</td>
+<td>闲置 5–10 分钟，最长 1 小时</td>
+</tr>
+</tbody>
+</table>
+<h3>相关环境变量（Claude Code）</h3>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CLAUDE_CODE_AUTO_COMPACT_WINDOW</code></td>
+<td>自定义自动压缩阈值</td>
+</tr>
+<tr>
+<td><code>ENABLE_PROMPT_CACHING_1H=1</code></td>
+<td>在 API key 场景启用 1 小时 TTL</td>
+</tr>
+<tr>
+<td><code>FORCE_PROMPT_CACHING_5M=1</code></td>
+<td>强制 5 分钟 TTL（调试用）</td>
+</tr>
+<tr>
+<td><code>DISABLE_PROMPT_CACHING=1</code></td>
+<td>完全关闭缓存（仅调试）</td>
+</tr>
+<tr>
+<td><code>CLAUDE_CODE_DISABLE_1M_CONTEXT=1</code></td>
+<td>禁用 1M 上下文</td>
+</tr>
+<tr>
+<td><code>DISABLE_AUTOUPDATER=1</code></td>
+<td>控制升级时机，避免意外的缓存重建</td>
+</tr>
+</tbody>
+</table>
+<h3>一句话记忆</h3>
+<blockquote>
+<p><strong>上下文</strong> = 模型这次能看到的全部（输入+输出），缓存过的照样占空间。
+<strong>压缩</strong> = 空间不够了，用摘要换空间，<strong>会丢信息</strong>，趁缓存热的时候做最便宜。
+<strong>缓存</strong> = 复用算过的前缀，只认精确前缀匹配，失效<strong>只影响钱和延迟、不影响正确性</strong>。
+<strong>最优策略</strong> = 开头定好模型，中途只追加不修改，大活交给 subagent，任务之间 <code>/clear</code>。</p>
+</blockquote>
+<hr>
+<h2>参考文档</h2>
+<p><strong>Anthropic 官方</strong></p>
+<ul>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/context-windows">Context windows</a></li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching">Prompt caching</a></li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/compaction">Compaction</a></li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/context-editing">Context editing</a></li>
+<li><a href="https://platform.claude.com/docs/en/about-claude/pricing">Pricing</a></li>
+<li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Effective context engineering for AI agents</a></li>
+</ul>
+<p><strong>Claude Code 官方</strong></p>
+<ul>
+<li><a href="https://code.claude.com/docs/en/context-window">Explore the context window</a></li>
+<li><a href="https://code.claude.com/docs/en/prompt-caching">How Claude Code uses prompt caching</a></li>
+<li><a href="https://code.claude.com/docs/en/how-claude-code-works">How Claude Code works</a></li>
+<li><a href="https://code.claude.com/docs/en/model-config">Model configuration</a></li>
+<li><a href="https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything">Lessons from building Claude Code: Prompt caching is everything</a></li>
+</ul>
+<p><strong>OpenAI 官方</strong></p>
+<ul>
+<li><a href="https://developers.openai.com/api/docs/guides/prompt-caching">Prompt caching</a></li>
+<li><a href="https://developers.openai.com/api/docs/guides/compaction">Compaction</a></li>
+<li><a href="https://learn.chatgpt.com/docs/config-file/config-reference">Codex configuration reference</a></li>
+<li><a href="https://learn.chatgpt.com/docs/developer-commands">Developer commands</a></li>
+<li><a href="https://developers.openai.com/api/docs/models/gpt-5.6">GPT-5.6 model card</a></li>
+</ul>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-19/claude-refreshed-my-blog-this-weekend.html">Claude 在这个周末帮我翻新了博客</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-21/claude-vs-codex-beer-game-two-rounds.html">啤酒游戏：让 Claude 和 Codex 干了这杯酒</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-20/claude-and-codex-crosscheck-homework.html">我是怎么让 Claude 和 Codex 帮忙完成课程作业</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-19/yao-shunyu-interview-takeaways.html">姚顺宇 4 小时访谈，通透有趣的灵魂~</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+    var currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+    mermaid.initialize({ startOnLoad: false, theme: currentTheme });
+
+    var diagrams = document.querySelectorAll('pre.mermaid');
+    diagrams.forEach(function (el) {
+        var code = el.querySelector('code');
+        el.setAttribute('data-source', code ? code.textContent : el.textContent);
+        el.textContent = el.getAttribute('data-source');
+    });
+
+    mermaid.run();
+
+    document.documentElement.addEventListener('themechange', function (e) {
+        var newTheme = e.detail === 'dark' ? 'dark' : 'default';
+        mermaid.initialize({ startOnLoad: false, theme: newTheme });
+        document.querySelectorAll('pre.mermaid').forEach(function (el) {
+            el.removeAttribute('data-processed');
+            el.textContent = el.getAttribute('data-source');
+        });
+        mermaid.run();
+    });
+</script>
+</body>
+</html>

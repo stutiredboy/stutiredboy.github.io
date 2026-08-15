@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>啤酒游戏：让 Claude 和 Codex 干了这杯酒 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="同一道啤酒游戏案例题、同一份 PDF，Claude 最初算出超额收益 500–1000 元，Codex 最初算出 7500–7900 元。我把两份答案互丢回去，让它们围绕“backorder 假设”和“期末库存估值口径”互评两轮。最后两边在主策略和收益量级上基本收敛，但中心值仍未完全统一。">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2026-04-21/claude-vs-codex-beer-game-two-rounds.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="啤酒游戏：让 Claude 和 Codex 干了这杯酒">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2026-04-21/claude-vs-codex-beer-game-two-rounds.html">
+            <meta property="og:description" content="同一道啤酒游戏案例题、同一份 PDF，Claude 最初算出超额收益 500–1000 元，Codex 最初算出 7500–7900 元。我把两份答案互丢回去，让它们围绕“backorder 假设”和“期末库存估值口径”互评两轮。最后两边在主策略和收益量级上基本收敛，但中心值仍未完全统一。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="啤酒游戏：让 Claude 和 Codex 干了这杯酒">
+            <meta name="twitter:description" content="同一道啤酒游戏案例题、同一份 PDF，Claude 最初算出超额收益 500–1000 元，Codex 最初算出 7500–7900 元。我把两份答案互丢回去，让它们围绕“backorder 假设”和“期末库存估值口径”互评两轮。最后两边在主策略和收益量级上基本收敛，但中心值仍未完全统一。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="claude-vs-codex-beer-game-two-rounds">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">啤酒游戏：让 Claude 和 Codex 干了这杯酒</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2026-04-21T22:00:00+08:00">2026-04-21 22:00</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 11 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/ai.html">ai</a> · <a href="https://www.chenxiaosheng.com/tag/llm.html">llm</a> · <a href="https://www.chenxiaosheng.com/tag/claude.html">claude</a> · <a href="https://www.chenxiaosheng.com/tag/codex.html">codex</a> · <a href="https://www.chenxiaosheng.com/tag/homework.html">homework</a> · <a href="https://www.chenxiaosheng.com/tag/supply-chain.html">supply-chain</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <p><a href="https://www.chenxiaosheng.com/posts/2026-04-20/claude-and-codex-crosscheck-homework.html">上一篇</a>讲的是同一门《运营与供应链管理》的设施选址案例。那次比较干净：重心法有唯一解，让两个 AI 互评一轮，再用 Python 跑一遍，基本就能定谁对谁错。</p>
+<p>这次不一样。第二次课后作业是经典的<strong>啤酒游戏</strong>（Beer Game）：零售商 → 批发商 → 制造商三级供应链，真实需求在第 2 周从 4 箱/周升到 8 箱/周，之后保持稳定，但由于信息失真和 4 周提前期，链路里层层放大。案例写到：到第 24 周零售商还堆着 75 箱、批发商还堆着 218 卡车量，而制造商在第 19 周库存已经冲到 93 批。</p>
+<p>题目三问：</p>
+<ol>
+<li>画出 1–24 周库存和订单图，解释牛鞭效应</li>
+<li>分析牛鞭效应的影响、成因、对策</li>
+<li>假设你是“聪明零售商”，给出最优订货策略，并算出你比“普通零售商”多赚多少钱</li>
+</ol>
+<p>问题 1、2 偏定性，两个 AI 答得大体接近。真正分歧出在问题 3：<strong>Claude 最初算出超额收益约 500–1000 元，Codex 最初算出 7500–7900 元。差了一个数量级。</strong></p>
+<h2>一开始的分歧，其实不只是一道算术题</h2>
+<p>两份答案的最优订货策略看上去很接近：第 1 周按常态 4 箱，第 2 周开始往上调，之后维持 8 箱/周的稳态。真正的差别只在一句话：</p>
+<ul>
+<li>Claude：第 2 周订 <strong>12 箱</strong></li>
+<li>Codex：第 2 周订 <strong>8 箱</strong></li>
+</ul>
+<p>但光是 4 箱之差，不足以解释为什么一个答案多赚几百元，另一个多赚几千元。真正把两份答案拉开的，是背后的两个建模选择：</p>
+<ul>
+<li><strong>行为假设</strong>：第 5 周不可避免的 4 箱短缺，到底能不能在第 6 周作为 <code>backorder</code> 补卖？</li>
+<li><strong>收益口径</strong>：第 24 周普通零售商手上的 75 箱库存，到底是资产，还是在本题比较口径里被等效忽略掉？</li>
+</ul>
+<p>事后看，双方真正争的不是“谁算错了”，而是“哪套假设和口径更适合这道题”。</p>
+<h2>第一轮：双方先各自为自己的答案辩护</h2>
+<p>我先让它们各自写一份对比报告：</p>
+<ul>
+<li><code>Claude_VS_Codex_by_Claude.md</code></li>
+<li><code>Claude_VS_Codex_by_Codex.md</code></li>
+</ul>
+<p>这一轮的立场很清楚：</p>
+<ul>
+<li>Claude 认为自己那份更合理，因为案例 PDF 第 6、7 周明确写了顾客会留下名字电话等货，说明 <code>backorder</code> 真实存在</li>
+<li>Codex 认为自己那份更严谨，因为从 24 周现金流口径看，普通零售商第 24 周手里还有 75 箱库存，占着现金、卖得慢，财务上不能当成“已经实现的收益”</li>
+</ul>
+<p>如果把两边都尽量善意理解，它们其实各有抓手：</p>
+<ul>
+<li>Claude 抓的是<strong>案例行为证据</strong></li>
+<li>Codex 抓的是<strong>比较口径和现金占用</strong></li>
+</ul>
+<p>到这一步，我还不能明确说谁一定错。因为和设施选址那题不一样，啤酒游戏这道题在第 3 问里确实存在建模自由度。</p>
+<h2>第二轮：真正让局面收敛的，不是继续争观点，而是“用对方的尺子重算一遍”</h2>
+<p>第二轮我把两份对比报告再丢回去，让双方继续回应：</p>
+<ul>
+<li><code>Claude_VS_Codex_Round2_by_Claude.md</code></li>
+<li><code>Claude_VS_Codex_Round2_by_Codex.md</code></li>
+</ul>
+<p>Claude 这一轮做得最好的一点，是它没有继续停留在“PDF 原文支持 backorder”这种事实争论上，而是直接做了一件更硬的事：</p>
+<blockquote>
+<p><strong>用 Codex 自己定义的口径，反算 Claude 的策略。</strong></p>
+</blockquote>
+<p>它的核心计算逻辑是：</p>
+<p>如果第 2 周订 12 箱，那么：</p>
+<ul>
+<li>第 5 周的 4 箱缺口先形成 <code>backorder</code></li>
+<li>第 6 周正好到货 12 箱</li>
+<li>这 12 箱刚好覆盖“第 5 周积压的 4 箱 + 第 6 周真实需求 8 箱”</li>
+<li>之后回到稳态，每周到货 8 箱、卖 8 箱</li>
+<li>因而 <strong>期末库存仍然是 0</strong></li>
+</ul>
+<p>按这个路径，套进 Codex 当时自己采用的“收入 - 采购 - 持有成本”的 24 周现金流式口径，会得到：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">口径</th>
+<th style="text-align: right;">Claude 策略（W2=12）</th>
+<th style="text-align: right;">Codex 策略（W2=8）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">销量（箱）</td>
+<td style="text-align: right;">188</td>
+<td style="text-align: right;">184</td>
+</tr>
+<tr>
+<td style="text-align: left;">收入（元）</td>
+<td style="text-align: right;">23,500</td>
+<td style="text-align: right;">23,000</td>
+</tr>
+<tr>
+<td style="text-align: left;">采购（元）</td>
+<td style="text-align: right;">17,600</td>
+<td style="text-align: right;">17,200</td>
+</tr>
+<tr>
+<td style="text-align: left;">持有成本（元）</td>
+<td style="text-align: right;">9.23</td>
+<td style="text-align: right;">9.23</td>
+</tr>
+<tr>
+<td style="text-align: left;">现金利润（元）</td>
+<td style="text-align: right;">5,890.77</td>
+<td style="text-align: right;">5,790.77</td>
+</tr>
+<tr>
+<td style="text-align: left;">期末库存（箱）</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>也就是说，在<strong>同一口径</strong>下，Claude 的第 2 周订 12 箱方案，比 Codex 的第 2 周订 8 箱方案<strong>多赚 100 元</strong>。这 100 元恰好就是多履约的 4 箱 × 单箱毛利 25 元。</p>
+<p>这一步很关键，因为它把争论从“你觉得、我觉得”推进到了“就用你自己的尺子量，结果还是这样”。</p>
+<h2>第二轮之后，Codex 的主要修正也很明确</h2>
+<p>Codex 在第二轮里做了两个重要修正。</p>
+<h3>1. 承认原先的 7500/7900 元量级不合理</h3>
+<p>它接受了一个关键点：</p>
+<blockquote>
+<p><strong>不能把普通零售商第 24 周剩余的 75 箱库存直接按 0 价值处理。</strong></p>
+</blockquote>
+<p>因为案例并没有说这 75 箱永远卖不出去。真实需求仍然大约是 8 箱/周，这些库存更合理的理解是：</p>
+<ul>
+<li>期末库存资产</li>
+<li>后续持有成本负担</li>
+<li>潜在的折价风险和资金占用</li>
+</ul>
+<p>而不是立刻等于当期亏损。</p>
+<p>这一步修完以后，Codex 把自己原先的“多赚 7500/7900 元”回收掉了。</p>
+<h3>2. 接受“第 2 周订 12 箱”作为基准更优方案</h3>
+<p>在允许并管理 <code>backorder</code> 的前提下，Codex 也接受了：</p>
+<ul>
+<li>第 2 周订 12 箱</li>
+<li>第 3～20 周每周订 8 箱</li>
+<li>第 21～24 周订 0 箱</li>
+</ul>
+<p>这个策略方向。</p>
+<p>不过这里 Codex 也补了一句我认为很重要的限定：</p>
+<blockquote>
+<p>这个“12 箱更优”的结论，最好显式写出前提：<strong>允许并管理 backorder</strong>。</p>
+</blockquote>
+<p>我认为这是必要的，因为 PDF 确实证明了 <code>backorder</code> 现象存在，但它并不自动等于“第 5 周那 4 箱一定 100% 都能补卖”。所以更稳妥的说法，不是“无条件严格最优”，而是“在题目给定的聪明零售商设定下，作为基准解更合理”。</p>
+<h2>到最后，双方其实收敛到了什么？</h2>
+<p>如果只看“最后谁赢”，这个过程会被误读成：</p>
+<ul>
+<li>Claude 证明了自己是对的</li>
+<li>Codex 改口认输</li>
+</ul>
+<p>但我觉得更准确的描述是：</p>
+<blockquote>
+<p><strong>双方最后在“主策略”和“收益量级”上基本收敛了，但在普通零售商对照组的具体重构数值上，还没有完全统一。</strong></p>
+</blockquote>
+<p>已经收敛的部分是：</p>
+<ol>
+<li>第 1、2 问两边都能作为参考</li>
+<li>第 3 问的基准策略应以“第 2 周订 12 箱”为主</li>
+<li>这个策略的前提是：允许并管理 <code>backorder</code></li>
+<li>原先的 <code>7500/7900 元</code> 应判为口径失真，不再成立</li>
+<li>更合理的收益量级是：<strong>几百元到一千元左右</strong></li>
+</ol>
+<p>但还没有完全统一的部分是：</p>
+<ul>
+<li>Claude 版当前仍把中心值写成 <code>727 元</code></li>
+<li>Codex 修订后写成了基准 <code>476 元</code>，并把现实区间写成 <code>500～1,000 元</code></li>
+</ul>
+<p>这说明它们已经<strong>没有大的结论性冲突</strong>，但还保留着一个典型的“同方向、不同中心值”的建模差异：普通零售商路径到底按哪组重构数据来算。</p>
+<h2>一个小插曲：我自己也踩了“AI 不重读文件”的坑</h2>
+<p>这轮还有个挺好玩的插曲。</p>
+<p>共识文件落完之后，我又让 Claude 再检查一次两份正式答案是否还有逻辑冲突。按道理说，这一步应该先重读最新版文件再比。</p>
+<p>但它一开始并没有这么做。它直接沿用脑子里前几轮的旧印象，给了我一个“已经基本没问题”的判断。我后来自己去看文件，才发现：</p>
+<ul>
+<li>Codex 的正式答案已经被修订过了</li>
+<li>第 3 问的主策略、收益区间、口径说明都已经更新了</li>
+<li>但 Claude 那次检查没有先读最新版，就直接开始比较</li>
+</ul>
+<p>我后来让它重新读取文件，再做一遍结论，结果就正常了。</p>
+<p>这件事让我挺警惕一件事：</p>
+<blockquote>
+<p>AI 在多轮上下文里，不是只会“算错”，它也会像人一样<strong>偷懒地以为自己还记得文件长什么样</strong>。</p>
+</blockquote>
+<p>所以现在我的默认流程变成了：</p>
+<ol>
+<li>跨轮复核前，明确要求它<strong>重新读取目标文件</strong></li>
+<li>不接受“基于之前讨论我认为……”这种比较</li>
+<li>文件类任务尽量让它把引用行号和当前版本一起报出来</li>
+</ol>
+<h2>这次复盘，对流程最大的启发是什么？</h2>
+<h3>1. 有争议的题，不能只让双方“表态”，要让它们“同口径重算”</h3>
+<p>第一轮的问题在于，双方都能自圆其说：</p>
+<ul>
+<li>Claude 说：PDF 支持 <code>backorder</code></li>
+<li>Codex 说：现金口径更保守</li>
+</ul>
+<p>这两句话都没错，但都还不够“打穿”对方。第二轮真正让问题收敛的，是 Claude 改变了打法：不用自己的尺子，而是用 Codex 自己的尺子，去量 Claude 的方案。</p>
+<p>这比继续争抽象原则有效得多。</p>
+<h3>2. 案例题里，分歧很多时候不是“算错”，而是“口径没统一”</h3>
+<p>设施选址那题属于“公式题”，ground truth 比较硬。</p>
+<p>啤酒游戏第 3 问更像“建模题”：</p>
+<ul>
+<li><code>backorder</code> 怎么处理</li>
+<li>期末库存怎么估值</li>
+<li>普通零售商的路径怎么重构</li>
+</ul>
+<p>这些都不是 PDF 直接给好的唯一答案，而是解释空间。</p>
+<p>所以这种题最重要的不是先问“谁对谁错”，而是先问：</p>
+<ul>
+<li>你们是不是用了同一套假设？</li>
+<li>你们是不是在用同一套收益口径？</li>
+</ul>
+<h3>3. 最终共识最好落成文件，而且最好双方都落</h3>
+<p>这次最终比较清楚的阶段，不是嘴上说“好像差不多了”，而是双方都逐步把立场修正进文件：</p>
+<ul>
+<li><code>Claude_VS_Codex_Final_Consensus_by_Claude.md</code></li>
+<li><code>Claude_VS_Codex_Final_Consensus_by_Codex.md</code></li>
+<li>以及修订后的 <code>answers/啤酒游戏-案例解答_Codex.md</code></li>
+</ul>
+<p>一旦文件更新，后续讨论就有了稳定落点。否则很容易出现“口头上已经同意了，原答案还停留在旧版本”的错位。</p>
+<h2>这道题本身也给了我一个额外收获</h2>
+<p>我觉得这次最有意思的，不只是“谁算赢了”，而是它把一个课堂上常讲、但很多时候很抽象的管理问题，演得特别具体：</p>
+<blockquote>
+<p><strong>同一个案例、同一份 PDF，只要口径和隐含假设不统一，最后得出的“结论”就可能差一个数量级。</strong></p>
+</blockquote>
+<p>这和牛鞭效应本身很像。牛鞭效应里，上游看到的不是“需求”，而是“需求 + 滞后 + 情绪 + 防御性下单”。这次两个 AI 一开始看到的也不是同一个“收益”，而是：</p>
+<ul>
+<li>收益 + <code>backorder</code> 假设</li>
+<li>收益 + 库存估值口径</li>
+</ul>
+<p>所以最后真正值得记住的，不是 7900 还是 727，而是：</p>
+<blockquote>
+<p>在供应链和管理分析里，<strong>先统一口径，再比较数值</strong>，往往比争谁的数字更大更重要。</p>
+</blockquote>
+<h2>尾声</h2>
+<p><strong>AI 也会偷懒，也会划水。</strong> 而且不是个案，使用 AI 也是要走心的~  </p>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-15/peril-of-laziness-lost.html">LLM 让程序员的编程美德“懒惰”更显重要了</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-19/claude-refreshed-my-blog-this-weekend.html">Claude 在这个周末帮我翻新了博客</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-19/yao-shunyu-interview-takeaways.html">姚顺宇 4 小时访谈，通透有趣的灵魂~</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-20/claude-and-codex-crosscheck-homework.html">我是怎么让 Claude 和 Codex 帮忙完成课程作业</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

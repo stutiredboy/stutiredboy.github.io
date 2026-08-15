@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian 接入 DeepSeek API 指南：Text Generator 插件配置教程 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="Obsidian 接入 DeepSeek API 的配置教程，使用 Text Generator 插件实现智能文本生成功能。教程使用 Text Generator 插件 + DeepSeek API 生成，并经过人工校对。">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2025-05-12/obsidian-deepseek-text-generator.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="Obsidian 接入 DeepSeek API 指南：Text Generator 插件配置教程">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2025-05-12/obsidian-deepseek-text-generator.html">
+            <meta property="og:description" content="Obsidian 接入 DeepSeek API 的配置教程，使用 Text Generator 插件实现智能文本生成功能。教程使用 Text Generator 插件 + DeepSeek API 生成，并经过人工校对。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="Obsidian 接入 DeepSeek API 指南：Text Generator 插件配置教程">
+            <meta name="twitter:description" content="Obsidian 接入 DeepSeek API 的配置教程，使用 Text Generator 插件实现智能文本生成功能。教程使用 Text Generator 插件 + DeepSeek API 生成，并经过人工校对。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="obsidian-deepseek-text-generator">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">Obsidian 接入 DeepSeek API 指南：Text Generator 插件配置教程</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2025-05-12T15:07:00+08:00">2025-05-12 15:07</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 4 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/obsidian.html">obsidian</a> · <a href="https://www.chenxiaosheng.com/tag/deepseek.html">deepseek</a> · <a href="https://www.chenxiaosheng.com/tag/ai.html">ai</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <p>以下是 <strong>Obsidian 接入 DeepSeek API 的配置教程</strong>，使用 <strong>Text Generator 插件</strong>实现智能文本生成功能。教程使用 Text Generator 插件 + DeepSeek API 生成，并经过人工校对：</p>
+<hr>
+<h3><strong>1. 安装 Text Generator 插件</strong></h3>
+<ol>
+<li>打开 Obsidian → 点击左侧边栏 <code>Settings</code> (设置)或菜单栏 <code>Preferences</code> </li>
+<li>进入 <code>Community plugins</code> (社区插件) → 点击 <code>Browse</code>  </li>
+<li>搜索 <strong>Text Generator</strong> → 安装并启用插件。</li>
+</ol>
+<p><img alt="" src="/static/obsidian_deepseek_2025.05/1.png"></p>
+<hr>
+<h3><strong>2. 获取 DeepSeek API Key</strong></h3>
+<ol>
+<li>访问 <a href="https://deepseek.com">DeepSeek 官网</a> 注册/登录账号；</li>
+<li>进入 API 管理页面（如无公开API，需联系官方申请权限）；
+<img alt="" src="/static/obsidian_deepseek_2025.05/2.png"></li>
+<li>复制生成的 <strong>API Key</strong>（保存到安全位置，后面无法通过 deepseek 平台查看）；</li>
+<li>充值（<strong>很重要，否则后面会出错</strong>）</li>
+</ol>
+<hr>
+<h3><strong>3. 配置 Text Generator 插件</strong></h3>
+<ol>
+<li>在 Obsidian 中打开 <code>Settings</code> → 找到 <code>Text Generator</code> 插件设置。  </li>
+<li>
+<p>在 <code>API Provider</code> 中选择 <strong>Custom</strong> 或 <strong>通过+创建自定义配置</strong>（若支持）。
+<img alt="" src="/static/obsidian_deepseek_2025.05/3.png"></p>
+<blockquote>
+<p>注：如上截图，已勾选的 <code>deepseek</code> 是通过后面的 <code>+</code> 创建出来的。</p>
+</blockquote>
+</li>
+<li>
+<p>填写以下参数：</p>
+</li>
+<li><strong>API URL</strong>: DeepSeek API 的端点地址（如 <code>https://api.deepseek.com/chat/completions</code>）  </li>
+<li><strong>API Key</strong>: 粘贴你的 DeepSeek API Key  </li>
+<li><strong>Model Name</strong>: 填写模型名称（如 <code>deepseek-chat</code>，根据官方文档调整）<br>
+<img alt="" src="/static/obsidian_deepseek_2025.05/4.png"></li>
+</ol>
+<hr>
+<h3><strong>4. 测试 API 连接</strong></h3>
+<ol>
+<li>在 Obsidian 中新建一个笔记，输入内容并选中；</li>
+<li>按快捷键 <code>Ctrl/Cmd + J</code> 即可自动生成；
+<img alt="" src="/static/obsidian_deepseek_2025.05/5.png"></li>
+<li>观察是否返回 DeepSeek 生成的文本，若无响应请检查：  </li>
+<li>API Key 和 URL 是否正确  </li>
+<li>网络是否畅通  </li>
+<li>DeepSeek 账户是否有足够配额  </li>
+</ol>
+<hr>
+<h3><strong>5. 高级设置（可选）</strong></h3>
+<ul>
+<li><strong>自定义提示模板</strong>：在插件设置中修改 <code>Prompt Template</code>，适配你的工作流。  </li>
+<li><strong>调整参数</strong>：如 <code>temperature</code>（随机性）、<code>max_tokens</code>（生成长度）等。  </li>
+</ul>
+<hr>
+<h3><strong>常见问题</strong></h3>
+<ul>
+<li><strong>Q</strong>: 插件报错 <code>n.text is not a function</code>？<br>
+<strong>A</strong>: 在插件的 <code>Advance mode</code> 里把 <code>CORS Bypass</code>  打开
+<img alt="" src="/static/obsidian_deepseek_2025.05/6.png"></li>
+<li><strong>Q</strong>: 提示 <code>404</code> 或者 <code>Not Found</code> 之类
+  <strong>A</strong>: 确认 API 地址（<code>Endpoint</code>）填写正确，如这里是：<code>https://api.deepseek.com/chat/completions</code></li>
+<li><strong>Q</strong>: 提示 <code>402</code> 或者 <code>Failed to load resource</code> 之类
+  <strong>A</strong>: 先充值！</li>
+<li><strong>Q</strong>: 如何查看其他报错的详细信息
+  <strong>A</strong>: MacOS，使用：<code>Cmd+Option+I</code> 打开控制台查看
+<img alt="" src="/static/obsidian_deepseek_2025.05/7.png"></li>
+</ul>
+<hr>
+<p>通过以上步骤，你可以在 Obsidian 中无缝调用 DeepSeek 的 AI 能力。如果需要更详细的配置（如本地代理），可参考插件官方文档或 DeepSeek API 说明。</p>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-19/yao-shunyu-interview-takeaways.html">姚顺宇 4 小时访谈，通透有趣的灵魂~</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-06-06/markdown2-native-markdown-editor.html">我只是想打开一个 Markdown 文件看一眼——于是 vibe coding 了一个编辑器</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-05-17/changxin-storage-dram.html">借长鑫科技的东风，把存储这件事一次讲透</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用 Hammerspoon 搞定远程锁屏与 SMB 动态挂载 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="结合 M4 Mac mini 与 M5 MacBook Air 的双机协作场景，使用 Hammerspoon 的数十行 Lua 代码解决远程屏幕共享防锁屏与 40 Gbps / Tailscale 多通道 SMB 动态安全挂载两个痛点。">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2026-08-15/hammerspoon-screen-sharing-and-smb-automount.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="用 Hammerspoon 搞定远程锁屏与 SMB 动态挂载">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2026-08-15/hammerspoon-screen-sharing-and-smb-automount.html">
+            <meta property="og:description" content="结合 M4 Mac mini 与 M5 MacBook Air 的双机协作场景，使用 Hammerspoon 的数十行 Lua 代码解决远程屏幕共享防锁屏与 40 Gbps / Tailscale 多通道 SMB 动态安全挂载两个痛点。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="用 Hammerspoon 搞定远程锁屏与 SMB 动态挂载">
+            <meta name="twitter:description" content="结合 M4 Mac mini 与 M5 MacBook Air 的双机协作场景，使用 Hammerspoon 的数十行 Lua 代码解决远程屏幕共享防锁屏与 40 Gbps / Tailscale 多通道 SMB 动态安全挂载两个痛点。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="hammerspoon-screen-sharing-and-smb-automount">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">用 Hammerspoon 搞定远程锁屏与 SMB 动态挂载</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2026-08-15T14:20:00+08:00">2026-08-15 14:20</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 13 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/mac.html">mac</a> · <a href="https://www.chenxiaosheng.com/tag/hammerspoon.html">hammerspoon</a> · <a href="https://www.chenxiaosheng.com/tag/lua.html">lua</a> · <a href="https://www.chenxiaosheng.com/tag/automation.html">automation</a> · <a href="https://www.chenxiaosheng.com/tag/smb.html">smb</a> · <a href="https://www.chenxiaosheng.com/tag/screensharing.html">screensharing</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <h2>01 我的双 Mac 工作流与两个真实痛点</h2>
+<p>我的日常工作流由两台 Mac 组成：
+* 一台 <strong>M4 Mac mini</strong>：放在工位充当算力中心，常驻跑一些耗时较长的 AI 任务与重型脚本，外挂了一块 2 TB 的高速 SSD；
+* 一台 <strong>M5 MacBook Air</strong>：主力移动设备，用来写方案、做设计、做决策，经常带去会议室或外出办公。</p>
+<p>在工位时，两台设备通过一条 40 Gbps 的高速 USB-C 线直连（建立高带宽的 Direct IP 连接）；外出时，则通过 Tailscale 组网连接。</p>
+<p><img alt="双 Mac 硬件架构与双通道网络拓扑" src="/static/hammerspoon-screen-sharing-and-smb-automount/workflow.jpg"></p>
+<p>看似美好的双机流，在实际使用中却撞上了两个极度影响体验的痛点。</p>
+<hr>
+<h3>痛点一：Mac mini 远程屏幕共享——「人在不锁，人走即锁」</h3>
+<p>为了管理 Mac mini 上跑的 AI 任务，我经常在 MacBook Air 上通过 macOS 原生的 Screen Sharing（屏幕共享）连过去查看。</p>
+<p>这时就出现了两难：
+1. <strong>保留系统默认闲置锁屏</strong>：远程查看着训练日志或思考方案，稍微停顿几分钟，远程桌面就黑屏锁定，必须重新键入密码解锁。一天下来要输几十次密码，体验非常割裂。
+2. <strong>彻底关闭锁屏密码</strong>：极其危险。万一哪天有人给 Mac mini 插上便携显示器，或者直接在物理机上操作，就能毫无阻拦地直通桌面。</p>
+<p><strong>核心诉求</strong>：只要我的屏幕共享连接着，就阻止锁屏；只要我一断开连接，立即恢复锁定。</p>
+<hr>
+<h3>痛点二：大文件跨机共享——告别 Git 冗余，动态挂载外挂盘</h3>
+<p>两台电脑之间必然存在数据同步需求：
+* 最初我习惯用 Git 做同步：Mac mini 这边跑完 <code>git commit</code>，MacBook Air 那边 <code>git pull</code>。
+* 但很快遇到瓶颈：很多 AI 中间数据、方案设计素材体积非常大，且往往不到适合作为版本提交（commit）的时机。如果硬塞进 Git，会迅速吃光两台 Mac 宝贵的内置硬盘空间。</p>
+<p>顺理成章的解法是：<strong>把 Mac mini 外挂的 2 TB 硬盘通过 macOS 自带的 SMB 共享出来</strong>，MacBook Air 直接挂载使用。</p>
+<p>但这个方案带来了新的难题：
+1. <strong>多网络自动适应</strong>：在工位插着 USB-C 线时，我希望优先走 40 Gbps 极速直连通道（<code>169.254.169.99</code>）；带着 MacBook Air 移动办公时，又希望它自动切换走 Tailscale 的网络通道（<code>mini</code> 主机名）。
+2. <strong>安全与自动化的矛盾</strong>：如果用常规 Shell 脚本执行 <code>mount_smbfs</code> 命令，macOS 要求必须开启「Windows 文件共享」。开启时系统会明确警告「密码将以不安全的方式存储」。而 Finder（Cmd + K）之所以能免密秒进，是因为使用了两台 Mac 绑定的 Apple ID 凭据认证。
+3. <strong>断网卡死与弹窗骚扰</strong>：当网络未连通时，如果盲目执行挂载，macOS 会在后台阻塞等待 TCP 超时达数分钟，最后弹出烦人的系统错误对话框。</p>
+<hr>
+<h2>02 解决方案：Hammerspoon 小工具解决大问题</h2>
+<p>以前遇到这种需求，通常得写一堆复杂的 Shell 脚本配 launchd 守护进程，或者安装好几个臃肿的常驻软件。</p>
+<p>直到用上了 <strong>Hammerspoon</strong>。它的定位是 macOS 系统的 Lua 胶水层，体积极小，能直接调用系统底层的电源管理、网络事件和 AppleScript 接口。用几十行 Lua 配置，就把两个难题彻底理顺了。</p>
+<hr>
+<h3>场景 1：精准控制 Mac mini 锁屏策略</h3>
+<p>在 Mac mini 端的 Hammerspoon 中，通过监听 5900 端口（macOS 屏幕共享的 VNC 端口）的连接状态，动态调用 <code>hs.caffeinate</code> 电源管理接口：</p>
+<p><img alt="Mac mini 智能锁屏自动化流转逻辑" src="/static/hammerspoon-screen-sharing-and-smb-automount/smart_lock.jpg"></p>
+<ul>
+<li><strong>检测到 5900 端口有 <code>ESTABLISHED</code> 连接</strong>：激活 <code>displayIdle</code> 阻止屏幕变暗和锁屏。</li>
+<li><strong>检测到连接断开</strong>：释放 <code>displayIdle</code>，交还系统默认的锁屏策略。</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1">-- ~/.hammerspoon/init.lua (运行在 Mac mini 上)</span>
+<span class="kd">local</span> <span class="n">connected</span> <span class="o">=</span> <span class="kc">false</span>
+
+<span class="kd">local</span> <span class="kr">function</span> <span class="nf">checkVNC</span><span class="p">()</span>
+    <span class="kd">local</span> <span class="n">output</span> <span class="o">=</span> <span class="n">hs</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;netstat -an | grep &#39;</span><span class="se">\\</span><span class="s2">.5900 .*ESTABLISHED&#39;&quot;</span><span class="p">)</span>
+    <span class="kr">if</span> <span class="n">output</span> <span class="o">~=</span> <span class="s2">&quot;&quot;</span> <span class="kr">then</span>
+        <span class="n">hs</span><span class="p">.</span><span class="n">caffeinate</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;displayIdle&quot;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
+        <span class="kr">if</span> <span class="ow">not</span> <span class="n">connected</span> <span class="kr">then</span>
+            <span class="n">hs</span><span class="p">.</span><span class="n">notify</span><span class="p">.</span><span class="n">new</span><span class="p">({</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Hammerspoon&quot;</span><span class="p">,</span>
+                <span class="n">informativeText</span> <span class="o">=</span> <span class="s2">&quot;Screen Sharing 已连接，防锁屏已启用&quot;</span>
+            <span class="p">}):</span><span class="n">send</span><span class="p">()</span>
+            <span class="n">connected</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="kr">end</span>
+    <span class="kr">else</span>
+        <span class="n">hs</span><span class="p">.</span><span class="n">caffeinate</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;displayIdle&quot;</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
+        <span class="kr">if</span> <span class="n">connected</span> <span class="kr">then</span>
+            <span class="n">hs</span><span class="p">.</span><span class="n">notify</span><span class="p">.</span><span class="n">new</span><span class="p">({</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Hammerspoon&quot;</span><span class="p">,</span>
+                <span class="n">informativeText</span> <span class="o">=</span> <span class="s2">&quot;Screen Sharing 已断开，防锁屏已关闭&quot;</span>
+            <span class="p">}):</span><span class="n">send</span><span class="p">()</span>
+            <span class="n">connected</span> <span class="o">=</span> <span class="kc">false</span>
+        <span class="kr">end</span>
+    <span class="kr">end</span>
+<span class="kr">end</span>
+
+<span class="c1">-- 每 3 秒检测一次</span>
+<span class="n">hs</span><span class="p">.</span><span class="n">timer</span><span class="p">.</span><span class="n">doEvery</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">checkVNC</span><span class="p">):</span><span class="n">start</span><span class="p">()</span>
+</code></pre></div>
+<p>这样既免去了远程操作时频繁输密码的烦恼，又保证了断开连接后即使物理接上显示器也是锁屏状态。</p>
+<hr>
+<h3>场景 2：USB-C 直连 / Tailscale 多通道智能挂载</h3>
+<p>在 MacBook Air 端的 Hammerspoon 中，实现了以下全自动逻辑：</p>
+<p><img alt="SMB 动态双通道自动挂载与 445 端口预检逻辑" src="/static/hammerspoon-screen-sharing-and-smb-automount/smb_automount.jpg"></p>
+<ol>
+<li><strong>445 端口 1 秒静默预检</strong>：在发起挂载前，先用 <code>nc -z -w 1</code> 测试目标的 445（SMB）端口。如果网络不通，1 秒内静默跳过，彻底避免系统弹窗与数分钟的线程阻塞。</li>
+<li><strong>复用原生 Apple ID 认证</strong>：通过 <code>hs.osascript</code> 调用 AppleScript 的 <code>mount volume</code> 命令。不仅免去在脚本中硬编码密码，还完全不需要开启不安全的「Windows 文件共享」，保持最高安全级别。</li>
+<li><strong>优先级与静默 Fallback</strong>：优先挂载 USB-C 高速直连通道（<code>169.254.169.99</code>）；若不通则静默回退到 Tailscale 节点（<code>mini</code>）。</li>
+<li><strong>内核事件监听</strong>：通过 <code>hs.network.reachability</code> 监听网络状态，插上网线或网络连通瞬间即刻自动触发挂载。</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="c1">-- ~/.hammerspoon/init.lua (运行在 MacBook Air 上)</span>
+<span class="kd">local</span> <span class="n">servers</span>   <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;169.254.169.99&quot;</span><span class="p">,</span> <span class="s2">&quot;mini&quot;</span> <span class="p">}</span> <span class="c1">-- 优先 USB-C 直连，Fallback 到 Tailscale</span>
+<span class="kd">local</span> <span class="n">shareName</span> <span class="o">=</span> <span class="s2">&quot;TiPlus&quot;</span>                     <span class="c1">-- Mac mini 外挂的 2 TB 共享名</span>
+<span class="kd">local</span> <span class="n">mountTimer</span> <span class="o">=</span> <span class="kc">nil</span>
+
+<span class="c1">-- 检查是否已挂载（兼容 /Volumes/TiPlus 及 TiPlus-1 等路径）</span>
+<span class="kd">local</span> <span class="kr">function</span> <span class="nf">isMounted</span><span class="p">()</span>
+    <span class="kd">local</span> <span class="n">iter</span><span class="p">,</span> <span class="n">dir_obj</span> <span class="o">=</span> <span class="n">hs</span><span class="p">.</span><span class="n">fs</span><span class="p">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;/Volumes&quot;</span><span class="p">)</span>
+    <span class="kr">if</span> <span class="n">iter</span> <span class="kr">then</span>
+        <span class="kr">for</span> <span class="n">file</span> <span class="kr">in</span> <span class="n">iter</span><span class="p">,</span> <span class="n">dir_obj</span> <span class="kr">do</span>
+            <span class="kr">if</span> <span class="n">file</span><span class="p">:</span><span class="n">sub</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;TiPlus&quot;</span> <span class="kr">then</span>
+                <span class="kr">return</span> <span class="kc">true</span><span class="p">,</span> <span class="s2">&quot;/Volumes/&quot;</span> <span class="o">..</span> <span class="n">file</span>
+            <span class="kr">end</span>
+        <span class="kr">end</span>
+    <span class="kr">end</span>
+    <span class="kr">return</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="kr">end</span>
+
+<span class="c1">-- 静默预检：1 秒内检测 445 端口，拦截系统报错弹窗</span>
+<span class="kd">local</span> <span class="kr">function</span> <span class="nf">isPortOpen</span><span class="p">(</span><span class="n">host</span><span class="p">)</span>
+    <span class="kd">local</span> <span class="n">cmd</span> <span class="o">=</span> <span class="nb">string.format</span><span class="p">(</span><span class="s2">&quot;nc -z -w 1 %s 445 &gt;/dev/null 2&gt;&amp;1&quot;</span><span class="p">,</span> <span class="n">host</span><span class="p">)</span>
+    <span class="kd">local</span> <span class="n">code</span> <span class="o">=</span> <span class="nb">os.execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+    <span class="kr">return</span> <span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">code</span> <span class="o">==</span> <span class="kc">true</span><span class="p">)</span>
+<span class="kr">end</span>
+
+<span class="c1">-- 挂载核心函数</span>
+<span class="kd">local</span> <span class="kr">function</span> <span class="nf">mountTiPlus</span><span class="p">(</span><span class="n">manualAlert</span><span class="p">)</span>
+    <span class="kd">local</span> <span class="n">mounted</span><span class="p">,</span> <span class="n">currentPath</span> <span class="o">=</span> <span class="n">isMounted</span><span class="p">()</span>
+    <span class="kr">if</span> <span class="n">mounted</span> <span class="kr">then</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[TiPlus] 已经挂载于: &quot;</span> <span class="o">..</span> <span class="n">currentPath</span><span class="p">)</span>
+        <span class="kr">if</span> <span class="n">manualAlert</span> <span class="kr">then</span> <span class="n">hs</span><span class="p">.</span><span class="n">alert</span><span class="p">.</span><span class="n">show</span><span class="p">(</span><span class="s2">&quot;TiPlus 已经挂载于 &quot;</span> <span class="o">..</span> <span class="n">currentPath</span><span class="p">)</span> <span class="kr">end</span>
+        <span class="kr">return</span> <span class="kc">true</span>
+    <span class="kr">end</span>
+
+    <span class="kr">if</span> <span class="n">manualAlert</span> <span class="kr">then</span> <span class="n">hs</span><span class="p">.</span><span class="n">alert</span><span class="p">.</span><span class="n">show</span><span class="p">(</span><span class="s2">&quot;正在尝试挂载 TiPlus...&quot;</span><span class="p">)</span> <span class="kr">end</span>
+
+    <span class="c1">-- 依次尝试高速直连 IP 与 Tailscale 域名</span>
+    <span class="kr">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">serverHost</span> <span class="kr">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">servers</span><span class="p">)</span> <span class="kr">do</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[TiPlus] 正在预检服务器 &quot;</span> <span class="o">..</span> <span class="n">serverHost</span> <span class="o">..</span> <span class="s2">&quot; 端口...&quot;</span><span class="p">)</span>
+        <span class="kr">if</span> <span class="n">isPortOpen</span><span class="p">(</span><span class="n">serverHost</span><span class="p">)</span> <span class="kr">then</span>
+            <span class="kd">local</span> <span class="n">shareURL</span> <span class="o">=</span> <span class="s2">&quot;smb://&quot;</span> <span class="o">..</span> <span class="n">serverHost</span> <span class="o">..</span> <span class="s2">&quot;/&quot;</span> <span class="o">..</span> <span class="n">shareName</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[TiPlus] 端口连通，执行安全挂载: &quot;</span> <span class="o">..</span> <span class="n">shareURL</span><span class="p">)</span>
+
+            <span class="kd">local</span> <span class="n">ok</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">hs</span><span class="p">.</span><span class="n">osascript</span><span class="p">.</span><span class="n">applescript</span><span class="p">(</span><span class="s1">&#39;mount volume &quot;&#39;</span> <span class="o">..</span> <span class="n">shareURL</span> <span class="o">..</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+            <span class="kr">if</span> <span class="n">ok</span> <span class="kr">then</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[TiPlus] 挂载成功，当前通道: &quot;</span> <span class="o">..</span> <span class="n">serverHost</span><span class="p">)</span>
+                <span class="kr">if</span> <span class="n">manualAlert</span> <span class="kr">then</span> <span class="n">hs</span><span class="p">.</span><span class="n">alert</span><span class="p">.</span><span class="n">show</span><span class="p">(</span><span class="s2">&quot;TiPlus 挂载成功（&quot;</span> <span class="o">..</span> <span class="n">serverHost</span> <span class="o">..</span> <span class="s2">&quot;）&quot;</span><span class="p">)</span> <span class="kr">end</span>
+                <span class="kr">return</span> <span class="kc">true</span>
+            <span class="kr">end</span>
+        <span class="kr">else</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[TiPlus] 节点 &quot;</span> <span class="o">..</span> <span class="n">serverHost</span> <span class="o">..</span> <span class="s2">&quot; 离线，静默跳过&quot;</span><span class="p">)</span>
+        <span class="kr">end</span>
+    <span class="kr">end</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[TiPlus] 当前所有网络通道均不可达&quot;</span><span class="p">)</span>
+    <span class="kr">if</span> <span class="n">manualAlert</span> <span class="kr">then</span> <span class="n">hs</span><span class="p">.</span><span class="n">alert</span><span class="p">.</span><span class="n">show</span><span class="p">(</span><span class="s2">&quot;TiPlus 挂载失败，网络未连通&quot;</span><span class="p">)</span> <span class="kr">end</span>
+    <span class="kr">return</span> <span class="kc">false</span>
+<span class="kr">end</span>
+
+<span class="c1">-- 1. 启动或重载配置时主动检测一次</span>
+<span class="n">mountTiPlus</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+
+<span class="c1">-- 2. 网络事件监听：无论哪条通道恢复连通，自动尝试挂载</span>
+<span class="kr">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">serverHost</span> <span class="kr">in</span> <span class="nb">ipairs</span><span class="p">(</span><span class="n">servers</span><span class="p">)</span> <span class="kr">do</span>
+    <span class="kd">local</span> <span class="n">reachability</span> <span class="o">=</span> <span class="n">hs</span><span class="p">.</span><span class="n">network</span><span class="p">.</span><span class="n">reachability</span><span class="p">.</span><span class="n">forHostName</span><span class="p">(</span><span class="n">serverHost</span><span class="p">)</span>
+    <span class="kr">if</span> <span class="n">reachability</span> <span class="kr">then</span>
+        <span class="n">reachability</span><span class="p">:</span><span class="n">setCallback</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+            <span class="kd">local</span> <span class="n">isReachable</span> <span class="o">=</span> <span class="p">(</span><span class="n">flags</span> <span class="o">&amp;</span> <span class="n">hs</span><span class="p">.</span><span class="n">network</span><span class="p">.</span><span class="n">reachability</span><span class="p">.</span><span class="n">flags</span><span class="p">.</span><span class="n">reachable</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="kr">if</span> <span class="n">isReachable</span> <span class="kr">then</span>
+                <span class="kr">if</span> <span class="n">mountTimer</span> <span class="kr">then</span> <span class="n">mountTimer</span><span class="p">:</span><span class="n">stop</span><span class="p">()</span> <span class="kr">end</span>
+                <span class="n">mountTimer</span> <span class="o">=</span> <span class="n">hs</span><span class="p">.</span><span class="n">timer</span><span class="p">.</span><span class="n">doAfter</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kr">function</span><span class="p">()</span>
+                    <span class="n">mountTiPlus</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+                <span class="kr">end</span><span class="p">)</span>
+            <span class="kr">end</span>
+        <span class="kr">end</span><span class="p">):</span><span class="n">start</span><span class="p">()</span>
+    <span class="kr">end</span>
+<span class="kr">end</span>
+
+<span class="c1">-- 3. 快捷键手动挂载 (Option + Command + M)</span>
+<span class="n">hs</span><span class="p">.</span><span class="n">hotkey</span><span class="p">.</span><span class="n">bind</span><span class="p">({</span><span class="s2">&quot;alt&quot;</span><span class="p">,</span> <span class="s2">&quot;cmd&quot;</span><span class="p">},</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="kr">function</span><span class="p">()</span>
+    <span class="n">mountTiPlus</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span>
+<span class="kr">end</span><span class="p">)</span>
+</code></pre></div>
+<hr>
+<h2>03 总结与体会</h2>
+<p>在配置好之后，整个工作流的体验变得极其顺畅：</p>
+<ul>
+<li><strong>远程控制 Mac mini</strong>：屏幕共享连上即用，中间查资料再也不会频繁被锁屏打断；断开连接后自动锁定，安全无虞。</li>
+<li><strong>数据共享</strong>：插上 40 Gbps 的 USB-C 线，极速共享盘瞬间挂载到位；拔掉线出门，切到 Tailscale 依然能在后台无感访问，不需要在命令行敲密码，更不需要降级安全性。</li>
+</ul>
+<p>Hammerspoon 确实是个非常轻量又方便的小工具，用几十行代码就能把日常使用中很具体的痛点给顺畅解决掉，推荐给有类似需求的朋友。</p>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html">Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html">Mac OSX Yosemite 10.10 WIFI 掉线修复</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2018-11-02/capture-packet-from-ios-through-mac.html">在 Mac 中对 iPhone 手机网络进行抓包的方法</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

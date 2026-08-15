@@ -1,0 +1,154 @@
+/* ============================================
+   Pygments Nord theme — light + dark
+   Light: Nord Snow Storm
+   Dark:  Nord Polar Night
+   切换靠 [data-theme] 选择器
+   ============================================ */
+
+/* ----- Light (default) ----- */
+:root,
+[data-theme="light"] {
+    --hl-bg:       #eceff4;
+    --hl-fg:       #2e3440;
+    --hl-comment:  #6b7280;
+    --hl-keyword:  #5e81ac;
+    --hl-name:     #2e3440;
+    --hl-func:     #8fa1b3;
+    --hl-class:    #b48ead;
+    --hl-string:   #a3be8c;
+    --hl-number:   #d08770;
+    --hl-operator: #bf616a;
+    --hl-builtin:  #5e81ac;
+    --hl-type:     #b48ead;
+    --hl-tag:      #5e81ac;
+    --hl-attr:     #8fa1b3;
+    --hl-err-bg:   #bf616a;
+    --hl-err-fg:   #eceff4;
+    --hl-hll:      rgba(94, 129, 172, 0.12);
+    --hl-ln:       #a3adbb;
+    --hl-added:    #a3be8c;
+    --hl-removed:  #bf616a;
+}
+
+/* ----- Dark ----- */
+[data-theme="dark"] {
+    --hl-bg:       #2e3440;
+    --hl-fg:       #d8dee9;
+    --hl-comment:  #616e88;
+    --hl-keyword:  #81a1c1;
+    --hl-name:     #d8dee9;
+    --hl-func:     #88c0d0;
+    --hl-class:    #b48ead;
+    --hl-string:   #a3be8c;
+    --hl-number:   #d08770;
+    --hl-operator: #bf616a;
+    --hl-builtin:  #81a1c1;
+    --hl-type:     #b48ead;
+    --hl-tag:      #81a1c1;
+    --hl-attr:     #8fbcbb;
+    --hl-err-bg:   #bf616a;
+    --hl-err-fg:   #eceff4;
+    --hl-hll:      rgba(136, 192, 208, 0.12);
+    --hl-ln:       #4c566a;
+    --hl-added:    #a3be8c;
+    --hl-removed:  #bf616a;
+}
+
+.highlight {
+    background: var(--hl-bg);
+    color: var(--hl-fg);
+}
+
+.highlight pre {
+    background: var(--hl-bg);
+    color: var(--hl-fg);
+}
+
+.highlight .hll { background: var(--hl-hll); display: block; }
+.highlight .c,
+.highlight .ch,
+.highlight .cm,
+.highlight .c1,
+.highlight .cp,
+.highlight .cpf,
+.highlight .cs  { color: var(--hl-comment); font-style: italic; }
+
+.highlight .err { color: var(--hl-err-fg); background: var(--hl-err-bg); padding: 0 2px; border-radius: 2px; }
+
+.highlight .k,
+.highlight .kc,
+.highlight .kd,
+.highlight .kn,
+.highlight .kp,
+.highlight .kr,
+.highlight .kt  { color: var(--hl-keyword); font-weight: 600; }
+
+.highlight .o,
+.highlight .ow  { color: var(--hl-operator); }
+
+.highlight .p   { color: var(--hl-fg); }
+
+.highlight .n   { color: var(--hl-name); }
+.highlight .na  { color: var(--hl-attr); }
+.highlight .nb,
+.highlight .bp  { color: var(--hl-builtin); }
+.highlight .nc  { color: var(--hl-class); font-weight: 600; }
+.highlight .nd  { color: var(--hl-class); }
+.highlight .ne  { color: var(--hl-class); font-weight: 600; }
+.highlight .nf,
+.highlight .fm  { color: var(--hl-func); }
+.highlight .ni  { color: var(--hl-fg); }
+.highlight .nl  { color: var(--hl-keyword); }
+.highlight .nn  { color: var(--hl-class); }
+.highlight .nt  { color: var(--hl-tag); }
+.highlight .nv,
+.highlight .vc,
+.highlight .vg,
+.highlight .vi,
+.highlight .vm  { color: var(--hl-name); }
+.highlight .nx  { color: var(--hl-name); }
+.highlight .no  { color: var(--hl-type); }
+.highlight .py  { color: var(--hl-fg); }
+
+.highlight .s,
+.highlight .sa,
+.highlight .sb,
+.highlight .sc,
+.highlight .dl,
+.highlight .s2,
+.highlight .se,
+.highlight .sh,
+.highlight .si,
+.highlight .sx,
+.highlight .sr,
+.highlight .s1,
+.highlight .ss,
+.highlight .sd { color: var(--hl-string); }
+
+.highlight .m,
+.highlight .mb,
+.highlight .mf,
+.highlight .mh,
+.highlight .mi,
+.highlight .mo,
+.highlight .il  { color: var(--hl-number); }
+
+.highlight .l   { color: var(--hl-fg); }
+.highlight .ld  { color: var(--hl-string); }
+
+.highlight .w   { color: var(--hl-fg); }
+
+.highlight .gd  { color: var(--hl-removed); }
+.highlight .gi  { color: var(--hl-added); }
+.highlight .ge  { font-style: italic; }
+.highlight .gs  { font-weight: 600; }
+.highlight .gh,
+.highlight .gu  { color: var(--hl-keyword); font-weight: 600; }
+.highlight .gp  { color: var(--hl-comment); }
+.highlight .gr,
+.highlight .gt  { color: var(--hl-operator); }
+.highlight .go  { color: var(--hl-comment); }
+
+/* 行号（codehilite 的 linenos） */
+.highlight .linenos,
+.highlight .gl   { color: var(--hl-ln); user-select: none; }

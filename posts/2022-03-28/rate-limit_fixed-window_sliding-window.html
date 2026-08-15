@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>速率限制算法：固定窗口与滑动窗口 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况下，我们还需要对系统进行适度的降级，以确保系统的可用性。速率限制（rate limit）有助于自动化该过程（有时候也会称为流量控制）。">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content="速率限制算法：固定窗口与滑动窗口">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2022-03-28/rate-limit_fixed-window_sliding-window.html">
+            <meta property="og:description" content="在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况下，我们还需要对系统进行适度的降级，以确保系统的可用性。速率限制（rate limit）有助于自动化该过程（有时候也会称为流量控制）。">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="速率限制算法：固定窗口与滑动窗口">
+            <meta name="twitter:description" content="在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况下，我们还需要对系统进行适度的降级，以确保系统的可用性。速率限制（rate limit）有助于自动化该过程（有时候也会称为流量控制）。">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="rate-limit_fixed-window_sliding-window">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">速率限制算法：固定窗口与滑动窗口</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2022-03-28T15:59:00+08:00">2022-03-28 15:59</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 3 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/rate-limit.html">rate limit</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <p>在生产环境中，我们经常需要通过一定的办法方案来保护我们的系统（比如 API）免受无意的或恶意的过度使用。在极端情况下，我们还需要对系统进行适度的降级，以确保系统的可用性。速率限制（rate limit）有助于自动化该过程（有时候也会称为流量控制）。</p>
+<p>这里我们主要介绍固定窗口计数算法和滑动窗口计数算法。</p>
+<h2>固定窗口 Fixed Window</h2>
+<p>固定窗口算法比较好理解，大致的概念如下：</p>
+<ol>
+<li>时间被切分成固定大小的窗口，比如 60 秒或 5 分钟等；</li>
+<li>每个时间窗口允许通过的请求阈值固定，假定为 N；</li>
+<li>每一次请求进来，对当前时间窗口的计数器加 1， 假设为 n；</li>
+<li>当当前时间窗口的请求计数超过阈值时（n&gt;N），丢弃当前时间窗口进来的所有请求；</li>
+</ol>
+<p>整体的理解可以参考下述图例 1（固定时间窗口 1 秒，每秒钟允许通过 3 个请求）：</p>
+<p><img alt="image-20220328142057442" src="/static/fixed_window.png"></p>
+<p style="text-align:center"> 图 1. 固定窗口算法图例</p>
+
+<p>看起来好像没有什么毛病，在允许的时间窗口内只允许通过预设的请求。为什么还会需要滑动窗口算法，我们看一下固定窗口算法的问题：</p>
+<ol>
+<li>以上图为例，假定  14:00:02 秒的 3 个请求是在后 500ms 到达，14:00:03 分的 3 个请求是在前 500ms 到达，实际上一秒内可能通过了超过预设的 3 个请求，系统被击穿（参考下图 2）；</li>
+<li>如果这是一个高并发系统，那么有可能存在大量请求等待时间窗口重置的情况，还是以上图为例，一切换新的时间窗口，系统可能马上在短时间内被击穿不可用（踩踏）；</li>
+</ol>
+<p><img alt="图2" src="/static/fixed_window_cons.png"></p>
+<p style="text-align:center"> 图 2. 固定窗口算法问题</p>
+
+<h2>滑动窗口 Sliding Window</h2>
+<p>为了解决固定窗口在时间窗口切换边界的流量尖峰问题，引入了滑动窗口计数算法。该算法在固定窗口的基础上，将固定窗口进行更细粒度的切分：</p>
+<ol>
+<li>将时间划分为多个固定区间，如 200ms；</li>
+<li>在每个区间内每有一次请求则计数加 1，并维持固定的时间窗口，如固定时间窗口为 1 秒，则占用 5 个时间区间；</li>
+<li>每经过一个区间的时间，抛弃最早的区间，并纳入最新的时间区间；</li>
+<li>如果当前时间窗口的请求数量超过了预设限制，则本时间窗口内的后续请求都会被丢弃；</li>
+</ol>
+<p>基本算法通过下图 3 概要说明，可以直观发现滑动窗口计算方法可以有效避免窗口切换的边界流量尖峰及踩踏问题。并且在我们需要提高流控精度的时候，可以通过划分更细的时间区间来实现。</p>
+<p><img alt="image-20220328154213560" src="/static/sliding_window.png"></p>
+<p style="text-align:center"> 图 3. 滑动窗口算法图例</p>
+
+<p>注：算法可以进一步简化，假设当前时间窗口已经过去 25%，目前的请求数为CurrentN，上一次时间窗口共接受 PreN 次请求（权重为 100%-25%=75%），如果 <code>(PreN * 0.75 + CurrentN) &gt; 预设请求阈值</code> 则丢弃本次请求，反之放行本次请求。</p>
+<h2>参考文档</h2>
+<ol>
+<li>[How to Design a Scalable Rate Limiting Algorithm with Kong API</li>
+</ol>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-19/cpu-gpu-tpu-ai-infra.html">CPU、GPU、TPU 到底谁更“聪明”？从逻辑运算到光互连，一篇看懂 AI Infra</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-06-06/markdown2-native-markdown-editor.html">我只是想打开一个 Markdown 文件看一眼——于是 vibe coding 了一个编辑器</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-15/hammerspoon-screen-sharing-and-smb-automount.html">用 Hammerspoon 搞定远程锁屏与 SMB 动态挂载</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>

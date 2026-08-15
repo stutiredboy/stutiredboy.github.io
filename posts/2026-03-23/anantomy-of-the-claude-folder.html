@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>.claude/ 文件夹解剖 &middot; 小生说大声讲</title>
+
+            <meta name="description" content="大多数团队都在某种程度上采用了 AI，但“使用 AI”与“从 AI 中获得可衡量的 ROI”之间的差距，比人们想象得更大。 Postman 发布了一份 …">
+            <link rel="canonical" href="https://www.chenxiaosheng.com/posts/2026-03-23/anantomy-of-the-claude-folder.html">
+            <meta property="og:type" content="article">
+            <meta property="og:title" content=".claude/ 文件夹解剖">
+            <meta property="og:url" content="https://www.chenxiaosheng.com/posts/2026-03-23/anantomy-of-the-claude-folder.html">
+            <meta property="og:description" content="大多数团队都在某种程度上采用了 AI，但“使用 AI”与“从 AI 中获得可衡量的 ROI”之间的差距，比人们想象得更大。 Postman 发布了一份 …">
+            <meta property="og:site_name" content="小生说大声讲">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content=".claude/ 文件夹解剖">
+            <meta name="twitter:description" content="大多数团队都在某种程度上采用了 AI，但“使用 AI”与“从 AI 中获得可衡量的 ROI”之间的差距，比人们想象得更大。 Postman 发布了一份 …">
+
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/main.css">
+    <link rel="stylesheet" href="https://www.chenxiaosheng.com/theme/css/pygments-nord.css">
+
+        <link rel="alternate" type="application/atom+xml" href="https://www.chenxiaosheng.com/feeds/all.atom.xml" title="小生说大声讲 ATOM Feed">
+
+    <link rel="icon" href="https://www.chenxiaosheng.com/favicon.ico">
+
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var theme = stored || (prefersDark ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+</head>
+<body data-slug="anantomy-of-the-claude-folder">
+<header class="site-header">
+    <div class="site-header-inner">
+        <a href="https://www.chenxiaosheng.com/" class="site-brand">小生说大声讲</a>
+        <nav class="site-nav">
+            <a href="https://www.chenxiaosheng.com/archives.html">归档</a>
+            <a href="https://www.chenxiaosheng.com/pages/about.html">简介</a>
+            <a href="https://www.chenxiaosheng.com/feeds/all.atom.xml" aria-label="RSS" class="site-nav-icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>            </a>
+            <button type="button" class="theme-toggle" aria-label="切换主题">
+                <span class="theme-toggle-icon theme-toggle-sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></span>
+                <span class="theme-toggle-icon theme-toggle-moon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+            </button>
+        </nav>
+    </div>
+</header>
+    <main class="site-main">
+<div class="article-layout">
+    <article class="article">
+        <header class="article-header">
+            <h1 class="article-title">.claude/ 文件夹解剖</h1>
+<div class="article-meta">
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>        <time datetime="2026-03-23T19:36:59+08:00">2026-03-23 19:36</time>
+    </span>
+    <span class="article-meta-item">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>        约 12 分钟阅读
+    </span>
+    <span class="article-meta-item" id="article-pv-wrap" hidden>
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>        <span id="article-pv"></span> 次阅读
+    </span>
+    <span class="article-meta-item article-meta-tags">
+<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><a href="https://www.chenxiaosheng.com/tag/claude.html">claude</a> · <a href="https://www.chenxiaosheng.com/tag/ai.html">ai</a>    </span>
+</div>        </header>
+
+        <div class="article-content entry-content">
+            <p>大多数团队都在某种程度上采用了 AI，但“使用 AI”与“从 AI 中获得可衡量的 ROI”之间的差距，比人们想象得更大。</p>
+<p><strong><a href="https://fandf.co/3NR30kc">Postman</a></strong> 发布了一份成本节省分析，评估了六种常见的 API 开发工作流，并对比了“平台内置 AI”与“外部加挂 AI”在实际时间和成本上的差异。</p>
+<p><img alt="Image 1" src="/static/anatomy-of-the-claude-folder/image_1.png"></p>
+<p>这是一篇简短、数据驱动的阅读材料，能帮助工程负责人判断：AI 原生工具究竟在哪些环节真正能撬动效率。</p>
+<p><strong><a href="https://fandf.co/3NR30kc">你可以在这里免费下载这份指南 →</a></strong></p>
+<p><em>感谢 Postman 今日赞助！</em></p>
+<p>Claude Code 的用户通常把 <code>.claude</code> 文件夹当成黑盒。知道它存在，也见过它出现在项目根目录里，但几乎没人真正打开看过，更别说理解里面每个文件的作用。</p>
+<p>这是个被错过的机会。</p>
+<p><code>.claude</code> 文件夹其实是你在项目里“控制 Claude 行为”的中枢。</p>
+<p><img alt="Image 2" src="/static/anatomy-of-the-claude-folder/image_2.png"></p>
+<p>它保存了你的指令、自定义命令、权限规则，甚至还有 Claude 跨会话的记忆。理解每个文件的位置和意义之后，你就可以让 Claude Code 完全按你团队的方式运行。</p>
+<p>这篇文章会带你完整拆解这个文件夹，从你每天会用到的文件，到你只需设置一次就能忘记的部分。</p>
+<p>在开始之前，有一点要先知道：实际上有两个 .claude 目录，而不是一个。</p>
+<p>一个在项目里，另一个在你的 home 目录：</p>
+<p><img alt="Image 3" src="/static/anatomy-of-the-claude-folder/image_3.png"></p>
+<p>项目级的文件夹保存团队配置。你会把它提交到 git，所有人都用同一套规则、同一组自定义命令、同一份权限策略。</p>
+<p>全局的 <code>~/.claude/</code> 文件夹保存你的个人偏好和本机状态，比如会话历史和自动记忆。</p>
+<p>这是整个系统里最关键的文件。你启动 Claude Code 会话时，它第一个读取的就是 <code>CLAUDE.md</code>。它会被直接加载进系统提示词，并贯穿整个对话。</p>
+<p>说白了：你写在 <code>CLAUDE.md</code> 里的内容，Claude 就会遵守。</p>
+<p>你告诉它“先写测试再写实现”，它就会这么做。你写“禁止用 console.log 做错误处理，要用自定义 logger 模块”，它每次都会遵循。</p>
+<p>最常见的做法是在项目根目录放一个 <code>CLAUDE.md</code>。但你也可以在 <code>~/.claude/CLAUDE.md</code> 放一个全局偏好，甚至在子目录里放局部规则。Claude 会读取它们并自动合并。</p>
+<p>多数人不是写得太多，就是写得太少。下面是合理的取舍。</p>
+<h5>建议写：</h5>
+<ul>
+<li>构建、测试、Lint 命令（如 npm run test、make build 等）</li>
+<li>关键架构决策（比如“我们使用 Turborepo 的 Monorepo”）</li>
+<li>不显然的坑（比如“TypeScript 开启 strict，未使用变量会报错”）</li>
+<li>导入约定、命名规范、错误处理风格</li>
+<li>核心模块的文件与目录结构</li>
+</ul>
+<h5>不建议写：</h5>
+<ul>
+<li>应该放在 Linter 或 Formatter 配置里的内容</li>
+<li>已有文档、可以直接链接的完整说明</li>
+<li>长篇大论的理论解释</li>
+</ul>
+<p>把 <code>CLAUDE.md</code> 控制在 200 行以内。文件太长会消耗上下文，Claude 的指令遵循度反而会下降。</p>
+<p>原文此处有一个“简短但有效”的示例（截图展示）。</p>
+<p>大约 20 行，足以让 Claude 在这个代码库里高效工作，而不需要不断追问。</p>
+<p>有时你的偏好只属于你本人，不适合全团队。比如你偏好某种测试框架，或者希望 Claude 打开文件时遵循某个固定模式。</p>
+<p>在项目根目录创建 <code>CLAUDE.local.md</code>。Claude 会和主 <code>CLAUDE.md</code> 一起读取，但这个文件会自动被 gitignore，不会进入仓库。</p>
+<p><img alt="Image 4" src="/static/anatomy-of-the-claude-folder/image_4.png"></p>
+<p><code>CLAUDE.md</code> 适合单一项目。但一旦团队扩大，你很容易得到一个 300 行、没人维护、人人忽视的 <code>CLAUDE.md</code>。</p>
+<p><code>rules/</code> 文件夹就是为了解决这个问题。</p>
+<p><code>.claude/rules/</code> 里的每个 Markdown 文件都会和 <code>CLAUDE.md</code> 一起加载。你可以按主题拆分指令：</p>
+<p>每个文件都更聚焦、更容易更新。负责 API 规范的人只改 <code>api-conventions.md</code>，负责测试标准的人改 <code>testing.md</code>，互不干扰。</p>
+<p>真正的威力在“路径作用域规则”。在规则文件里加一个 YAML frontmatter，就可以让它只在匹配路径时生效：</p>
+<p>比如它不会在编辑 React 组件时加载，而只在处理 <code>src/api/</code> 或 <code>src/handlers/</code> 时生效。没有 <code>paths</code> 的规则会在每次会话中无条件加载。</p>
+<p>当 <code>CLAUDE.md</code> 开始变得臃肿时，这就是正确的拆分方式。</p>
+<p>Claude Code 自带一些内置斜杠命令，比如 <code>/help</code> 和 <code>/compact</code>。<code>commands/</code> 文件夹允许你自定义命令。</p>
+<p>你在 <code>.claude/commands/</code> 里放一个 Markdown 文件，它就会变成一个斜杠命令。</p>
+<p>比如 <code>review.md</code> 会生成 <code>/project:review</code>，<code>fix-issue.md</code> 会生成 <code>/project:fix-issue</code>。文件名就是命令名。</p>
+<p><img alt="Image 5" src="/static/anatomy-of-the-claude-folder/image_5.png"></p>
+<p>原文这里给了一个简单示例：创建 <code>.claude/commands/review.md</code>。</p>
+<p>然后在 Claude Code 里运行 <code>/project:review</code>，它会自动把真实的 git diff 注入到提示词中。反引号里的 <code>!</code> 语法会运行 shell 命令并把输出嵌入。这就是命令真正有用的原因，而不只是“保存一段文本”。</p>
+<p>如果你需要传参，可以用 <code>$ARGUMENTS</code>：</p>
+<p>运行 <code>/project:fix-issue 234</code> 会把 issue 234 的内容直接送进提示词。</p>
+<p><code>.claude/commands/</code> 里的项目命令会提交到仓库，和团队共享。若想在所有项目通用，把命令放到 <code>~/.claude/commands/</code>，它会显示为 <code>/user:command-name</code>。</p>
+<p>一个很实用的个人命令：每日站会助手、按你约定格式生成提交信息、或者快速安全扫描。</p>
+<p>你已经了解命令。技能看起来很像，但触发方式完全不同。先看这张图的区别：</p>
+<p><img alt="Image 6" src="/static/anatomy-of-the-claude-folder/image_6.png"></p>
+<p>技能是 Claude 可以自己调用的工作流，不需要你敲斜杠命令，只要当前任务匹配技能描述，它就会自动触发。命令是你手动触发，技能是它自动判断。</p>
+<p>每个技能都在自己的子目录里，包含一个 <code>SKILL.md</code>：</p>
+<p><code>SKILL.md</code> 用 YAML frontmatter 描述“什么时候使用这个技能”。</p>
+<p>当你说“帮我审这个 PR 的安全问题”，Claude 会读取描述，判断匹配，于是自动调用这个技能。你也可以显式调用，比如 <code>/security-review</code>。</p>
+<p>和命令最大的区别：技能可以打包一堆辅助文件。上面提到的 <code>DETAILED_GUIDE.md</code> 就是和 <code>SKILL.md</code> 同目录的参考资料。命令只是单个文件，而技能是一整个包。</p>
+<p>个人技能放在 <code>~/.claude/skills/</code> 下，跨项目通用。</p>
+<p>当任务复杂到值得一个专门专家时，可以在 <code>.claude/agents/</code> 定义子代理。每个代理是一个 Markdown 文件，包含它自己的系统提示词、可用工具、以及模型偏好：</p>
+<p>下面是一个 <code>code-reviewer.md</code> 的样子。</p>
+<p>当 Claude 需要做代码审查时，它会在独立上下文里启动这个代理。代理完成工作后会压缩结论再汇报，这样你的主会话不会被几千 tokens 的中间过程撑爆。</p>
+<p><code>tools</code> 字段限制代理能做什么。安全审计只需要 Read、Grep、Glob，完全不该写文件。这个限制是刻意为之。</p>
+<p><code>model</code> 字段让你选择更便宜、更快的模型来做聚焦任务。Haiku 处理读操作够用，把 Sonnet/Opus 留给真正需要能力的地方。</p>
+<p>个人代理放在 <code>~/.claude/agents/</code> 下，跨项目可用。</p>
+<p><img alt="Image 7" src="/static/anatomy-of-the-claude-folder/image_7.png"></p>
+<p><code>.claude</code> 里的 <code>settings.json</code> 控制 Claude 允许做什么、不允许做什么。它定义了哪些工具可以用、哪些文件能读，以及哪些命令需要先询问。</p>
+<p>完整文件长这样（原文此处为截图）。</p>
+<p>各部分的含义如下：</p>
+<ul>
+<li><strong><code>$schema</code></strong> 行开启 VS Code 或 Cursor 的自动补全与校验，务必保留。</li>
+<li><strong>allow list</strong>：允许 Claude 无需确认即可运行的命令。典型选择包括：<ul>
+<li><code>Bash(npm run *)</code> 或 <code>Bash(make *)</code>，让 Claude 能自由执行脚本</li>
+<li><code>Bash(git *)</code>，用于只读 git 操作</li>
+<li>Read、Write、Edit、Glob、Grep 等文件操作</li>
+</ul>
+</li>
+<li><strong>deny list</strong>：无条件禁止的命令。合理的 deny list 会阻止：<ul>
+<li>破坏性命令，比如 <code>rm -rf</code></li>
+<li>直接网络命令，比如 <code>curl</code></li>
+<li>敏感文件，比如 <code>.env</code> 和 <code>secrets/</code></li>
+</ul>
+</li>
+</ul>
+<p>不在 allow 或 deny 列表里的命令，Claude 会先询问再执行。这种“中间地带”是有意设计的：既有安全网，又不需要你预判所有命令。</p>
+<p>另外你也可以用 <code>settings.local.json</code> 做个人覆盖。创建 <code>.claude/settings.local.json</code>，它会被自动 gitignore，不进入仓库。</p>
+<p>你很少手动管理这个文件夹，但最好知道它们存在。</p>
+<p><code>~/.claude/CLAUDE.md</code> 会加载到每个 Claude Code 会话里，跨项目生效。适合放你的个人编码原则、偏好风格等。</p>
+<p><code>~/.claude/projects/</code> 保存项目的会话记录和自动记忆。Claude Code 会把它学到的命令、模式、架构信息自动存下来并跨会话保留。你可以用 <code>/memory</code> 浏览和编辑。</p>
+<p><code>~/.claude/commands/</code> 和 <code>~/.claude/skills/</code> 保存你的个人命令和技能，跨项目可用。</p>
+<p>你通常不需要手动整理这些，但知道它们的存在很有用：当 Claude 看起来“记住”了你没明确说过的东西，或者你想清空某个项目的自动记忆、重新开始时，就知道该去哪。</p>
+<p>最后把一切串起来：如果你从零开始，以下步骤非常实用。</p>
+<p>Step 1. 在 Claude Code 里运行 <code>/init</code>，它会读取项目并生成一个初始 <code>CLAUDE.md</code>，然后你把它精简到关键点。</p>
+<p>Step 2. 添加 <code>.claude/settings.json</code>，设置合适的 allow/deny 规则。至少允许运行命令，禁止读取 .env。</p>
+<p>Step 3. 创建一两个最常用的命令，比如代码审查或修复 issue。</p>
+<p>Step 4. 当 <code>CLAUDE.md</code> 变拥挤时，把指令拆到 <code>.claude/rules/</code>，并按路径做作用域。</p>
+<p>Step 5. 在 <code>~/.claude/CLAUDE.md</code> 写入个人偏好，比如“先写类型再写实现”“更偏函数式而不是类”。</p>
+<p>这对 95% 的项目已经够用了。技能和代理只在你有反复出现的复杂工作流、值得打包时再引入。</p>
+<p><code>.claude</code> 文件夹本质上是一套协议：告诉 Claude 你是谁、项目做什么、它需要遵守哪些规则。定义得越清晰，你纠正 Claude 的时间就越少，它做的有用工作就越多。</p>
+<p><code>CLAUDE.md</code> 是你杠杆最大的文件。先把它写对，其他都是优化。</p>
+<p>从小做起，逐步精炼，把它当成项目里的基础设施：一旦搭好，每天都会持续带来收益。</p>
+<p>感谢阅读！英文原文：https://blog.dailydoseofds.com/p/anatomy-of-the-claude-folder</p>
+        </div>
+
+        <section class="article-related">
+            <h2 class="article-related-title">相关文章</h2>
+            <ul class="article-related-list">
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-19/claude-refreshed-my-blog-this-weekend.html">Claude 在这个周末帮我翻新了博客</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-08-02/llm-context-compaction-caching.html">上下文、压缩与缓存：大模型使用者必须搞懂的三个概念</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-21/claude-vs-codex-beer-game-two-rounds.html">啤酒游戏：让 Claude 和 Codex 干了这杯酒</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-04-20/claude-and-codex-crosscheck-homework.html">我是怎么让 Claude 和 Codex 帮忙完成课程作业</a></li>
+                <li><a href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html">Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</a></li>
+            </ul>
+        </section>
+
+        <section class="article-about">
+            <h2 class="article-about-title">关于作者</h2>
+            <p>热爱开源与分享。主要从事混合云、数据库 SaaS 等运维开发与相关团队管理工作。</p>
+            <p class="article-about-links">
+                <a href="https://github.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg> GitHub</a>
+                <a href="https://twitter.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Twitter</a>
+                <a href="http://weibo.com/stutiredboy" rel="me"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.31 8.17c-3.24.42-5.71 2.22-5.71 4.37 0 2.46 3.24 4.37 7.23 4.37s7.23-1.96 7.23-4.37c0-2.37-3.09-4.32-7.03-4.37zm-.23 7.33c-2.07.1-3.75-1.1-3.75-2.68 0-1.58 1.68-2.92 3.75-3.01 2.07-.09 3.75 1.1 3.75 2.68s-1.68 2.92-3.75 3.01zm1.48-4.47c-.79-.2-1.68.16-2 .8-.31.64.06 1.32.85 1.52.79.2 1.68-.16 2-.8.31-.64-.06-1.32-.85-1.52zm-1.68 1.29c-.15.24-.46.35-.69.25-.23-.1-.29-.37-.13-.61.15-.24.46-.35.69-.25.22.1.28.37.13.61zm6.79-7.69c-.42 0-.84.05-1.25.13-.3.06-.53.34-.53.66 0 .37.3.67.67.67.03 0 .07 0 .1-.01.29-.06.59-.09.9-.09 2.62 0 4.76 2.13 4.76 4.76 0 .6.3.9.67.9s.67-.3.67-.9c0-3.37-2.74-6.12-6.99-6.12zm1.17 2.62c-.15 0-.3.02-.45.05-.25.05-.45.28-.45.55 0 .31.25.56.56.56.03 0 .06 0 .08-.01.08-.02.16-.03.24-.03 1.01 0 1.84.82 1.84 1.84 0 .06-.01.11-.01.16 0 .31.25.56.56.56s.56-.25.56-.56c.01-.08.01-.15.01-.22 0-1.63-1.33-2.95-2.94-2.95zM7.39 2.25C4.81 2.25 2.25 4.68 2.25 7.82c0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-2.31 1.85-4.05 3.74-4.05 2.01 0 3.74 1.74 3.74 4.05 0 .62.22.98.7.98.48 0 .7-.36.7-.98 0-3.14-2.56-5.57-5.14-5.57z"/></svg> Weibo</a>
+            </p>
+        </section>
+
+<section class="article-comments">
+    <h2 class="article-comments-title">评论</h2>
+    <p class="article-comments-hint">评论使用 GitHub Discussions 承载；留言需要 GitHub 账号。</p>
+    <div class="article-comments-container">
+        <script src="https://giscus.app/client.js"
+                data-repo="stutiredboy/stutiredboy.github.io"
+                data-repo-id="MDEwOlJlcG9zaXRvcnkxMzAwODI4NQ=="
+                data-category="Comments"
+                data-category-id="DIC_kwDOAMZ9nc4C7eK0"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="0"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="preferred_color_scheme"
+                data-lang="zh-CN"
+                crossorigin="anonymous"
+                async>
+        </script>
+    </div>
+</section>
+    </article>
+
+<aside class="article-toc" aria-label="目录">
+    <div class="article-toc-sticky">
+        <p class="article-toc-title">目录</p>
+        <nav class="article-toc-list" data-toc></nav>
+    </div>
+</aside></div>
+    </main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>&copy; 2013&ndash;2026 ChenXiaosheng &middot; 基于 <a href="https://getpelican.com/">Pelican</a> 构建</p>
+        <p>除非另有声明，本站内容采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh" rel="license">CC BY-NC-ND 4.0</a> 协议授权</p>
+        <p class="site-stats" id="site-stats-wrap" hidden>本站累计阅读 <span id="site-pv"></span> 次 · 访客 <span id="site-uv"></span> 人</p>
+        <p class="site-footer-generated">最后生成：2026-08-15 14:23:34</p>
+    </div>
+</footer>
+    <script src="https://www.chenxiaosheng.com/theme/js/main.js" defer></script>
+    <script src="https://www.chenxiaosheng.com/theme/js/views.js" defer></script>
+
+</body>
+</html>
