@@ -1,0 +1,1273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>小生说大声讲 - 老树</title><link href="https://www.chenxiaosheng.com/" rel="alternate"/><link href="https://www.chenxiaosheng.com/feeds/lao-shu.atom.xml" rel="self"/><id>https://www.chenxiaosheng.com/</id><updated>2026-07-22T11:45:00+08:00</updated><entry><title>Skill、Subagent 与 Agent 究竟是什么？从一个月度总结实战谈 AI 原生架构</title><link href="https://www.chenxiaosheng.com/posts/2026-07-22/demystifying-skill-subagent-and-agent.html" rel="alternate"/><published>2026-07-22T11:45:00+08:00</published><updated>2026-07-22T11:45:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2026-07-22:/posts/2026-07-22/demystifying-skill-subagent-and-agent.html</id><summary type="html">&lt;p&gt;本文通过一个真实的“仓库月度自动统计与总结报告”落地需求，深入剖析 Skill、Subagent 和 Agent 三者的本质区别、协作模式与持久化原理，帮助读者建立对 AI 原生架构最直观透彻的认识。&lt;/p&gt;</summary><content type="html">&lt;p&gt;在大模型（LLM）和 AI 智能体（Agent）快速演进的今天，我们在使用类似 Claude Code、Google Antigravity、AutoGPT 等 AI 编程助手或 Agent 框架时，经常会听到几个核心词汇：&lt;strong&gt;Agent&lt;/strong&gt;、&lt;strong&gt;Subagent&lt;/strong&gt; 和 &lt;strong&gt;Skill&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;很多开发者往往会感到困惑：
+- &lt;em&gt;“Skill 和 Agent 到底有什么区别？不都是给 AI 用的工具吗？”&lt;/em&gt;
+- &lt;em&gt;“既然主 Agent 已经能干活了，为什么还需要 Subagent？”&lt;/em&gt;
+- &lt;em&gt;“Subagent 到底是保存在内存里的一个虚无概念，还是一个真正的代码实体？”&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;为了彻底说清楚这三者的概念与工程落地，本文将结合一个真实的实战需求——&lt;strong&gt;“每月自动统计代码仓库变化并生成结构化月报”&lt;/strong&gt;，手把手拆解这套 AI 原生架构。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;一、 形象比喻：企业团队的运作模型&lt;/h2&gt;
+&lt;p&gt;要搞懂这三者的关系，最直观的方式就是对比一个&lt;strong&gt;现代企业项目团队&lt;/strong&gt;的日常分工：&lt;/p&gt;
+&lt;pre class="mermaid"&gt;&lt;code&gt;flowchart TD
+    subgraph 企业团队模型
+        Manager["主 Agent (项目负责人 / PM)"]
+        Worker["Subagent (专职分析员工)"]
+        SOP["Skill (SOP 操作手册 &amp;amp; 工具脚本)"]
+
+        Manager --&amp;gt;|派发任务| Worker
+        Worker --&amp;gt;|读取标准并执行工具| SOP
+        Worker --&amp;gt;|交付成果报告| Manager
+    end&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style="text-align: left;"&gt;维度&lt;/th&gt;
+&lt;th style="text-align: left;"&gt;Agent (主智能体)&lt;/th&gt;
+&lt;th style="text-align: left;"&gt;Subagent (子智能体)&lt;/th&gt;
+&lt;th style="text-align: left;"&gt;Skill (技能/工具包)&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;现实比喻&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;项目负责人 / PM&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;专职员工 / 专项专员&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;SOP 操作手册 / 员工指南 / 工具箱&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;本质属性&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;全局控制中枢，负责响应用户输入与任务调度。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;动态派生的独立 LLM 线程/会话，专注解决单一复杂子任务。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;静态的指令集、规范文件（如 Markdown SOP）及可执行脚本。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;上下文 (Context)&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;包含与用户对话的全部主历史。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;完全隔离&lt;/strong&gt;的独立上下文空间，不受主对话噪音干扰。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;没有上下文，它是被读取的文件与调用的工具。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left;"&gt;&lt;strong&gt;生命周期&lt;/strong&gt;&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;贯穿整个 Chat Session 过程。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;被唤醒时启动，完成特定任务后提交结果并结束。&lt;/td&gt;
+&lt;td style="text-align: left;"&gt;长期静态保存在项目 Git 仓库中。&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;blockquote&gt;
+&lt;p&gt;💡 &lt;strong&gt;核心一句话：&lt;/strong&gt;
+&lt;strong&gt;Skill 告诉 Agent“标准和工具是什么”；Subagent 是真正“带上工具、在独立房间里闭门干活的员工”。&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2&gt;二、 真实需求场景：每月仓库变化统计与月报生成&lt;/h2&gt;
+&lt;p&gt;假设我们在一个项目中需要增加一个自动化能力：&lt;strong&gt;每月自动统计本仓库的代码提交、文档新增、模块变动，并形成一份有深度、有分类总结的月度 Markdown 报告&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3&gt;为什么单纯靠“主 Agent + 提示词”很笨重？&lt;/h3&gt;
+&lt;p&gt;如果直接让主 Agent 在当前对话窗口里去干这件事情：
+1. &lt;strong&gt;上下文严重污染&lt;/strong&gt;：主 Agent 需要读取近 30 天几十上百条提交记录和几百个文件的变更 diff。这些巨量日志会瞬间塞满主对话窗口的 Context Window。
+2. &lt;strong&gt;效率与成本低下&lt;/strong&gt;：海量的中间数据会使后续每句聊天的 Token 消耗急剧增加，甚至导致主 Agent “头晕遗忘”之前的上下文。&lt;/p&gt;
+&lt;p&gt;因此，完美的解法就是：&lt;strong&gt;Skill + Subagent 协同架构&lt;/strong&gt;。&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2&gt;三、 架构设计与落地实现&lt;/h2&gt;
+&lt;p&gt;整个系统的运作流程如下图所示：&lt;/p&gt;
+&lt;pre class="mermaid"&gt;&lt;code&gt;sequenceDiagram
+    autonumber
+    participant User as "用户 / 定时任务 (Cron)"
+    participant MainAgent as "主 Agent (Main Agent)"
+    participant SubAgent as "专员 Subagent (repo_monthly_reporter)"
+    participant SkillDir as "静态 Skill (skills/repo-monthly-report)"
+    participant Report as "输出成果 (outputs/reports/)"
+
+    User-&amp;gt;&amp;gt;MainAgent: 触发“生成上月仓库报告”
+    MainAgent-&amp;gt;&amp;gt;SubAgent: 派发子任务 (invoke_subagent)
+    Note over SubAgent: 启动独立 Context 空间
+    SubAgent-&amp;gt;&amp;gt;SkillDir: 1. 读取 SKILL.md 指南 SOP
+    SubAgent-&amp;gt;&amp;gt;SkillDir: 2. 执行 extract_git_metrics.py 脚本
+    SkillDir--&amp;gt;&amp;gt;SubAgent: 返回 JSON 格式硬指标数据
+    Note over SubAgent: 3. 对 Git Log 进行语义归纳与分类
+    SubAgent-&amp;gt;&amp;gt;Report: 4. 生成 monthly-YYYY-MM.md 报告
+    SubAgent--&amp;gt;&amp;gt;MainAgent: 汇报完成情况与文件路径
+    MainAgent--&amp;gt;&amp;gt;User: 最终答复与成果呈现&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;1. 第一步：打造 Skill（静态 SOP 与工具箱）&lt;/h3&gt;
+&lt;p&gt;在仓库中建立 &lt;code&gt;skills/repo-monthly-report/&lt;/code&gt; 目录：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;SKILL.md&lt;/code&gt; (标准操作流程指南)&lt;/strong&gt;：
+   定义了报告的四大归纳维度（如 AI 技能库、投资模型、学术论文、项目清理）、报告保存路径规范（&lt;code&gt;outputs/reports/monthly-YYYY-MM.md&lt;/code&gt;）以及标准的 Markdown 结构模板。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;scripts/extract_git_metrics.py&lt;/code&gt; (数据提取脚本)&lt;/strong&gt;：
+   用 Python 自动化提取过去指定天数的提交总数、贡献者、增删代码行数及按业务模块分类的文件列表。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# extract_git_metrics.py 核心片段&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;categorize_file&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;根据文件路径进行业务模块分类&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;startswith&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;articles/&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;学术论文/文章 (articles/)&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;startswith&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;invest/&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;投资/金融模型 (invest/)&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;filepath&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;startswith&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;skills/&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;AI Agent Skills (skills/)&amp;quot;&lt;/span&gt;
+    &lt;span class="c1"&gt;# ...其他分类逻辑&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;2. 第二步：定义并派生 Subagent（动态分析员工）&lt;/h3&gt;
+&lt;p&gt;主 Agent 通过声明并派生一个名为 &lt;code&gt;repo_monthly_reporter&lt;/code&gt; 的子智能体：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;name&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;repo_monthly_reporter&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;role&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Repo Monthly Reporting Specialist&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;&amp;quot;system_prompt&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;你是一个专业的仓库月报生成子智能体。严格遵守 skills/repo-monthly-report/SKILL.md 规范，运行 Python 统计脚本，对业务模块进行深度语义归纳，生成月报保存至 outputs/reports/。&amp;quot;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;随后主 Agent 执行 &lt;code&gt;invoke_subagent&lt;/code&gt; 派发任务：
+&lt;strong&gt;Subagent 启动后，在自己独立的 Context 空间内加载 Skill，运行 Python 脚本提取了 18 个变更文件与 -45,831 行数据，并完成了深度语义总结。&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;3. 第三步：生成结构化月度报告&lt;/h3&gt;
+&lt;p&gt;最终生成的月报 &lt;code&gt;outputs/reports/monthly-2026-07.md&lt;/code&gt; 包含了极其清晰的业务图景：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;总体概览&lt;/strong&gt;：代码新增 +621 行，清理 -45,831 行大文本与废弃文件。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;三大核心亮点&lt;/strong&gt;：&lt;/li&gt;
+&lt;li&gt;上线 &lt;code&gt;pdf-watermark&lt;/code&gt; 水印 Agent 技能包；&lt;/li&gt;
+&lt;li&gt;新增《价值平均定投法》金融知识文档与配套 Excel 工具；&lt;/li&gt;
+&lt;li&gt;彻底清理老旧爬虫数据集与临时产物。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h2&gt;四、 核心追问：Subagent 究竟保存在哪里？&lt;/h2&gt;
+&lt;p&gt;在实际工程中，很多人会好奇：&lt;strong&gt;Subagent 到底是一个保存在硬盘上的实体，还是仅仅一串临时提示词？&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;答案是：&lt;strong&gt;它既有运行态的实体，也有静态配置的储存&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3&gt;1. 运行态实体 (Runtime Entity)&lt;/h3&gt;
+&lt;p&gt;当 Subagent 被派生时，系统真正为其建立了独立的进程与存储路径。
+例如本次运行中，Subagent 的完整推理过程、思维链以及中间工具调用历史，真实地保存在本地磁盘上：
+&lt;code&gt;~/.gemini/antigravity/brain/&amp;lt;subagent-conversation-id&amp;gt;/.system_generated/logs/transcript.jsonl&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这也正是为什么它的运行不会占用或污染主 Agent 的 Context 窗口。&lt;/p&gt;
+&lt;h3&gt;2. 配置与定义持久化 (Persistence)&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;动态注册（会话级 Session Scope）&lt;/strong&gt;：通过 &lt;code&gt;define_subagent&lt;/code&gt; 工具在运行内存中注册，仅对当前 Chat Session 有效，重启后注册表中不保留。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;静态配置文件（项目级 Project Scope）&lt;/strong&gt;：将 Subagent 的 Prompt 和角色写入项目的配置文件（如 &lt;code&gt;AGENTS.md&lt;/code&gt; 或 &lt;code&gt;.claude/agents/&lt;/code&gt;），这样每次打开客户端或任何人拉取仓库代码，系统均会自动识别并加载该 Subagent。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;[仓库根目录]
+├── skills/                      &amp;lt;-- 静态 Skill 目录 (跟随 Git 永久持久化)
+│   └── repo-monthly-report/
+│       ├── SKILL.md
+│       └── scripts/extract_git_metrics.py
+├── AGENTS.md                    &amp;lt;-- 静态 Subagent 配置文件 (项目级持久化)
+└── outputs/reports/             &amp;lt;-- 成果输出路径
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;hr&gt;
+&lt;h2&gt;五、 工程总结：何时用 Skill？何时用 Subagent？&lt;/h2&gt;
+&lt;p&gt;在设计 AI 原生系统或进行 Agentic Workflow 开发时，可以遵循以下&lt;strong&gt;三分法原则&lt;/strong&gt;：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;写成 Skill&lt;/strong&gt;：&lt;/li&gt;
+&lt;li&gt;凡是&lt;strong&gt;静态的操作流程 (SOP)&lt;/strong&gt;、代码规范、文档模板、纯 Python/Shell 工具脚本，通通写成 Skill 放在 &lt;code&gt;skills/&lt;/code&gt; 目录下。它是纯粹的知识与工具沉淀。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;定义 Subagent&lt;/strong&gt;：&lt;/li&gt;
+&lt;li&gt;凡是需要&lt;strong&gt;大量上下文消耗&lt;/strong&gt;（如读大量日志、审阅成百上千行代码）、&lt;strong&gt;并发处理&lt;/strong&gt;、或&lt;strong&gt;特定专业角色设定&lt;/strong&gt;（如专业 Code Review 员、安全审计员、月报撰写专员）的任务，定义为 Subagent。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;主 Agent 负责调度&lt;/strong&gt;：&lt;/li&gt;
+&lt;li&gt;主 Agent 保持轻量，专注于倾听用户的复杂指令，做顶层任务拆解，并发派给对应的 Subagent 去完成。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;通过这套架构，我们不仅实现了一个自动化的仓库月报工具，更彻底搞懂了 AI 原生开发中最核心的三大基石理念。&lt;/p&gt;</content><category term="misc"/><category term="ai"/><category term="agent"/><category term="subagent"/><category term="skill"/><category term="architecture"/></entry><entry><title>阿里云域名解析被转移，让我穿越回了 15 年前</title><link href="https://www.chenxiaosheng.com/posts/2025-06-06/aliyuncs.com-downgrade.html" rel="alternate"/><published>2025-06-06T20:30:00+08:00</published><updated>2025-06-06T20:30:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2025-06-06:/posts/2025-06-06/aliyuncs.com-downgrade.html</id><summary type="html">&lt;p&gt;6月6日凌晨，阿里云核心域名 aliyuncs.com遭遇罕见的域名劫持事件，导致其对象存储服务（OSS）、内容分发网络（CDN）以及云解析DNS等多项核心云服务出现大范围故障，波及众多依赖阿里云服务的网站和应用。&lt;/p&gt;</summary><content type="html">&lt;p&gt;2025 年 6 月 6 日早上 6 点 10 分醒来，习惯性瞄了下手机，看到同事给我的留言，大概是说 &lt;code&gt;aliyuncs.com&lt;/code&gt; 被别的国家注册了&lt;/p&gt;
+&lt;p&gt;作为一名曾经的域名管理员，我对域名类的故障是比较 &lt;strong&gt;敏（害）感（怕）&lt;/strong&gt; 的，因此基本上我是短时间就清醒了的，抛出了我的第一个疑问：&lt;strong&gt;在用的域名忽然被别人注册了&lt;/strong&gt;？&lt;/p&gt;
+&lt;p&gt;同事反馈是过期没续费被抢，但是 &lt;strong&gt;域名过期是有保护期&lt;/strong&gt; 的，所以我并没有接受这个说法，在手机上通过 &lt;a href="https://who.is"&gt;who.is&lt;/a&gt; 查了一下信息，发现过期时间是 &lt;code&gt;2026-04-01&lt;/code&gt;，既然都还没有过期，那被别人注册了这个说法自然是不成立的。&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/aliyuncs.com_1.png" /&gt;&lt;/p&gt;
+&lt;p&gt;继续追问了下目前可能对我们公司业务的影响，了解到如果负载均衡 LB &lt;code&gt;Load Balance&lt;/code&gt; 有可能直接用了阿里的域名，这下我就不太淡定了，继续用 &lt;a href="https://www.itdog.cn"&gt;itdog&lt;/a&gt; 试了一下，发现有个别缓存开始失效了。结合可能对我们的影响，这下真的无法淡定了，立马起床开电脑干活！！&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/aliyuncs.com_2.png" /&gt;&lt;/p&gt;
+&lt;p&gt;考虑到 whois 也会有缓存，赶紧登录自己在欧洲的一台机器重新查了一下，果然发现阿里 aliyuncs.com 的域名被人更新了（而不是被别人注册了），可以看到更新时间是 &lt;code&gt;2025-06-05T21:32:38Z&lt;/code&gt; ，考虑到时区，和阿里通告故障的时间是基本对的上，域名、whois 都会有缓存，有一定时间差是符合常理的。&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/aliyuncs.com_3.png" /&gt;&lt;/p&gt;
+&lt;p&gt;这个时候肾上腺激素开始飙升了，立马让在线的同事开工干活，主要几个动作：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;第一时间把涉  &lt;code&gt;aliyuncs.com&lt;/code&gt; 的域名捞出来，并整理成共享文档，供接下来使用；&lt;/li&gt;
+&lt;li&gt;唤醒公司域名管理员，对于我们自建 DNS 这个服务本身，如果使用了阿里 LB 的且评估是对其他业务提供服务的，马上切走。（如果我们的 DNS Server 受这个 LB 影响不可用了，这个时候爆炸半径会直接无限扩大）&lt;/li&gt;
+&lt;li&gt;域名管理员，发起紧急变更，将缓存 DNS 服务器上关乎 &lt;code&gt;aliyuncs.com&lt;/code&gt; 这个域名的解析全部转发劫持到阿里云的权威，确保内部业务能正常解析，尽可能缩小爆炸半径；&lt;/li&gt;
+&lt;li&gt;根据服务等级，除了在相关工作群通告外，根据服务重要等级唤醒相应运维（或相应域名对应的管理员），并让他们安排将 &lt;code&gt;aliyuncs.com&lt;/code&gt; 的业务先切到 VIP 地址；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;中间还是会有一些小插曲，比如可能指引不够详细，有运维同学对于域名没有概念或者有同学所涉业务较多，有点手忙脚乱之外，整体还算快速、稳步的推进，更多的细节就不展开了。&lt;/p&gt;
+&lt;p&gt;当然，这里最终还是要给阿里云的团队点个赞，原以为这个故障时间会远超预期，然后我们在北京时间 08:14 收到反馈说经过阿里云团队的处理，域名解析开始恢复正常了，故障持续的时间大约为 6 小时左右。再加上故障发生在凌晨，另外域名解析的失效也有一个缓存的过程，不幸中的万幸就是我们基本没有受到影响（但是对不起，炸了一群人起来干活 :p&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;基本没有，也不是完全没有，但都在可控范围内 :-)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2&gt;15 年前的鬼故事&lt;/h2&gt;
+&lt;p&gt;在响应这个故障的过程中，就有同事问我是不是我们曾经也出现过这个问题，很肯定的说“是”，但也不是，情况不太一样。在这个时间点，我对于阿里云为什么 NS &lt;code&gt;namesever&lt;/code&gt; 被改了还是不清楚的，只是猜测大概率是管理不善，帐号被黑客拿走改了 NS 之类~~ 而我们当年（约 15 年前）碰到的一个情况是被注册商（比如万网、NetworkSolutions）以涉敏感内容为由停止了解析，但阿里云 &lt;code&gt;aliyuncs.com&lt;/code&gt; 的症状对不上。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;说明一下，涉敏感内容肯定和公司没有直接相关，不展开，避免被有心之人用来作为攻击手段，也不确认该方式是否还有效&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;当时也是发生在凌晨（时差，美国佬刚好上班之类），年轻睡的晚，本来也想睡觉了，鬼始神差的觉得好像不太对劲，开电脑查了一下发现解析被停掉了，多次用我鳖脚的英文和 NetworkSolutions 对线（感谢那时候有 Skype 等软件可以打国际电话），辗转折腾，在多路大佬的帮助下也是差不多在白天业务高峰前才恢复解析，但毕竟是我们的核心域名，加上时间也是大几个小时，不少地方的缓存失效了，影响还是很大的（最后被某位大佬点赞了 hhhh&lt;/p&gt;
+&lt;h2&gt;说说我的害怕&lt;/h2&gt;
+&lt;p&gt;前面说到&lt;code&gt;作为一名曾经的域名管理名，我对域名类的故障是比较敏（害）感（怕）的&lt;/code&gt;，这是为什么呢：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;DNS 是互联网最基础的业务之一，但凡在互联网上能提供的业务大概都离不开这个基础。越是基础的东西伤害就越大；&lt;/li&gt;
+&lt;li&gt;基础的服务受关注程度低，大家都默认你正常，所以确实出问题的概率也极低，因为你不敢经常出问题。但带来的问题是所有上层业务都默认你正常，在设计的时候就不会去做过度容灾，一出问题短时间就是解决不了（但确实有时候为了一个极低概率出问题的系统做过度的容灾，不考虑 ROI 也是有毛病的表现 。。。&lt;/li&gt;
+&lt;li&gt;因为 1 和 2 的情况，业务和业务，经年累月下来，你根本改不了。就像现在，你不可能拿出一套系统取代 TCP/IP、取代 DNS，哪怕 IPv4 要进化到 IPv6，这个我从读大学就被这么画大饼了，20 多年过去了，也没见 IPv6 就把 IPv4 干掉了&lt;/li&gt;
+&lt;li&gt;（价值论）通常在大多数公司里，基础服务的价值讲不清楚，上层建筑容易画大饼讲故事，也有快速创造收益的可能。像我这种做基础设施的，都要经常停下来反思我这点收入真是得之不易，劳心劳命的，然后给自己找到自洽的逻辑，继续努力~&lt;/li&gt;
+&lt;li&gt;域名的爆炸半径不可控，一方面是因为我们不可能去刷新世界上所有的缓存（运营商大多数情况下也不会鸟你），同时我们也没有办法让用户在出现故障时，让他们切换到另一个域名（如 HttpDNS 等方案这些都只能解决特定场景下的特定问题），另外 &lt;strong&gt;缓存是个双刃剑&lt;/strong&gt;，它能延缓故障的爆炸，却也会让你在宣告解析恢复后要经受不停的挑战，为什么我的服务一直没有恢复？就像这次我们 &lt;strong&gt;直到北京时间 13:57 才收到业务反馈说运营商的缓存基本都过期不再报错了&lt;/strong&gt;，大概是阿里云宣告恢复后的又一个 6 小时&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;当然，你也可以认为我过度紧张 :-)&lt;/p&gt;
+&lt;h2&gt;小结&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;阿里云此次 &lt;code&gt;aliyuncs.com&lt;/code&gt; 的故障真实原因是什么？这个我也不知道，但从网络上的蛛丝马迹上看是被 &lt;a href="https://www.verisign.com/zh_CN/domain-names/what-does-com-mean/index.xhtml"&gt;VeriSign&lt;/a&gt;（不是注册商，是 &lt;code&gt;.com&lt;/code&gt; 顶级域的管理）改了域名解析，不考虑更深层次更腹黑的原因，只能猜测是因为阿里云有不合规的内容被投诉了之类。如下一些公众号的猜想：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src="/static/aliyuncs.com_4.png" /&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;作为域名的拥有者，有没有可能完全杜绝这个问题？我认为不可能， 这次看起来是 &lt;a href="https://www.verisign.com/zh_CN/domain-names/what-does-com-mean/index.xhtml"&gt;VeriSign&lt;/a&gt; 操刀的，也就是直接绕开注册局（商）了。包括有些朋友可能会认为加一些注册局锁（类似 &lt;code&gt;serverUpdateProhibited&lt;/code&gt; 这些）可能可以缓解，我可以很肯定的说这 &lt;strong&gt;只能解决到注册局层面的问题，覆盖不了本次的情况&lt;/strong&gt; 。当然阿里云做为一家国际云商， &lt;strong&gt;注册局锁这点钱你们就不要省啦&lt;/strong&gt; （事后也看到阿里云加上了）：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src="/static/aliyuncs.com_5.png" /&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;技术上能不能解决：能，但成本不知几何。鼓励大家在业务上线的时候通过多入口容灾、引入 HttpDNS 等技术解决类似问题，但是当类似问题出现时，影响还是不可避免，手忙脚乱也还是不可避免，毕竟 N 年等一回，但最好一回也不要有，害怕&lt;/li&gt;
+&lt;li&gt;可能有其他非技术非常规手段，可以从根服务器、顶级域名运营商开始实施保护，但想像不了了，请了解规则的朋友指点哈&lt;/li&gt;
+&lt;/ul&gt;</content><category term="misc"/><category term="aliyun"/><category term="阿里云"/><category term="DNS"/><category term="域名"/></entry><entry><title>Obsidian 接入 DeepSeek API 指南：Text Generator 插件配置教程</title><link href="https://www.chenxiaosheng.com/posts/2025-05-12/obsidian-deepseek-text-generator.html" rel="alternate"/><published>2025-05-12T15:07:00+08:00</published><updated>2025-05-12T15:07:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2025-05-12:/posts/2025-05-12/obsidian-deepseek-text-generator.html</id><summary type="html">&lt;p&gt;&lt;strong&gt;Obsidian 接入 DeepSeek API 的配置教程&lt;/strong&gt;，使用 &lt;strong&gt;Text Generator 插件&lt;/strong&gt;实现智能文本生成功能。教程使用 Text Generator 插件 + DeepSeek API 生成，并经过人工校对。&lt;/p&gt;</summary><content type="html">&lt;p&gt;以下是 &lt;strong&gt;Obsidian 接入 DeepSeek API 的配置教程&lt;/strong&gt;，使用 &lt;strong&gt;Text Generator 插件&lt;/strong&gt;实现智能文本生成功能。教程使用 Text Generator 插件 + DeepSeek API 生成，并经过人工校对：&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;1. 安装 Text Generator 插件&lt;/strong&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;打开 Obsidian → 点击左侧边栏 &lt;code&gt;Settings&lt;/code&gt; (设置)或菜单栏 &lt;code&gt;Preferences&lt;/code&gt; &lt;/li&gt;
+&lt;li&gt;进入 &lt;code&gt;Community plugins&lt;/code&gt; (社区插件) → 点击 &lt;code&gt;Browse&lt;/code&gt;  &lt;/li&gt;
+&lt;li&gt;搜索 &lt;strong&gt;Text Generator&lt;/strong&gt; → 安装并启用插件。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="" src="/static/obsidian_deepseek_2025.05/1.png"&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;2. 获取 DeepSeek API Key&lt;/strong&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;访问 &lt;a href="https://deepseek.com"&gt;DeepSeek 官网&lt;/a&gt; 注册/登录账号；&lt;/li&gt;
+&lt;li&gt;进入 API 管理页面（如无公开API，需联系官方申请权限）；
+&lt;img alt="" src="/static/obsidian_deepseek_2025.05/2.png"&gt;&lt;/li&gt;
+&lt;li&gt;复制生成的 &lt;strong&gt;API Key&lt;/strong&gt;（保存到安全位置，后面无法通过 deepseek 平台查看）；&lt;/li&gt;
+&lt;li&gt;充值（&lt;strong&gt;很重要，否则后面会出错&lt;/strong&gt;）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;3. 配置 Text Generator 插件&lt;/strong&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;在 Obsidian 中打开 &lt;code&gt;Settings&lt;/code&gt; → 找到 &lt;code&gt;Text Generator&lt;/code&gt; 插件设置。  &lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;在 &lt;code&gt;API Provider&lt;/code&gt; 中选择 &lt;strong&gt;Custom&lt;/strong&gt; 或 &lt;strong&gt;通过+创建自定义配置&lt;/strong&gt;（若支持）。
+&lt;img alt="" src="/static/obsidian_deepseek_2025.05/3.png"&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;注：如上截图，已勾选的 &lt;code&gt;deepseek&lt;/code&gt; 是通过后面的 &lt;code&gt;+&lt;/code&gt; 创建出来的。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;填写以下参数：&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;API URL&lt;/strong&gt;: DeepSeek API 的端点地址（如 &lt;code&gt;https://api.deepseek.com/chat/completions&lt;/code&gt;）  &lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;API Key&lt;/strong&gt;: 粘贴你的 DeepSeek API Key  &lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Model Name&lt;/strong&gt;: 填写模型名称（如 &lt;code&gt;deepseek-chat&lt;/code&gt;，根据官方文档调整）&lt;br&gt;
+&lt;img alt="" src="/static/obsidian_deepseek_2025.05/4.png"&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;4. 测试 API 连接&lt;/strong&gt;&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;在 Obsidian 中新建一个笔记，输入内容并选中；&lt;/li&gt;
+&lt;li&gt;按快捷键 &lt;code&gt;Ctrl/Cmd + J&lt;/code&gt; 即可自动生成；
+&lt;img alt="" src="/static/obsidian_deepseek_2025.05/5.png"&gt;&lt;/li&gt;
+&lt;li&gt;观察是否返回 DeepSeek 生成的文本，若无响应请检查：  &lt;/li&gt;
+&lt;li&gt;API Key 和 URL 是否正确  &lt;/li&gt;
+&lt;li&gt;网络是否畅通  &lt;/li&gt;
+&lt;li&gt;DeepSeek 账户是否有足够配额  &lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;5. 高级设置（可选）&lt;/strong&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;自定义提示模板&lt;/strong&gt;：在插件设置中修改 &lt;code&gt;Prompt Template&lt;/code&gt;，适配你的工作流。  &lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;调整参数&lt;/strong&gt;：如 &lt;code&gt;temperature&lt;/code&gt;（随机性）、&lt;code&gt;max_tokens&lt;/code&gt;（生成长度）等。  &lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;h3&gt;&lt;strong&gt;常见问题&lt;/strong&gt;&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Q&lt;/strong&gt;: 插件报错 &lt;code&gt;n.text is not a function&lt;/code&gt;？&lt;br&gt;
+&lt;strong&gt;A&lt;/strong&gt;: 在插件的 &lt;code&gt;Advance mode&lt;/code&gt; 里把 &lt;code&gt;CORS Bypass&lt;/code&gt;  打开
+&lt;img alt="" src="/static/obsidian_deepseek_2025.05/6.png"&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Q&lt;/strong&gt;: 提示 &lt;code&gt;404&lt;/code&gt; 或者 &lt;code&gt;Not Found&lt;/code&gt; 之类
+  &lt;strong&gt;A&lt;/strong&gt;: 确认 API 地址（&lt;code&gt;Endpoint&lt;/code&gt;）填写正确，如这里是：&lt;code&gt;https://api.deepseek.com/chat/completions&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Q&lt;/strong&gt;: 提示 &lt;code&gt;402&lt;/code&gt; 或者 &lt;code&gt;Failed to load resource&lt;/code&gt; 之类
+  &lt;strong&gt;A&lt;/strong&gt;: 先充值！&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Q&lt;/strong&gt;: 如何查看其他报错的详细信息
+  &lt;strong&gt;A&lt;/strong&gt;: MacOS，使用：&lt;code&gt;Cmd+Option+I&lt;/code&gt; 打开控制台查看
+&lt;img alt="" src="/static/obsidian_deepseek_2025.05/7.png"&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;通过以上步骤，你可以在 Obsidian 中无缝调用 DeepSeek 的 AI 能力。如果需要更详细的配置（如本地代理），可参考插件官方文档或 DeepSeek API 说明。&lt;/p&gt;</content><category term="misc"/><category term="obsidian"/><category term="deepseek"/><category term="ai"/></entry><entry><title>25非全考研，人生经历+1</title><link href="https://www.chenxiaosheng.com/posts/2025-04-13/postgraduate.html" rel="alternate"/><published>2025-04-13T06:30:00+08:00</published><updated>2025-04-13T06:30:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2025-04-13:/posts/2025-04-13/postgraduate.html</id><summary type="html">&lt;p&gt;23年去华工和D老师/泰老师吃饭闲逛的时候，脑子一抽想到要不干脆我也来考个研算了，但因为离国家统考的时间确实太近了，花80块钱报了名，完全没有时间准备，最后也是不了了之。但念头有了之后，却是挥之不去了，24年春节后，就默默开始准备起来了，25年4月把复试的流程走完，也进入了“拟录取”状态，小记一下人生的的经历。&lt;/p&gt;</summary><content type="html">&lt;p&gt;23年去华工和D老师/泰老师吃饭闲逛的时候，脑子一抽想到要不干脆我也来考个研算了，但因为离国家统考的时间确实太近了，花80块钱报了名，完全没有时间准备，最后也是不了了之。但念头有了之后，却是挥之不去了，24年春节后，就默默开始准备起来了，25年4月把复试的流程走完，也进入了“拟录取”状态，小记一下人生的的经历。&lt;/p&gt;
+&lt;h2&gt;为什么想考研&lt;/h2&gt;
+&lt;p&gt;考研再读书的想法来的快，却挥之不急，首先还是和个人性格有比较大的关系，当我想到要去做一件事情的时候，总是会想着各种办法去实现，小到种草一件商品，大到买车买房等，只要我确定了我就会很快的想办法去实现。这个性格其实在生活、工作中给我带来了不少的好处的，坚持、靠谱、敢于接受挑战的各种评价大抵来源于此，但实际上却也经常让我个人陷入一些困境的，所谓的”内耗“。但无论如文，考个研读个书的想法真是”野火烧不尽，春风吹又生“，那就实现他吧，黄沙百战穿金甲，不破楼兰终不还。
+除了性格的原因，想考研读书也是受到方方面面的影响：&lt;/p&gt;
+&lt;p&gt;1、受益公司的战略调整，这几年开始有机会招聘海外的一些员工，在面试过程中就发现很有意思且很频繁的一个现象，海外同学（这里指坡县）经常会在工作一段时间后又回到学校，再出来工作，如此反复的这么一个过程。让我从“惊讶”进入到了”羡慕“，毕竟在国内要是我们的工作简历上频繁的出现”GAP“，那大抵是不受待见的。甚至于除了”铁饭碗“类的岗位，在大多数行业（比如互联网），虽然大家鼓励学习、知识的沉淀，但对于学历的追求，可能也会得到一个”有什么用呢“的反问？和海外这些员工的接触给我种了草，其他人的想法并不重要，这是让我觉得会有趣的一个经历，那就去试试吧！（谢谢我的热爱学习的同事们）
+2、我不知道公司或者整个社会有什么问题，但知道我所在公司的朋友，也应该会关注到我所在的公司这两年也是各种”风起云涌“，口罩后的大家过的都不容易，对于我自己的岗位，从23年开始直到现在，我也一直是抱着背水一战，破釜沉舟的心态，可是当真的走到这一步的时候，我能做些什么，我真的没有想好。小学中学大学十六载，工作近十八载，如果有这么一个窗口，那么我想停一下看一看，也好好想一想接下来的路怎么走（毕竟40岁的互联网人那可太不被待见了啊，哈哈哈），但却并不想让自己无所事事，因此给自己一个重新学习的机会也成了自己一个很好的可选项，给自己一个暂停键，还可以充充电（算不算在逃避呢？嘿嘿）&lt;/p&gt;
+&lt;p&gt;想到了就去做，而且这次我还算是做了一个和自己性格相逆的”玩法“，早早我就告诉朋友、同事我要去考个研（以前这种人生大事怎么可以告诉大家，都是默默搞定他，免得丢人，哈哈哈），人生海海，何妨让世界听见我的号角？&lt;/p&gt;
+&lt;h2&gt;备考&lt;/h2&gt;
+&lt;p&gt;要说花了很多的时间备考，好像也没有，毕竟日常确实太忙了，基本都是利用周末的时间以 1.5x 甚至 2.0 的倍速刷一下视频，让自己有点印象，其实最担心的无法就是到了考场一个字都蹦不出来。非全日制工商管理类（我报了工程管理）国家统考其实就考两科《管理类综合能力》和《英语（二）》，对于我个人来说，英语其实没啥好准备的（口语不行，但阅读理解却是我的强项），主要时间还是用于学习管综了，买了中公教育的历年真题，这套真题有个好处是看不懂的题目可以刷二维码有视频学习，这对于已经离开学校18年，各种知识已经还给老师的中年人实在是太友好了！
+当然，这些课程的学习纯粹是为了“应试”，但好在也不是一无事处，有两点收获还是值得回味一下的：&lt;/p&gt;
+&lt;p&gt;1、算是把初中的一些数学知识重新学习了一下，涉及到基础的几何知识、平面直角坐标系、概率等等的一些知识，家里刚好有一个初中娃，被他问起来的时候显得我没有那么落伍，被我装到了；
+2、学到了一个应试技巧，考试时先把”论说文“和”论述文“两篇文章写了，两篇文章只要完成度高，前面的数学题、逻辑题蒙个一半，那基本上也大差不差了。
+英语在考前找了几个公众号看了下英语写作的模板算是最大的准备了。逻辑题我个人就会认为纯粹就是为了考试而考试设计的各种绕口令了，总之绕晕你就对了（实际我也没有做完，至少有10道选择题就是蒙猜了），当然正能量一点，我找 DeepSeek 讨论了一下对于“逻辑题”的看法，它给出了正面反馈：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/postgraduate_1.png" /&gt;&lt;/p&gt;
+&lt;h2&gt;考试&lt;/h2&gt;
+&lt;p&gt;考试的仪式感还是很强的，除了文具其他随着携带的东西都是在考场区域外保管的，进考场区域和考室也是面临层层安检。更有趣的是，当天也算是一边考试一边加班了，进考场区域的前 5 钟还在打电话安排和汇报工作。中午和下午考完出来的 5~10 分钟内都有电话和 IM 信息过来的灵魂拷问：“怎么我回信息这么慢的？”（真是紧张又不失有趣啊，肾上腺激素彪升，懂的都懂，哈哈哈，真心感谢当天紧急提供协助的同学们）
+所幸，流程算是走完了，这个考试状态感觉要凉，哈哈哈，但好在自己并不焦虑，好像有点祛魅了，原来就是这么一回事！&lt;/p&gt;
+&lt;h2&gt;复试&lt;/h2&gt;
+&lt;p&gt;成绩出来后其实并不理想，管综考的比较烂，英语算是拉了我一把，工程管理国家线 162，吹牛的说法是咱超了国家线近 30 分，其实一点都不理想，我所报考的学校计划招生 40 人，我排名 61，是否能进面试其实是比较悬的，最后算是有惊无险，进了复试。
+复试至少准备上是比初试统考用心了的，在复试通知出来的时候才发现竟然要考一门专业课，足足用了两周下班后的晚上和一个完整的周末在B站刷视频课程学习，专业课和面试的过程就不具体展开了，毕竟用官方的说法这应该属于泄密。但是回到学校复试的感受还是不一样的，走在学校的小路上，看着来往的学子和有着年头的建筑，想重新回到学校的念头还是非常强烈的。所以在对话的一开始还是略微紧张的，但也算是很快调整过来了的，复试的成绩还不错，最后总成绩把自己从 61 拉到前 30 了。因为官方的通告都是 PDF 的，让 DeepSeek 帮忙分析了下：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/postgraduate_2.png" /&gt;&lt;br/&gt;
+&lt;img src="/static/postgraduate_3.png" /&gt;&lt;/p&gt;
+&lt;h2&gt;知识若有趣，前路自有光&lt;/h2&gt;
+&lt;p&gt;至此，非全研究生的考试算是把整个流程走完了，虽然感觉对整个过程是祛魅了，但大抵自己还是会考虑这项“投资”把后面三年的学习流程走完的。印象有点深刻的是最近和同学朋友聚餐时，提到我要去读书，结合我所在的行业（学历已经没什么帮助了）、年龄（中年大叔）、学费（一年5个）、学习方式（非全日制，低人一等？），从部份朋友的眼神里看到了惊讶和不解。但我在复试专业课的准备过程中却看到了知识的趣味性、系统性、延续性，很多工作中看到的现象碰到的问题，原来可以大量使用课程里的原理、逻辑、方法加以解释（如果回到大学，我的想法一定会是这些大道理有什么意义啊？），既然这么有趣（又有挑战，听说这个学校即使非全的按期毕业率低于30%），那就让游戏继续下去吧，这应该是人生最后一次进校园的机会了？&lt;/p&gt;
+&lt;p&gt;中午逆旅，莫听穿林打叶声，何妨吟啸且徐行。&lt;/p&gt;
+&lt;p&gt;2025.04.13 06:30&lt;/p&gt;</content><category term="misc"/><category term="postgraduate"/></entry><entry><title>你想要建造自己的数据中心吗？</title><link href="https://www.chenxiaosheng.com/posts/2025-01-20/So-You-Want-to-Build-Your-Own-Data-Center.html" rel="alternate"/><published>2025-01-20T13:07:00+08:00</published><updated>2025-01-20T13:07:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2025-01-20:/posts/2025-01-20/So-You-Want-to-Build-Your-Own-Data-Center.html</id><summary type="html">&lt;p&gt;这篇文章主要讲述了Railway公司从依赖Google Cloud Platform到自主建设数据中心的过程。由于Google Cloud Platform存在定价、服务和工程限制等问题，Railway启动了Railway Metal项目，自主设计、安装数据中心基础设施，包括选址、电力供应、网络连接、机架布局和硬件安装等，以提供更好的云服务体验。&lt;/p&gt;</summary><content type="html">&lt;blockquote&gt;
+&lt;p&gt;原文来自：https://blog.railway.com/p/data-center-build-part-one
+很少看到有从 IDC 基础设施开始写的文章，一时兴起借 AI 工具作了粗浅的翻译。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;从一开始，Railway的计算能力就是建立在谷歌云平台之上的。该平台支持了Railway的初步发展，但它也引发了许多问题，这些问题给我们的业务带来了生存风险。更重要的是，构建在超大规模云服务提供商上，阻碍了我们为客户提供最佳平台的可能性。&lt;/p&gt;
+&lt;p&gt;它直接影响了我们能够提供的定价（有人知道公有云流出流量费用吗？），限制了我们能够提供的服务级别，还引入了工程限制，这些限制了我们能够构建的能力。&lt;/p&gt;
+&lt;p&gt;我们不仅&lt;a href="https://github.com/GoogleCloudPlatform/guest-agent/issues/401"&gt;很少&lt;/a&gt;能&lt;a href="https://blog.railway.com/p/2023-12-01-incident-report"&gt;理解&lt;/a&gt;上游环节&lt;a href="https://blog.railway.com/p/incident-december-16-2024"&gt;出问题&lt;/a&gt;的&lt;a href="https://x.com/JustJake/status/1667478906591666176"&gt;原因&lt;/a&gt;，而且尽管我们每年花费数百万美元，但能得到的支持也只相当于你花费100美元所得到的。&lt;/p&gt;
+&lt;p&gt;因此，我们去年启动了一个 Railway Metal 项目。九个月后，我们在加利福尼亚的第一个站点上线，设计、规划并落地了从机柜中的光纤电缆到与互联网服务提供商的各种合同的一切。就在我们发布这篇博客的时候，我们正在启动另外三个区域的数据中心。&lt;/p&gt;
+&lt;p&gt;为了向我们的客户提供“透明基础设施”的云体验。我们需要迅速且足够好的构建我们自己的物理基础设施。这就是我们今天博客文章的主题。&lt;/p&gt;
+&lt;h2&gt;所以你想要搭建自己的“云”&lt;/h2&gt;
+&lt;p&gt;从 2024 年 1 月启动 Railway Metal 项目开始，我们花了整整五个月时间才将第一批服务器接入。之后，又用了额外的三个月，我们才觉得可以让用户放心地使用这些硬件（并且又过了几个月，我们才开始在这里撰写相关的内容）。&lt;/p&gt;
+&lt;p&gt;第一步是找到合适的地方。&lt;/p&gt;
+&lt;p&gt;本地部署时，你需要有地方来放置你那些崭新的服务器以及可靠的电力来保持它们运行。另外，你还需要足够的冷却措施，防止它们“熔化”（保障服务器正常运行）。&lt;/p&gt;
+&lt;p&gt;一般来说，你有三种主要的选择：绿地建设（购买或租赁数据中心）、机笼托管（在供应商的数据中心内获取一个由网格墙围起来的私人空间）、或者机架托管（租赁托管数据中心中的单个机架或机架的分区）。&lt;/p&gt;
+&lt;p&gt;这句话的意思是：“我们选择了第二种选择：一个笼子，它能给我们四面墙、一扇安全的门，以及一个空白的画布，让我们可以自由地设计其他一切。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="655" src="/static/CleanShot_2025-01-15_at_23.webp"/&gt;&lt;/p&gt;
+&lt;p&gt;租用或购买足够的空间来放置设备等并不是主要的成本支出，电力（以及由此带来的冷却需求）却是成本最高的部分。根据地理位置的不同，每千瓦时（$/kW）的电力价格可能会有很大的差异。--举个例子，在美国西海岸，我们支付的电力费用可能不到在新加坡支付的一半。电费是按照固定的月度承诺来支付的，无论是否实际消耗，都要支付这笔费用，以确保电力可以随时按需使用。&lt;/p&gt;
+&lt;p&gt;但是你需要多少电力呢？&lt;/p&gt;
+&lt;h2&gt;能力越大，责任越大&lt;/h2&gt;
+&lt;p&gt;理想情况下，如果你已经开始了数据中心迁移的任务，你应该对想要部署的计算资源数量有一个大致的概念。我们开始时设定了虚拟CPU（vCPU）的数量、内存容量（GBs）以及NVMe（一种高速存储设备）容量（TBs）作为目标，以匹配我们在谷歌云平台（GCP）的容量。&lt;/p&gt;
+&lt;p&gt;经过一系列指标、数据的分析、比较等过程，我们最终确定了合适的服务器和CPU。计算过程有很多因素、参数等可供选择、调整--甚至于都值得另外写一篇文章了--但对我们来说，最重要的因素是功耗密度。例如，我们如何在特定的功耗范围内获得我们想要的计算密度。&lt;/p&gt;
+&lt;p&gt;功率计算并不像简单地把瓦数加起来那么直接，尤其是涉及到三相电的情况。Cloudflare有&lt;a href="https://blog.cloudflare.com/an-introduction-to-three-phase-power-and-pdus/"&gt;一篇很棒的博客文章&lt;/a&gt;详细阐述了这个主题。&lt;/p&gt;
+&lt;p&gt;电力是数据中心最为关键的资源，一旦电力中断，可能需要数小时甚至数天才能完全恢复正常的运营状态。所以冗余是非常关键的，对每个机柜来说，两路独立的电力接入至关重要。在正常运行时，这两个独立的电源线路会共同分担机架设备的负载，共同为设备提供电力。这样可以保证电力供应的稳定性和效率。然而，更重要的是，这种设计必须能够抵御其中一个电源线路发生故障的情况。即使其中一个电源线路出现故障，另一个电源线路也能够立即接管全部负载，确保机架设备的持续运行，而不会因为电源故障而导致设备断电。&lt;/p&gt;
+&lt;p&gt;为了将这种电力传输到你的服务器上，你还需要一个电源分配单元（PDU），你需要根据它提供的插座数量和管理功能来选择它。基本款的 PDUI 就像是升级版的延长线，而我们部署的 PDU 则能够实现对每个插座的控制和计量。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="654" src="/static/880a21c2-366b-445e-951e-a03a68515796.webp" /&gt;&lt;/p&gt;
+&lt;p&gt;凭借前面提及的相关能力，现在机柜里面可以正常供电了。&lt;/p&gt;
+&lt;h2&gt;上帝说要有光&lt;/h2&gt;
+&lt;p&gt;没有一台云机器是孤立存在的，这就是网络发挥作用的地方。&lt;/p&gt;
+&lt;p&gt;为了在Railway上实现尽可能低的延迟，我们需要为你建立到世界各地的稳定连接。&lt;/p&gt;
+&lt;p&gt;我们寻找的数据中心要具备与顶级（T1）互联网服务提供商（ISPs）处于同一网络、属于互联网交换点（IX）的一部分以及有可用光纤连接到附近其他数据中心等特性。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="0" src="/static/d0c2e2d8-dd9d-4917-8178-062572bc3ff4.webp" /&gt;&lt;/p&gt;
+&lt;p&gt;部署到Railway的应用程序会想要通过网络连接到各种各样的端点，无论是位于澳大利亚悉尼的家庭互联网用户，还是托管在美国AWS服务器上的API。为了给您提供尽可能低的延迟和最低的带宽成本，我们会与针对每种使用场景优化的多种互联网提供商签订合同&lt;/p&gt;
+&lt;p&gt;我们在选择互联网服务提供商（ISPs）时，会考虑它们在我们目标地区的网络成熟度。如果在一个地区选择了不合适的ISP，可能会导致到达特定目标的网络路径出现额外的网络跳数（从而产生延迟），或者在最糟糕的情况下，出现复杂的网络路由。因此，为了确保网络服务的质量和可靠性，我们会根据它们在各个地区的网络覆盖范围来选择至少两个不同的网络。&lt;/p&gt;
+&lt;p&gt;一旦连接建立，我们会从每个互联网服务提供商（ISP）那里接收完整的互联网路由表并将这些路由表整合到我们的网络交换机上以便为每个IP前缀解析出最佳路径。如果你有一个位于澳大利亚的终端用户试图连接部署在新加坡的应用程序，我们很可能会直接将这些数据包转交给&lt;a href="https://bgp.tools/as/4637#connectivity"&gt;Telstra&lt;/a&gt;。Telstra拥有澳大利亚最密集的接入网络之一。如果同一个应用程序需要将数据包发送到日本的终端用户或服务器，那么我们很可能会将这些数据包转交给PCCWPCCW直接与日本的NTT（日本电信电话公司）进行对等互联，并且在亚太地区（APAC，Asia-Pacific）&lt;a href="https://www.pccwglobal.com/wp-content/uploads/2019/11/world_fold_20191115.pdf"&gt;拥有广泛的网络覆盖&lt;/a&gt;。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;👉 网络之间对等互联的信息是公开可获取的，可以访问&lt;a href="https://bgp.tools/"&gt;bgp.tools&lt;/a&gt;这个网站来观察你感兴趣的网络之间是如何实现相互连接的。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;为了实现冗余，我们正在每个区域构建多个可用区，并且这些站点之间的互联互通对我们扩展计划至关重要。我们正在寻找裸纤（dark fiber）或波分复用技术（wavelength services）这样的工具来规划这种扩展。其结果是，你的应用程序不会察觉数据库是位于同一个房间，还是在相邻建筑中相隔四个街区的位置——这是一个优势，而不是缺陷——因为它增强了系统对单个数据中心故障的韧性。&lt;/p&gt;
+&lt;p&gt;...&lt;/p&gt;
+&lt;p&gt;好的，现在你已经找到了一个你满意的场地，和一个数据中心签订了协议，还和几家互联网服务提供商签了约，你就可以着手安装服务器了，对吧？&lt;/p&gt;
+&lt;p&gt;嗯，不是完全这样。首先你需要很多其他的东西来给你的服务器一个舒适温暖的家来安顿下来。&lt;/p&gt;
+&lt;h2&gt;通道，机架和头顶的基础设施&lt;/h2&gt;
+&lt;p&gt;在数据中心里，机架是按行排列的，机架之间的空间，也就是通道，被用于空气流通。&lt;/p&gt;
+&lt;p&gt;冷通道是从数据中心设施吹入冷空气的地方，而机架中的服务器会吸入这些冷空气，并将其从后部排出到热通道。数据中心设施会从热通道中移除这些热空气。为了达到最佳效率，不希望冷通道和热通道之间的空气混合。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="0" src="/static/3d2a676b-0ff6-4c62-a25e-c9db9c40a21a.webp" /&gt;&lt;/p&gt;
+&lt;p&gt;即使您选择使用传统的19英寸宽设备，机架本身也存在一定的可变性。您可以根据设备和布线需求选择机架的高度、宽度和深度。&lt;/p&gt;
+&lt;p&gt;大多数服务器设备都可以通过滑轨进行滑动，以便于维护，因此要确保机笼尺寸允许设备进行滑动。布线和线缆管理也需要一定的空间，所以要在每个机架的拥挤程度与机笼内可容纳的机架数量之间做出权衡。&lt;/p&gt;
+&lt;p&gt;在我们的经验中，电力和制冷常常是限制因素，而不是实际可用的空间。在新场地，我们倾向于选择宽度为800毫米的机架，以便通过将电缆移出排气口的路径来实现更好的空气流通。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="0" src="/static/IMG_5261.webp" /&gt;&lt;/p&gt;
+&lt;p&gt;除了机架之外，你还需要一些基础设施来将电力和数据传输到你的机架。这可能涉及安装一些顶部基础设施和托盘，这些托盘让你能够将光纤电缆从你的机笼边缘路由到每个机架，并在机架之间路由电缆。当报价时，数据中心运营商通常会包含这些内容。&lt;/p&gt;
+&lt;p&gt;根据你的设计，你可能需要通过确保架空基础设施、机架内布线以及设备朝向的一致性，来优化电缆路径，使其尽可能短。由于我们的机架中每个都包含密集的交换机到服务器的光纤布线，因此我们采购的交换机是端口朝向机架后部的（这些被称为反向气流交换机，因为它们的散热口位于网络端口所在的侧面）。&lt;/p&gt;
+&lt;p&gt;这使我们能够对齐电缆托架，从而让所有的布线都发生在机架的一侧，并且没有电缆在机架的前部和后部之间来回曲折。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="0" src="/static/4710_fiber_tray_and_top_rack.webp" /&gt;&lt;/p&gt;
+&lt;p&gt;你已经拥有了所需的空间，签约了互联网服务提供商（ISPs），订购了硬件，准备好了机架，并且对如何布置这一切有了一个相当不错的概念。但目前，这一切还只是像一套昂贵的乐高积木一样，静静地待在数据中心的装卸区。要将它们组装起来，你现在需要利用人类历史上最通用的编程工具——Microsoft Excel。&lt;/p&gt;
+&lt;h2&gt;上架和堆叠&lt;/h2&gt;
+&lt;p&gt;让我们先退一步，先发表一个免责声明：整齐有序的布线需要大量的实践；我们自己也尝试过，结果……喜忧参半。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="0" src="/static/railway-structured-cabling-services.webp" /&gt;&lt;/p&gt;
+&lt;p&gt;为了正确安装它们，我们引入了专业人士，但专业人士需要知道要安装什么。一份全面的文档包是必不可少的。电缆矩阵和机架布局图是常见的文件，它们向承包商传达如何安装和连接服务器。&lt;/p&gt;
+&lt;p&gt;电缆矩阵（Cabling Matrix）描述了每根电缆的端接情况，指明了连接的每一端所对应的设备位置和端口号，同时还包括电缆本身的规格信息（例如光纤类型、长度等）。机架视图（Rack Elevation）是机架本身的视觉呈现，展示了每个设备的位置和朝向。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="0" src="/static/CleanShot_2025-01-15_at_23_1.webp" /&gt;&lt;/p&gt;
+&lt;p&gt;文档工作非常繁琐，每个安装阶段都涉及60多台设备、300多根独立电缆以及许多细微之处。这些内容都被精心整理成书面规范和电子表格，作为安装和调试的基础。从物料到场到完成安装，整个过程大约需要6到14天。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="0" src="/static/CleanShot_2025-01-15_at_23_2.webp" /&gt;&lt;/p&gt;
+&lt;p&gt;数据中心的建设与软件、DevOps以及人们通常所认为的“基础设施”相去甚远。确切的说，更类似于建造房屋，而不是 Terraform 部署。&lt;/p&gt;
+&lt;p&gt;更复杂的是，每一个数据中心设施、承包商和供应商在做事方式上都会存在细微的差别，即使在同一个组织内也是如此。因此这些事情会要求你始终保持警觉，并且极度注重细节。&lt;/p&gt;
+&lt;p&gt;迄今为止我们经历过的一些困域时刻：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;承包商说需要更长的电源线。原因是该站点的电源分配单元（PDU）是倒置的，因为电源是从地板接入的，这导致了插座编号在规划中被反向标记了。&lt;/li&gt;
+&lt;li&gt;来自阿姆斯特丹的电话说：“这个站点没有分界点吗？” 一个特定的设施直接将外部光纤链路安装到我们机架中的一个盒子上，而不是通过一个专用的交接点。&lt;/li&gt;
+&lt;li&gt;Railway Discord：“为什么这个PDU的相位接线这么奇怪？” 该设施的接线方式与其他站点不同，电源插座是相线对中性线接线，而不是相线对相线接线（对于电气工程师来说，这是WYE和Delta电路的区别）。&lt;/li&gt;
+&lt;li&gt;承包商说：“你的数据线太短了。” 承包商没有意识到网络设备是逆向气流的，试图以错误的方向安装设备。&lt;/li&gt;
+&lt;li&gt;我们提交了一个支持工单：“这条电缆没有建立连接。” 光纤的极性接反了；那天我们学会了什么是“翻转光纤电缆”……这是指他们从&lt;a href="https://www.fs.com/uk/blog/lc-fiber-optics-a-comprehensive-guide-2684.html"&gt;LC连接器&lt;/a&gt;中拔出插头并交换它们的位置。&lt;/li&gt;
+&lt;li&gt;Railway Discord：“我今天从家得宝买了一个橡胶锤。” 一个供应商的近24个PDU批次被交付时带有有故障的插座，即使施加适当的极端机械力，这些插座也无法与电源插头正确接合。&lt;/li&gt;
+&lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;但从这一点开始——硬件已经就位，任务开始变得熟悉起来；我们现在需要进行一些BGP（边界网关协议，是一种用于互联网自治系统之间的路由协议）操作，安装一些操作系统，配置监控并让一切工作起来。&lt;/p&gt;
+&lt;p&gt;&lt;img width="736" height="0" src="/static/finished.webp" /&gt;&lt;/p&gt;
+&lt;h2&gt;把油门踩到底&lt;/h2&gt;
+&lt;p&gt;安装好的机架就像是一块空白的画布，网络设备需要进行配置，路由器的配置文件需要编写，区域互联网注册机构（RIR）的记录需要更新，我们还需要与类似 &lt;a href="https://www.dmtf.org/standards/redfish"&gt;Redfish API&lt;/a&gt;（用于服务器主板和电源分配单元的专用控制器的 HTTP 接口）和 PXE（一种通过网络启动服务器的协议）进行交互，以确保一切正常运行。&lt;/p&gt;
+&lt;p&gt;我们也还没有讨论网络是如何工作的。我们的设计使用了&lt;a href="https://frrouting.org/"&gt;FRR&lt;/a&gt;（Free Range Routing）和运行&lt;a href="https://sonicfoundation.dev/"&gt;SONiC&lt;/a&gt;（Software for Open Networking in the Cloud）操作系统的白盒网络交换机，构建了一个仅基于第三层（L3）的软件驱动网络，该网络与我们的控制平面深度集成。&lt;/p&gt;
+&lt;p&gt;我们已经给你讲了很多来自一线的故事……要是再讲下去，你今天就别想走了。&lt;/p&gt;
+&lt;p&gt;在未来的文章中，我们将讨论如何将一个房间里的一堆服务器转变为一个功能性的 Railway 区域。在过去的几个月里，我们开发了两个新的软件工具：Railyard 和 MetalCP，以实现从设计新的机架、追踪和可视化布线，到在服务器上安装操作系统并将其接入互联网的“一键式”体验。&lt;/p&gt;
+&lt;p&gt;直到那时，如果这些内容中有任何让你感到兴奋的，可以查看我们目前开放的&lt;a href="https://railway.com/careers/infra-platform"&gt;基础设施工程职位&lt;/a&gt;，如果这些职位引起了你的兴趣，就联系我们。&lt;/p&gt;</content><category term="misc"/><category term="datacenter"/></entry><entry><title>美区 Apple ID 充值攻略</title><link href="https://www.chenxiaosheng.com/posts/2023-10-16/how-to-top-up-U.S-AppleID-for-Chinese.html" rel="alternate"/><published>2023-10-16T20:10:00+08:00</published><updated>2023-10-16T20:10:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2023-10-16:/posts/2023-10-16/how-to-top-up-U.S-AppleID-for-Chinese.html</id><summary type="html">&lt;p&gt;拥有一个美区 Apple ID 账号对于广“果粉”来说是非常有必要的。那么就会面对一个问题，就是如何充值美区苹果帐号？这篇文章就要详细为大家介绍下美国苹果ID充值教程，满满的干货，赶紧来看看有没有适合你的充值方式吧！&lt;/p&gt;</summary><content type="html">&lt;p&gt;注：原文来自 &lt;a href="https://zhuanlan.zhihu.com/p/552311280"&gt;https://zhuanlan.zhihu.com/p/552311280&lt;/a&gt; ，亲测有效，因此转载一份，防止消失 :-)&lt;/p&gt;
+&lt;h2&gt;一、购买美区苹果礼品卡&lt;/h2&gt;
+&lt;p&gt;在国内购买美国 Apple gift cards的途径主要有以下三种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;淘宝购买美区礼品卡，买回来直接充值，但风险比较高，因为有些淘宝的礼品卡是黑卡，使用黑卡充值可能有 ID 丢失风险。没有信得过的店铺就不要尝试这个方法。&lt;/li&gt;
+&lt;li&gt;如果你有美国的朋友，可以让他代买礼品卡，然后充值。  &lt;/li&gt;
+&lt;li&gt;到苹果美国官网自己买礼品卡送给自己，也是本文要说的方法。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;准备工作&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;双币种信用卡，单币银联信用卡，中国发行的visa或者master&lt;/li&gt;
+&lt;li&gt;准备两个邮箱（通过邮箱发送礼品卡，Gmail可以）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;购买流程&lt;/h3&gt;
+&lt;p&gt;首先打开美国礼品卡购买地址：&lt;a href="https://www.apple.com/shop/buy-giftcard/giftcard"&gt;https://www.apple.com/shop/buy-giftcard/giftcard&lt;/a&gt;
+然后选择“Email”电子礼品卡，封面随便选一个（不重要），然后填写购买金额，有$25，$50，$100的选项，官网买的话最小金额是$10。&lt;/p&gt;
+&lt;p&gt;&lt;img width="690" height="757" src="/static/how-to-top-up-U.S-AppleID-for-Chinese/image_1.png"/&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img width="690" height="757" src="/static/how-to-top-up-U.S-AppleID-for-Chinese/image_2.png"/&gt;&lt;/p&gt;
+&lt;p&gt;接着填写收发人的信息及邮箱，邮箱千万不要弄错，否则无法接收礼品卡，填好后点击右上角“Add to Bag”按钮。&lt;/p&gt;
+&lt;p&gt;&lt;img width="690" height="598" src="/static/how-to-top-up-U.S-AppleID-for-Chinese/image_5.png"/&gt;&lt;/p&gt;
+&lt;p&gt;点完“Add to Bag”按钮后会跳转到另一个界面，这里检测下自己填写的邮箱有没有错，确认无误后点击“Check Out”按钮。&lt;/p&gt;
+&lt;p&gt;&lt;img width="690" height="598" src="/static/how-to-top-up-U.S-AppleID-for-Chinese/image_4.png"/&gt;&lt;/p&gt;
+&lt;p&gt;这里直接选择“Continue as Guest”按钮
+&lt;br/&gt;
+接下来这里填写你的信用卡信息，包括姓名，卡号，账单地址等等，填写好信息后点击“Continue to Review”按钮。&lt;/p&gt;
+&lt;p&gt;&lt;img width="690" height="614" src="/static/how-to-top-up-U.S-AppleID-for-Chinese/image_6.jpg"/&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img width="690" height="1114" src="/static/how-to-top-up-U.S-AppleID-for-Chinese/image_7.jpg"/&gt;&lt;/p&gt;
+&lt;p&gt;填完上面信息后会让你再次确认邮箱等信息，确认无误后直接点击“Place Your Order”按钮就行，官网上写的是一个小时会收到邮件，正常不需要那么久，一般会在10分钟左右收到礼品卡邮件。&lt;/p&gt;
+&lt;p&gt;PS：最后填写你的 VISA 信用卡信息，和地址信息时候，如果你选择的是中国，购买失败了，可以重新下单选 United States看看，你可以搜索在线美国地址生成器，或者打开 Google Map，找到一个你喜欢的美国的详细地址，然后 Google Map 会告诉你它所在的州，街道，电话信息等。（账单地址建议选择没有消费税的五个州，因为不确定购买虚拟产品会不会账单地址不同而多交税。）&lt;/p&gt;
+&lt;h2&gt;二、使用礼品卡充值&lt;/h2&gt;
+&lt;p&gt;收到礼品卡后，会在邮箱中看到兑换码，复制兑换码，到app store里去充值。  &lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;充值前，先确认自己的 App Store 登录的是将要充值的 Apple ID，也就是美区 Apple ID。  &lt;/li&gt;
+&lt;li&gt;把设置中国家和地区选项，改为美国，如果是 iPhone，路径是：设置 -&amp;gt; 通用 -&amp;gt; 语言和地区 -&amp;gt; 地区 -&amp;gt; United States。  &lt;/li&gt;
+&lt;li&gt;打开邮件，点击进行充值。  &lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;或者你也可以打开 App Store，找到礼品卡充值入口，然后输入礼品卡的卡号(卡号在邮件里)，进行充值。具体步骤这里不再展开了，跟着手机的指引来就好了&lt;/p&gt;
+&lt;h2&gt;Q&amp;amp;A&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;购买gift card并且到账之后，是否还需要绑定双币信用卡或者美国PayPal？&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;答：不需要，gift card和绑定双币信用卡或者美国PayPal时平行的，也就是说这三者只要满足一项，就可以进行付费APP的购买。  &lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;ol&gt;
+&lt;li&gt;可以给美国区的Apple ID帮定国内的visa、master card、america express吗？&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;答：不可以，美国区的Apple ID只能绑定由美国发行的信用卡，有些小伙伴可能认为只要能消费美元的信用卡就可以，其实就算你绑定美国区Apple ID之后，苹果也能够识别你是大陆的信用卡，然后你的美国区账号就会被强制转成国区的Apple ID了，这就得不偿失了，所以建议不要尝试，如果不信邪，那可以试试，最后你可能需要重新注册一个美区Apple ID。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2&gt;中国区Apple ID充值&lt;/h2&gt;
+&lt;p&gt;中国区的Apple Store支持的充值方式有支付宝充值、微信支付、银联/信用卡/借记卡、快捷支付等四种方式，如果你在海外，确保你的支付宝或者微信账户有钱就可以充值了。&lt;/p&gt;</content><category term="misc"/><category term="Apple"/></entry><entry><title>可能是全网最全的 ulimit 配置说明了</title><link href="https://www.chenxiaosheng.com/posts/2022-06-14/linux-ulimit.html" rel="alternate"/><published>2022-06-14T13:07:00+08:00</published><updated>2022-06-14T13:07:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2022-06-14:/posts/2022-06-14/linux-ulimit.html</id><summary type="html">&lt;p&gt;ulimit 设置不当经常会引起各种各样的问题，比如很经典的 &lt;code&gt;too many open files&lt;/code&gt;，网上也有很多文章讲解 ulimit 设置，如 &lt;a href="https://linux.die.net/man/5/initscript"&gt;initscrip&lt;/a&gt; 设置、PAM、systemd 的配置等等。&lt;/p&gt;</summary><content type="html">&lt;p&gt;ulimit 设置不当经常会引起各种各样的问题，比如很经典的 &lt;code&gt;too many open files&lt;/code&gt;，网上也有很多文章讲解 ulimit 设置，如 &lt;a href="https://linux.die.net/man/5/initscript"&gt;initscrip&lt;/a&gt; 设置、PAM、systemd 的配置等等。&lt;/p&gt;
+&lt;p&gt;由于 systemd 已经成为主流，本文以 Debian 11 bullseye 为环境理清正确的 ulimit 设置应该覆盖哪些配置。通常情况下这些配置在绝大多数 Linux 发行版会是通用的，并不局限于 Debian。&lt;/p&gt;
+&lt;h2&gt;systemd&lt;/h2&gt;
+&lt;p&gt;systemd 主要涉及 /etc/systemd/system.conf 和 /etc/systemd/user.conf 两个文件，需要配置的内容是以样的，以 ulimit 中 &lt;code&gt;open files&lt;/code&gt; 和 &lt;code&gt;max user processes&lt;/code&gt; 为例，我们需要配置如下两项：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;[Manager]
+DefaultLimitNOFILE=1048567
+DefaultLimitNPROC=65535
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;配置生效需要重启。但是这两个配置文件有什么区别呢？通过 &lt;code&gt;man systemd-system.conf&lt;/code&gt; 了解到当以系统实例运行时，引用的是 system.conf ，当以用户实例运行时，引用的是 user.conf。不过系统环境中运行的都是系统实例，如果有兴趣的朋友可以通过 &lt;code&gt;systemctl edit/enable/start --user&lt;/code&gt; 等操作自己注册个 user 实例看看。可以通过 &lt;code&gt;cat /proc/${pid}/limits&lt;/code&gt; 进行确认。&lt;/p&gt;
+&lt;p&gt;结论：为了确保 ulimit 在 system 环境中生效，建议同时修改/etc/systemd/system.conf 和 /etc/systemd/user.conf 两个文件中的相关配置，并确保配置一致。&lt;/p&gt;
+&lt;h2&gt;PAM limits&lt;/h2&gt;
+&lt;p&gt;很多伙伴会发现，即使完全配置了 system 相关的文件并重启生效后，通过 ssh 远程登录服务器，&lt;code&gt;ulimit -n&lt;/code&gt; 一看，还是 1024，这可是个忧伤的故事，怎么破呢？&lt;/p&gt;
+&lt;p&gt;请检查 &lt;code&gt;/etc/ssh/sshd_config&lt;/code&gt; 配置文件，看看是否有这一行：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;UsePAM yes&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;如果有，请将 &lt;code&gt;yes&lt;/code&gt; 改成 &lt;code&gt;no&lt;/code&gt; 之后重启 sshd 服务，再次登录后，你应该能发现 systemd ulimit 相关配置已经生效了。&lt;/p&gt;
+&lt;p&gt;但系统中 PAM 可是在相当多的地方用到了，所以这里我们需要再次修改 pam limit 相关配置，以确保系统中 ulimit 相关的配置一致。需要修改的文件为：/etc/security/limits.conf，请在文件里增加如下内容：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;*   soft    nofile  1048567
+*   hard    nofile  1048567
+*   soft    nproc   65535
+*   hard    nproc   65535
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;修改上述文件后，需要再确认一下以下文件（可能还有更多，但以下这些文件建议确认）：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;/etc/pam.d/su&lt;/li&gt;
+&lt;li&gt;/etc/pam.d/sshd&lt;/li&gt;
+&lt;li&gt;/etc/pam.d/login&lt;/li&gt;
+&lt;li&gt;/etc/pam.d/cron&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;包含以下这行内容：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;session    required     pam_limits.so&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;请注意，前方高能：细心的小伙伴可能会发现这时通过 &lt;code&gt;su -&lt;/code&gt; 切换成 root 后，再看 ulimit，又是没有生效的，怎么回事呢？ &lt;code&gt;man limits.conf&lt;/code&gt; 可以找到答案：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;NOTE: group and wildcard limits are not applied to the root user. To set a limit for the root user, this field must contain the literal username root.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;上述 /etc/security/limits.conf 配置中的通配符 "*" 对 root 用户不生效，我们需要继续在 /etc/security/limits.conf 中增加如下配置：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;root    soft    nofile  1048567
+root    hard    nofile  1048567
+root    soft    nproc   65535
+root    hard    nproc   65535
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;保存后，应该安逸了~&lt;/p&gt;
+&lt;p&gt;结论：pam 的 limit 设置也会影响  ulimit 相关设置，需要通过配置确保和 systemd 相关内容一致。坑点：通配符 "*" 对 root 用户不生效。&lt;/p&gt;
+&lt;h2&gt;结论&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;system 的 ulimit 相关设置需要同时调整 /etc/systemd/system.conf 和 /etc/systemd/user.conf；&lt;/li&gt;
+&lt;li&gt;除了 system 的配置，pam 相关的配置也需要同步调整，主要涉及 /etc/security/limits.conf 和 /etc/pam.d/ 目录下的相关文件；&lt;/li&gt;
+&lt;li&gt;/etc/security/limits.conf 中的通配符 "*" 对 root 用户不生效，root 用户相关配置需要显式指定；&lt;/li&gt;
+&lt;li&gt;除了系统级别的配置，用户也可以在 /etc/profile 和 bashrc 等相关配置里显式的修改 ulimit，当你发现上述 3 项配置都没有生效的时候，请检查用户侧的设定，看看是否自己另外指定了；&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"/><category term="linux"/><category term="ulimit"/></entry><entry><title>MongoDB 4.2 流控 FlowControl 机制走读</title><link href="https://www.chenxiaosheng.com/posts/2022-06-11/mongodb-flowcontrol-practice.html" rel="alternate"/><published>2022-06-11T22:21:00+08:00</published><updated>2022-06-11T22:21:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2022-06-11:/posts/2022-06-11/mongodb-flowcontrol-practice.html</id><summary type="html">&lt;p&gt;MongoDB 4.2 引入了一个「流量控制」的新特性。该流控机制旨在保持副本集多数提交延迟小于或等于配置的最大值。此最大延迟的默认值为 10 秒。一旦多数提交的复制延迟达到配置的最大值的阈值百分比，流控制机制就会开始限制主节点上的写入。&lt;/p&gt;</summary><content type="html">&lt;p&gt;MongoDB 4.2 引入了一个「流量控制」的新特性。该流控机制旨在保持副本集多数提交延迟小于或等于配置的最大值。此最大延迟的默认值为 10 秒。一旦多数提交的复制延迟达到配置的最大值的阈值百分比，流控制机制就会开始限制主节点上的写入。&lt;/p&gt;
+&lt;p&gt;当该特性开启时，MongoDB 会在给定的周期内（目前实现是 1 秒），分配一定数量的「流控票据」，MongoDB 的数据库库写操作需要通过获取「流控票据」来获取全局 IX 锁。当此给定周期内的票据分发完比后，相关操作需要等待下一个周期（下一秒）的票据刷新分发。部份 MongoDB 内部操作可能会忽略该流控机制，以确保 MongoDB 的正常运行。&lt;/p&gt;
+&lt;p&gt;接下来我们从算法、配置、源码等几个方面结合来了解一下该流控制机制的实现（本文以 MongoDB 4.2.20 版本的文档及源码为参考）。&lt;/p&gt;
+&lt;h2&gt;环境要求&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;因为是 4.2 才引入的，所以要求 MongoDB 版本大于等于 4.2.0，并且 featureCompatibility 也要匹配相应的版本；&lt;/li&gt;
+&lt;li&gt;流控机制只在可以接受写入的节点生效（通过指 replica sets 中的 primary 节点）；&lt;/li&gt;
+&lt;li&gt;当然，流控开关也是要打开的，默认打开。可以通过 &lt;a href="https://www.mongodb.com/docs/v4.2/reference/parameters/#param.enableFlowControl"&gt;enableFlowControl&lt;/a&gt; 进行开关；&lt;/li&gt;
+&lt;li&gt;Read Concern Majority 必须启用，可以参考 &lt;a href="https://www.mongodb.com/docs/v4.2/reference/parameters/#param.enableFlowControl"&gt;replication.enableMajorityReadConcern&lt;/a&gt; 启用；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;当以上机制不满足时（亦可理解为流控机制关闭时），MongoDB 总是返回默认的最大数量 &lt;code&gt;_kMaxTickets = 1000 * 1000 * 1000&lt;/code&gt;。&lt;/p&gt;
+&lt;h2&gt;流控机制&lt;/h2&gt;
+&lt;p&gt;流控制机制允许每秒获取指定数量的全局 IX 锁。除明确规避流控机制的操作外，全局 IX 锁获取必须首先获取「流控票据」然后才能获取锁。当此给定周期内的票据分发完比后，相关操作需要等待下一个周期（下一秒）的票据刷新分发。MongoDB 通过一个独立的机制每秒刷新一次票数。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// src/mongo/db/storage/flow_control.cpp&lt;/span&gt;
+
+&lt;span class="n"&gt;FlowControl&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;FlowControl&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ServiceContext&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;service&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;repl&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;ReplicationCoordinator&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;replCoord&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;_jobAnchor&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;service&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;getPeriodicRunner&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;makeJob&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;FlowControlRefresher&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="w"&gt;         &lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;](&lt;/span&gt;&lt;span class="n"&gt;Client&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;client&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;             &lt;/span&gt;&lt;span class="n"&gt;FlowControlTicketholder&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;client&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;getServiceContext&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;refreshTo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;getNumTickets&lt;/span&gt;&lt;span class="p"&gt;());&lt;/span&gt;
+&lt;span class="w"&gt;         &lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;
+&lt;span class="w"&gt;         &lt;/span&gt;&lt;span class="n"&gt;Seconds&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)});&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;_jobAnchor&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;start&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;每次/秒刷新 tickets 数量时，&lt;code&gt;getNumTickets&lt;/code&gt; 将计算应该允许多少票据以解决 MongoDB 多数提交的滞后问题（复制延迟）。流控机制根据以下因素确定每个周期要补充多少票：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;当前多数提交的复制延迟大于配置的目标最大复制延迟；&lt;/li&gt;
+&lt;li&gt;Secondary 在上一周期应用了多少次操作；&lt;/li&gt;
+&lt;li&gt;在上一周期中平均每次操作需要获取多少个 IX 锁；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;触发流控时 ticket 数量计算&lt;/h3&gt;
+&lt;p&gt;触发流控的 ticket 数量可以通过如下公式理解：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;base * k ^ ((lag - threshold)/threshold) * fudge factor&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;相关变量说明如下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;base 为上一周期的操作数（也可以理解为操作数 * 平均每次操作获取的 IX 锁），通过采样获取；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;k 为 MongoDB 触发流控时节流的速率，默认值为 0.5，MongoDB 的可配置参数为 &lt;code&gt;flowControlDecayConstant&lt;/code&gt;；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;lag 为当前多数提交延迟；&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;threshold 为配置的可容忍最达延迟，请特别留意，该值分别由两个参数控制 &lt;code&gt;flowControlTargetLagSeconds&lt;/code&gt; 与 &lt;code&gt;flowControlThresholdLagPercentage&lt;/code&gt; 默认值分别为 10 和 0.5，可以理解为当多数提交延迟大于 5 秒时，即触发流控；&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// src/mongo/db/storage/flow_control.cpp&lt;/span&gt;
+
+&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;uint64_t&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;getThresholdLagMillis&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;static_cast&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;uint64_t&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;1000.0&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt;                        &lt;/span&gt;&lt;span class="n"&gt;gFlowControlThresholdLagPercentage&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;
+&lt;span class="w"&gt;                                      &lt;/span&gt;&lt;span class="n"&gt;gFlowControlTargetLagSeconds&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;());&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;fudge 因子：比 1 略小的值，主要是为了控制当 lag 与 threshold 接近时，分配略低于 base 数量的票证。默认值为 0.95，可通过参数 &lt;code&gt;flowControlFudgeFactor&lt;/code&gt; 进行配置，该值要求设置为大于 0， 小于 1，尽量接近 1；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;公式的代码主体如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// src/mongo/db/storage/flow_control.cpp&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;multiplyWithOverflowCheck&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;term1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;term2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;maxValue&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;ret&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;term1&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;term2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;static_cast&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ret&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;FlowControl&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;_calculateNewTicketsForLag&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;auto&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;exponent&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;static_cast&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lagMillis&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;thresholdLagMillis&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;static_cast&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;thresholdLagMillis&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;invariant&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;exponent&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;0.0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;reduce&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;pow&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gFlowControlDecayConstant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;exponent&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="c1"&gt;// The fudge factor, by default is 0.95. Keeping this value close to one reduces oscillations in&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="c1"&gt;// an environment where secondaries consistently process operations slower than the primary.&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="kt"&gt;double&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;sustainerAppliedPenalty&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="n"&gt;sustainerAppliedCount&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;reduce&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;gFlowControlFudgeFactor&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;multiplyWithOverflowCheck&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;locksPerOp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;sustainerAppliedPenalty&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;_kMaxTickets&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;采样方式&lt;/h4&gt;
+&lt;p&gt;采样的频率和数量主要通过如下两个配置参数进行控制：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;flowControlSamplePeriod&lt;/code&gt; 这个参数的命名比较容易让人困惑，会容易误认为是时间，实际理解是每 N 次采样一次，N 即为 &lt;code&gt;flowControlSamplePeriod&lt;/code&gt; 设置的值，值越小的精度越高，所以可能更容易触发流控导致业务降级；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// src/mongo/db/storage/flow_control.cpp&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;FlowControl::sample&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Timestamp&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;timestamp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;uint64_t&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;opsApplied&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;_numOpsSinceStartup&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;_lastSample&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;static_cast&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gFlowControlSamplePeriod&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="c1"&gt;// Naively sample once every 1000 or so operations.&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;flowControlMaxSamples&lt;/code&gt;，内存中保存的样本数，默认值为 1000000， 每个样本数约为 24 bytes大小，保存 100000 样本数约需 24MB 内存；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;采样在 oplog 相关的操作中进行，参考上述 sample 采样逻辑及下述代码，没有发现显式的采样开关，即&lt;strong&gt;无论是否启用流控制，采样机制都会执行&lt;/strong&gt;。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;//src/mongo/db/repl/local_oplog_info.cpp&lt;/span&gt;
+
+&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;vector&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;OplogSlot&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;LocalOplogInfo&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;getNextOpTimes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;OperationContext&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;opCtx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="c1"&gt;// Provide a sample to FlowControl after the `oplogInfo.newOpMutex` is released.&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;ON_BLOCK_EXIT&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;opCtx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;ts&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;auto&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;flowControl&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;FlowControl&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;opCtx&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;flowControl&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="n"&gt;flowControl&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;sample&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ts&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3&gt;延迟正常（未触发流控）时 ticket 数量计算&lt;/h3&gt;
+&lt;p&gt;当多数提交的延迟小于可容忍流控阈值的延迟百分比时（认为服务状态健康），直接将上一期间分配的 ticket 数量做为基数，并增加一个可配置的常量（票据加法），参数名称为 &lt;code&gt;flowControlTicketAdderConstant&lt;/code&gt; 默认值为 1000。总和乘以另一个可配置的常量（票据乘数），最终的值为下期分配的新票数。该乘数配置参数名称为 &lt;code&gt;flowControlTicketMultiplierConstant&lt;/code&gt; 默认值为 1.05，修改配置需要确保大于 1。&lt;/p&gt;
+&lt;p&gt;该算法主要是为了确保系统健康时，特别是初始使用了较少的 ticket 时，系统 ticket 数量可以快速得到提升。公式：&lt;code&gt;(lastTargetTicketsPermitted + flowControlTicketAdderConstant) * flowControlTicketMultiplierConstant&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;// src/mongo/db/storage/flow_control.cpp&lt;/span&gt;
+
+&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nf"&gt;FlowControl::getNumTickets&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Date_t&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;now&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;isHealthy&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="c1"&gt;// The add/multiply technique is used to ensure ticket allocation can ramp up quickly,&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="c1"&gt;// particularly if there were very few tickets to begin with.&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="n"&gt;ret&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;multiplyWithOverflowCheck&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;_lastTargetTicketsPermitted&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;
+&lt;span class="w"&gt;                                            &lt;/span&gt;&lt;span class="n"&gt;gFlowControlTicketAdderConstant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;
+&lt;span class="w"&gt;                                        &lt;/span&gt;&lt;span class="n"&gt;gFlowControlTicketMultiplierConstant&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;load&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;
+&lt;span class="w"&gt;                                        &lt;/span&gt;&lt;span class="n"&gt;kMaxTickets&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;配置参数整理&lt;/h2&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;配置参数&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;enableFlowControl&lt;/td&gt;
+&lt;td&gt;流控开关 true/false，默认 true&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlTargetLagSeconds&lt;/td&gt;
+&lt;td&gt;可容忍的多数提交延迟，单位为秒，默认 10&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlThresholdLagPercentage&lt;/td&gt;
+&lt;td&gt;可容忍的多数提交延迟百分比，{ gte: 0.0, lte: 1.0 }，该值乘以 flowControlTargetLagSeconds 为实际可容忍的延迟&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlMaxSamples&lt;/td&gt;
+&lt;td&gt;最大的保留样本数&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlSamplePeriod&lt;/td&gt;
+&lt;td&gt;采样周期，注意不是指&lt;strong&gt;时间&lt;/strong&gt;，指：N 次操作采样一次&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlMinTicketsPerSecond&lt;/td&gt;
+&lt;td&gt;最小的 ticket 数量，默认 100。设置过小可能会导致系统需要&lt;strong&gt;预热&lt;/strong&gt;，可以根据系统业务的情况适当调整&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlDecayConstant&lt;/td&gt;
+&lt;td&gt;MongoDB 触发流控时节流的速率，默认值为 0.5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlFudgeFactor&lt;/td&gt;
+&lt;td&gt;Fudge 因子，默认为 0.95，要求小于 1，但接近 1，&lt;strong&gt;不建议调整&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlTicketAdderConstant&lt;/td&gt;
+&lt;td&gt;健康状态时，ticket 加数，以快速增加健康状态时的 ticket 数量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;flowControlTicketMultiplierConstant&lt;/td&gt;
+&lt;td&gt;健康状态时，ticket 乘数，以快速增加健康状态时的 ticket 数量&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;需留意&lt;/strong&gt;，MongoDB 启动时，默认的 ticket 数量为 &lt;code&gt;_kMaxTickets = 1000 * 1000 * 1000&lt;/code&gt; 即 10 亿，而不是 &lt;code&gt;flowControlMinTicketsPerSecond&lt;/code&gt; 的值。通过如下命令可以查看当前的票据情况：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;// MongoDB 刚启动时
+
+tmongo40:PRIMARY&amp;gt; db.serverStatus()[&amp;quot;flowControl&amp;quot;].targetRateLimit
+1000000000
+
+tmongo40:PRIMARY&amp;gt; db.serverStatus()[&amp;quot;flowControl&amp;quot;]
+{
+    &amp;quot;enabled&amp;quot; : true,
+    &amp;quot;targetRateLimit&amp;quot; : 1000000000,
+    &amp;quot;timeAcquiringMicros&amp;quot; : NumberLong(76),
+    &amp;quot;locksPerOp&amp;quot; : 0,
+    &amp;quot;sustainerRate&amp;quot; : 0,
+    &amp;quot;isLagged&amp;quot; : false,
+    &amp;quot;isLaggedCount&amp;quot; : 0,
+    &amp;quot;isLaggedTimeMicros&amp;quot; : NumberLong(0)
+}
+
+// 触发流控后
+
+tmongo40:PRIMARY&amp;gt; db.serverStatus()[&amp;quot;flowControl&amp;quot;]
+{
+    &amp;quot;enabled&amp;quot; : true,
+    &amp;quot;targetRateLimit&amp;quot; : 2015,
+    &amp;quot;timeAcquiringMicros&amp;quot; : NumberLong(12064),
+    &amp;quot;locksPerOp&amp;quot; : 1,
+    &amp;quot;sustainerRate&amp;quot; : 2196,
+    &amp;quot;isLagged&amp;quot; : true,
+    &amp;quot;isLaggedCount&amp;quot; : 1,
+    &amp;quot;isLaggedTimeMicros&amp;quot; : NumberLong(0)
+}
+tmongo40:PRIMARY&amp;gt; db.serverStatus()[&amp;quot;flowControl&amp;quot;]
+{
+    &amp;quot;enabled&amp;quot; : true,
+    &amp;quot;targetRateLimit&amp;quot; : 1014,
+    &amp;quot;timeAcquiringMicros&amp;quot; : NumberLong(38346),
+    &amp;quot;locksPerOp&amp;quot; : 1,
+    &amp;quot;sustainerRate&amp;quot; : 1924,
+    &amp;quot;isLagged&amp;quot; : true,
+    &amp;quot;isLaggedCount&amp;quot; : 1,
+    &amp;quot;isLaggedTimeMicros&amp;quot; : NumberLong(0)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2&gt;日志&lt;/h2&gt;
+&lt;p&gt;触发限流时，可以在 MongoDB 的日志里找到 flowControl 相关的日志。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image-20220609174333655" src="/static/mongodb-flowcontrol-log.png"&gt;&lt;/p&gt;
+&lt;h2&gt;其他结论&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;好的限流效果需要根据业务的情况持续调测相关参数，且 MongoDB 的限流算法主节点的处理能力受主节点影响，存在多种不确定因素（如网络），建议谨慎开启。或基于前述情况，建议降低流控敏感度，如放宽对大多数主从提交的延迟阈值容忍，仅在较极端情况下对 MongoDB 触发保护，避免过于敏感反而影响正常业务请求；&lt;/li&gt;
+&lt;li&gt;根据某业务的线上表现来看，在 CPU、io 吞吐极低的情况下，MongoDB 默认的参数配置仍频繁的触发限流。因此建议仍如 1；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;参考文档&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;enableFlowControl: https://www.mongodb.com/docs/v4.2/reference/parameters/#param.enableFlowControl&lt;/li&gt;
+&lt;li&gt;source code: https://github.com/mongodb/mongo/tree/r4.2.20&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"/><category term="mongodb"/><category term="flowcontrol"/></entry><entry><title>WireGuard 浅显体验</title><link href="https://www.chenxiaosheng.com/posts/2022-05-15/wireguard-tutorial.html" rel="alternate"/><published>2022-05-15T17:07:00+08:00</published><updated>2022-05-15T17:07:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2022-05-15:/posts/2022-05-15/wireguard-tutorial.html</id><summary type="html">&lt;p&gt;WireGuard® 是一个极其简单、快速且现代的 VPN，它利用了最先进的加密技术。目的是提供一种更快、更易配置、更精简的通用 VPN。最初是为 Linux 开发（并且已经合并至 Linux Kernel），底层是 VPN，现在支持 Windows、macOS、BSD、iOS、Android 等跨平台。目前还处于活跃的开发当中，但仍不失为一个简易友好，且性能、安全性和兼容性都很棒的 VPN 解决方案。&lt;/p&gt;</summary><content type="html">&lt;p&gt;WireGuard® 是一个极其简单、快速且现代的 VPN，它利用了最先进的加密技术。目的是提供一种更快、更易配置、更精简的通用 VPN。最初是为 Linux 开发（并且已经合并至 Linux Kernel, &amp;gt;5.6），底层是 VPN，现在支持 Windows、macOS、BSD、iOS、Android 等跨平台。目前还处于活跃的开发当中，但仍不失为一个简易友好，且性能、安全性和兼容性都很棒的 VPN 解决方案。&lt;/p&gt;
+&lt;p&gt;Linus Torvalds 给予 WireGuard 很高的评价（work of art）：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Can I just once again state my love for it and hope it gets merged soon? Maybe the code isn't perfect, but I've skimmed it, and compared to the horrors that are OpenVPN and IPSec, it's a work of art.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2&gt;安装篇&lt;/h2&gt;
+&lt;p&gt;具体的安装可参考 &lt;a href="https://www.wireguard.com/install/"&gt;Installation&lt;/a&gt;，笔者使用的操作系统为 Debian bullseye，官方源已经自带，仅需要 root 用户 &lt;code&gt;apt-get install wireguard&lt;/code&gt; 一条命令搞定。&lt;/p&gt;
+&lt;h2&gt;配置篇&lt;/h2&gt;
+&lt;p&gt;安装过程比较简单，没有打脸官方所宣传的简单，具体也可以参考官方文档 &lt;a href="https://www.wireguard.com/quickstart/"&gt;QuickStart&lt;/a&gt;。&lt;/p&gt;
+&lt;h3&gt;场景一：Peer-To-Peer，两台服务器可互通&lt;/h3&gt;
+&lt;p&gt;笔者这里有两台机器，其中服务器 A 为腾讯云的机器，系统内看到的地址为内网地址，在腾讯云配置了公网 eip。&lt;/p&gt;
+&lt;p&gt;服务器 B 为一台公网的机器，有直接的公网 IP。（这里留下了一个坑点）&lt;/p&gt;
+&lt;h4&gt;生成 WireGuard 公私钥&lt;/h4&gt;
+&lt;p&gt;以下命令需要在服务 A 和 服务器 B 执行：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="c1"&gt;# 生成私钥&lt;/span&gt;
+wg&lt;span class="w"&gt; &lt;/span&gt;genkey&lt;span class="w"&gt; &lt;/span&gt;&amp;gt;&lt;span class="w"&gt; &lt;/span&gt;wg.private
+&lt;span class="c1"&gt;# 生成公钥&lt;/span&gt;
+wg&lt;span class="w"&gt; &lt;/span&gt;pubkey&lt;span class="w"&gt; &lt;/span&gt;&amp;lt;&lt;span class="w"&gt; &lt;/span&gt;wg.private&lt;span class="w"&gt; &lt;/span&gt;&amp;gt;&lt;span class="w"&gt; &lt;/span&gt;wg.pubkey
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h4&gt;生成 WireGuard 配置&lt;/h4&gt;
+&lt;p&gt;分别在两台机器上创建 &lt;code&gt;/etc/wireguard/wg0.conf&lt;/code&gt; 文件。&lt;/p&gt;
+&lt;p&gt;服务器 A 腾讯云机器配置如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Interface]&lt;/span&gt;
+&lt;span class="n"&gt;ListenPort&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;57259&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# UDP 端口，根据自己的需要设定即可&lt;/span&gt;
+&lt;span class="n"&gt;Address&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="n"&gt;24&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# WireGuard 网络设备 IP 地址，这里使用 172.16.1.1&lt;/span&gt;
+&lt;span class="n"&gt;PrivateKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;uJj+x/... # 在这台服务器上生成的 wg.private 文件内容&lt;/span&gt;
+
+&lt;span class="k"&gt;[Peer]&lt;/span&gt;
+&lt;span class="n"&gt;PublicKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;W&lt;/span&gt;&lt;span class="mi"&gt;72&lt;/span&gt;&lt;span class="n"&gt;b9l&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 在服务器 B 生成的 wg.pubkey 文件内容&lt;/span&gt;
+&lt;span class="n"&gt;AllowedIPs&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;2&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="n"&gt;32&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 服务器 B WireGuard 网络设备 IP 地址，也可以开放 /24 网段&lt;/span&gt;
+&lt;span class="n"&gt;Endpoint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;108&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;34101&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 服务器 B 的公网 IP 地址及 ListenPort&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;服务器 B 公网机器配置如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Interface]&lt;/span&gt;
+&lt;span class="n"&gt;ListenPort&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;34101&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# UDP 端口，根据自己的需要设定即可&lt;/span&gt;
+&lt;span class="n"&gt;Address&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;2&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="n"&gt;24&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# WireGuard 网络设备 IP 地址，这里使用 172.16.1.2&lt;/span&gt;
+&lt;span class="n"&gt;PrivateKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;kETG&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 在这台服务器上生成的 wg.private 文件内容&lt;/span&gt;
+
+&lt;span class="k"&gt;[Peer]&lt;/span&gt;
+&lt;span class="n"&gt;PublicKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;hTfx&lt;/span&gt;&lt;span class="mi"&gt;29&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 在服务器 A 生成的 wg.pubkey 文件内容&lt;/span&gt;
+&lt;span class="n"&gt;AllowedIPs&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="n"&gt;24&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 参考服务器 A，这里开放 /24 网段&lt;/span&gt;
+&lt;span class="n"&gt;Endpoint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;118&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;57259&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 服务器 A 的公网 IP 地址及 ListenPort&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;之后分别在两台机器上使用命令 &lt;code&gt;wg-quick up wg0&lt;/code&gt; 后隧道就建议好了，可以通过 ping 来检查。&lt;/p&gt;
+&lt;p&gt;到这里还比较顺利，确实非常简单。笔者就转移注意力去开展其他的工作了，过了几分钟回来发现&lt;strong&gt;网络断开&lt;/strong&gt;了，从服务器 A 腾讯云机器单向无法 ping 通 B 服务器，此时从 B 服务器 ping A 服务器后网络恢复（第一个问题）。&lt;/p&gt;
+&lt;p&gt;为什么呢？&lt;/p&gt;
+&lt;p&gt;怀疑是腾讯云服务器系统内只能看到内网 IP 的问题，毕竟这里是通过网关转发，在我之前其他的网络试验中已经多次踩中这个坑。继续往下翻 &lt;a href="https://www.wireguard.com/quickstart/"&gt;QuickStart&lt;/a&gt; 找到答案：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;if a peer behind NAT or a firewall wishes to receive incoming packets, he must keep the NAT/firewall mapping valid, by periodically sending keepalive packets. This is called &lt;em&gt;persistent keepalives&lt;/em&gt;. &lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;解法也比较简单，在上面两台机器的 wg0.conf 配置文件中的 &lt;code&gt;[Peer]&lt;/code&gt; 部份分别加上 keepalive 相关的配置即可（默认是 0，也就是不开启，这里我们设置为 25 秒）：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;PersistentKeepalive = 25&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3&gt;场景二：能不能内网穿透呢？&lt;/h3&gt;
+&lt;p&gt;再找了一台纯内网的服务器 C，该服务器可以访问外网，但外部网络无法访问该服务器。且不清楚该服务器 C 的外网出口 IP 是什么。&lt;/p&gt;
+&lt;h4&gt;配置内网服务器&lt;/h4&gt;
+&lt;p&gt;参考场景一的内容进行 WireGuard 安装和配置，假设服务器 C 的 WiredGuard 设备地址设置为 172.16.1.3，则配置如下：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Interface]&lt;/span&gt;
+&lt;span class="n"&gt;Address&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;3&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="n"&gt;24&lt;/span&gt;
+&lt;span class="n"&gt;PrivateKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;aHebd...&lt;/span&gt;
+
+&lt;span class="k"&gt;[Peer]&lt;/span&gt;
+&lt;span class="n"&gt;PublicKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;hTfx&lt;/span&gt;&lt;span class="mi"&gt;29&lt;/span&gt;&lt;span class="n"&gt;g&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="n"&gt;AllowedIPs&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="n"&gt;24&lt;/span&gt;
+&lt;span class="n"&gt;Endpoint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;118&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xx&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="n"&gt;57259&lt;/span&gt;
+&lt;span class="n"&gt;PersistentKeepalive&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;25&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 处于 NAT 环境的设备需要加上 keepalive 配置&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;主要差异：&lt;/strong&gt; &lt;code&gt;ListenPort&lt;/code&gt; 的配置取消了，因为这台机器纯内网，我们无法判定最终映射的公网 IP 和端口分别是什么。上述配置保存后，通过 &lt;code&gt;wg-quick up wg0&lt;/code&gt; 启动设备即可。&lt;/p&gt;
+&lt;p&gt;在服务器 A 腾讯云的机器上 &lt;code&gt;/etc/wireguard/wg0.conf&lt;/code&gt; 增加该服务器 C 的 peer 配置：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;[Peer]&lt;/span&gt;
+&lt;span class="n"&gt;PublicKey&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;hESH+Md&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt;&lt;span class="p"&gt;...&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="c1"&gt;# 服务器 C 的 wg.pubkey 内容&lt;/span&gt;
+&lt;span class="n"&gt;AllowedIPs&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;172.16&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0&lt;/span&gt;&lt;span class="err"&gt;/&lt;/span&gt;&lt;span class="n"&gt;24&lt;/span&gt;
+&lt;span class="n"&gt;PersistentKeepalive&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;25&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;主要差异：&lt;/strong&gt; &lt;code&gt;Endpoint&lt;/code&gt; 配置取消了，毕竟 A 不知道 C 用的会是哪个公网 IP 和端口。保存配置后，分别执行 &lt;code&gt;wg-quick down wg0&lt;/code&gt; 和 &lt;code&gt;wg-quick up wg0&lt;/code&gt; 即可。&lt;/p&gt;
+&lt;p&gt;本以为到这里已经完成配置了，结果第二个问题来了。两台服务器 ping 不通。再次检查配置确认无误，陷入深深的思考~&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;解决办法&lt;/strong&gt;：网络不决问防火墙。想到这里因为服务器 C 是在内网，WireGuard 能互通的前提肯定是服务器 C 要先访问服务器 A 的 ListenPort，检查防火墙配置，服务器 A 的 57259 UDP 端口没有对外开放。通过以下命令开放 57259 端口访问：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;iptables -I INPUT 1 -p udp -m udp --dport 57259 -j ACCEPT&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;端口开放后，两台机器之间的互联果然正常了。&lt;/p&gt;
+&lt;h2&gt;一些结论&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;如果 wg 两端设备都有公网地址可达，分别配置 Address 和 ListenPort 后，两台机器隧道可以互通，通常无需特殊配置；&lt;/li&gt;
+&lt;li&gt;如果设备位于防火墙或网关后面，需要打开 keepalive 配置；&lt;/li&gt;
+&lt;li&gt;内网穿透时，做为网关的机器（公网那台）需要开放 ListenPort 的防火墙访问；&lt;/li&gt;
+&lt;li&gt;根据需要，你可能需要打开设备的数据包转发（net.ipv4.ip_forward = 1）和网络地址转换功能（NAT/MASQUERADE），这里不展开；&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"/><category term="wireguard"/><category term="vpn"/></entry><entry><title>Debian 指定内核启动</title><link href="https://www.chenxiaosheng.com/posts/2022-05-07/debian-switch-kernel-boot.html" rel="alternate"/><published>2022-05-07T12:59:00+08:00</published><updated>2022-05-07T12:59:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2022-05-07:/posts/2022-05-07/debian-switch-kernel-boot.html</id><summary type="html">&lt;p&gt;升级完内核发现有一些问题需要回退，但是因为不能直接接触机器终端，需要通过 grub 配置指定内核版本重新启动。&lt;/br&gt;&lt;center&gt;&lt;img alt="" src="/static/debian-bullseye.png"&gt;&lt;/center&gt;&lt;/p&gt;</summary><content type="html">&lt;p&gt;升级完内核发现有一些问题需要回退，但是因为不能直接接触机器终端，需要通过 grub 配置指定内核版本重新启动。&lt;/p&gt;
+&lt;p&gt;操作系统：Debian 11&lt;/p&gt;
+&lt;p&gt;涉及文件：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;/etc/default/grub&lt;/li&gt;
+&lt;li&gt;/boot/grub/grub.cfg&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;操作步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;通过命令 &lt;code&gt;grep -e 'menuentry ' -e 'subm' /boot/grub/grub.cfg | awk -F'--' '{print $1}'&lt;/code&gt; 找到需要启动的内核菜单名称：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image-20220507113012323" src="/static/debian-grub-cfg.png"&gt;&lt;/p&gt;
+&lt;p&gt;假设上图中的 &lt;code&gt;Debian GNU/Linux, with Linux 5.10.0-13-amd64&lt;/code&gt; 是我们期望使用的内核，则需要引用图示 1 和 2 修改 &lt;code&gt;/etc/default/grub&lt;/code&gt;。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;修改 &lt;code&gt;/etc/default/grub&lt;/code&gt; 中的 &lt;code&gt;GRUB_DEFAULT=0&lt;/code&gt; 为如下值：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;GRUB_DEFAULT="Advanced options for Debian GNU/Linux&amp;gt;Debian GNU/Linux, with Linux 5.10.0-13-amd64"&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;执行命令 &lt;code&gt;update-grub&lt;/code&gt;，成功后重启即可。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"/><category term="debian"/><category term="grub"/><category term="kernel"/></entry><entry><title>《OKR 工作法》读书笔记</title><link href="https://www.chenxiaosheng.com/posts/2018-01-30/okr-reading-notes.html" rel="alternate"/><published>2018-01-30T09:50:00+08:00</published><updated>2018-01-30T09:50:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2018-01-30:/posts/2018-01-30/okr-reading-notes.html</id><summary type="html">&lt;p&gt;OKR 就是要通过不断实践、总结，发不断发现、挑战团队的潜力，不要把这个过程当作汇报、考核的结果。没有完成，一起思考为什么会这样、怎么改进。目标达成，那就设置更有挑战的目标。把精力聚焦在学习总结、挖掘潜力和高效执行上。&lt;/p&gt;</summary><content type="html">&lt;p&gt;目标用来明确方向，关键结果则用来量化目标，使团队和个人聚焦在一个有挑战性的目标上。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;确定目标，确保团队聚焦&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;目标要有明确方向并鼓舞人心&lt;/li&gt;
+&lt;li&gt;目标要有时间期限&lt;/li&gt;
+&lt;li&gt;目标必须真正属于你&lt;blockquote&gt;
+&lt;p&gt;思考，哪些是关键成果，哪些是目标：销售额提升 30%/用户增加一倍/收入增加到 500 万美元/完成一轮融资/拿下 XX 市场/推出一个最小化可行产品&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;讨论关键结果，复盘 OKR&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;评估 OKR 实施成果&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;影响目标达成的关键因素&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;没有给目标设置优先级&lt;/li&gt;
+&lt;li&gt;缺乏充分沟通，导致没能准确理解目标&lt;blockquote&gt;
+&lt;p&gt;目标完成的进度必须在每周会议和邮件中汇报，分解出的项目任务必须能支撑目标的达成；&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;没有做好计划&lt;blockquote&gt;
+&lt;p&gt;承担、庆祝与盘点&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;没有把时间花在重要的事情上&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;重要的事情通常不紧急，紧急的事情通常不重要
+思考：计划应该是为了重要不紧急还是紧急不重要？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;轻易放弃&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;害怕失败，不给自己挑战机会，隐藏实力，导致目标设置太低
+期望过高，没有能力实现
+没有坚持跟进目标，直到最后一周才发现没有进展（注意前面的，需要持续复盘、评估、沟通）&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;OKR 就是要通过不断实践、总结，发不断发现、挑战团队的潜力，不要把这个过程当作汇报、考核的结果。没有完成，一起思考为什么会这样、怎么改进。目标达成，那就设置更有挑战的目标。把精力聚焦在学习总结、挖掘潜力和高效执行上。&lt;/p&gt;
+&lt;h3&gt;其它建议：&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;如何评估绩效：持续沟通，不地加以指导和校正。管理者和员工各自分享自己的观点与想法，这样可以减少误解，问题也能得到快速解决。年终评估的事实大家可以通过持续的沟通提前知道。&lt;/li&gt;
+&lt;li&gt;目标里不要有传统的绩效考核指标。&lt;/li&gt;
+&lt;li&gt;OKR 进度确认（如周会）是一次谈话，而不是汇报（A做了什么B做了什么，这叫流水帐）或指示。&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.amazon.cn/dp/B07577T3XS/ref=sr_1_1?ie=UTF8&amp;amp;qid=1517276944&amp;amp;sr=8-1&amp;amp;keywords=okr+%E5%B7%A5%E4%BD%9C%E6%B3%95"&gt;《OKR 工作法》&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://eleganthack.com/wp-content/uploads/2017/05/OKR_Worksheet.pdf"&gt; OKR 练习册&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"/><category term="okr"/></entry><entry><title>网易游戏 MySQL-MongoDB 运维及 DBA 招聘</title><link href="https://www.chenxiaosheng.com/posts/2017-11-15/ntes-offers.html" rel="alternate"/><published>2017-11-15T22:51:00+08:00</published><updated>2017-11-15T22:51:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2017-11-15:/posts/2017-11-15/ntes-offers.html</id><summary type="html">&lt;p&gt;以下岗位部门均属于&lt;a href="http://hr.game.163.com/about.html"&gt;网易在线游戏事业部&lt;/a&gt;。
+其中 MongoDB 运维及运维开发工程师可选工作地点为广州或杭州。&lt;/p&gt;
+&lt;p&gt;相关数据库产品 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;以下岗位部门均属于&lt;a href="http://hr.game.163.com/about.html"&gt;网易在线游戏事业部&lt;/a&gt;。
+其中 MongoDB 运维及运维开发工程师可选工作地点为广州或杭州。&lt;/p&gt;
+&lt;p&gt;相关数据库产品均服务于如《&lt;a href="http://hy.163.com"&gt;荒野行动&lt;/a&gt;》、《&lt;a href="http://xyq.163.com"&gt;梦幻西游&lt;/a&gt;》、《&lt;a href="http://dhxy.163.com"&gt;大话西游&lt;/a&gt;》、《&lt;a href="http://yys.163.com"&gt;阴阳师&lt;/a&gt;》、《&lt;a href="http://mc.163.com"&gt;我的世界&lt;/a&gt;》、&lt;a href="http://cc.163.com"&gt;CC&lt;/a&gt;等网易游戏海量用户业务。
+如果需要也有更深入了解的，也可以给我留言或者&lt;a href="https://www.dropbox.com/s/fcx2kqf77kmx7zv/wechat_qrcode.jpeg?dl=0"&gt;微信（二维码戳我）&lt;/a&gt;私我。同时欢迎推荐及转发。&lt;/p&gt;
+&lt;h3&gt;岗位一：MySQL DBA &lt;a href="http://hr.game.163.com/position/introduction.html?code=T0915"&gt;点我投递简历&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;工作职责&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;参与内部MySQL SaaS开发和维护工作；&lt;/li&gt;
+&lt;li&gt;优化数据库，提高数据处理效率；&lt;/li&gt;
+&lt;li&gt;负责数据库新技术的调研和测试；&lt;/li&gt;
+&lt;li&gt;负责处理故障，服务请求，运维环境优化；&lt;/li&gt;
+&lt;li&gt;和开发团队及其他部门进行沟通协作。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;职位要求&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;精通MySQL等数据库系统使用，精通SQL语句和优化；&lt;/li&gt;
+&lt;li&gt;熟悉Linux系统操作；&lt;/li&gt;
+&lt;li&gt;了解网络，有一定的故障排查和处理能力；&lt;/li&gt;
+&lt;li&gt;熟悉shell脚本编程，会Python、Java者优先；&lt;/li&gt;
+&lt;li&gt;有大型数据库和大规模服务器管理经验优先；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;岗位二：MongoDB 运维工程师 &lt;a href="http://hr.game.163.com/position/introduction.html?code=T1427"&gt;点我投递简历&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;职位描述：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;负责 MongoDB 等数据库平台的配置管理、流程管理；&lt;/li&gt;
+&lt;li&gt;响应用户需求，提供协助或技术解决方案，配合业务完成数据库集群的部署、升级、扩容、缩容等；&lt;/li&gt;
+&lt;li&gt;通过全方位、立体化监控系统快速发现和处理故障；&lt;/li&gt;
+&lt;li&gt;配合优化数据库服务运维规范、工作流程、应急预案等，确保任何突发情况都能高效响应；&lt;/li&gt;
+&lt;li&gt;汇总用户需求，并设计技术需求方案，促进产品发展；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;职位要求：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;熟悉 Linux 系统以及工具命令等使用，熟悉主流开源软件的配置及调优，有底层基础技术研发经历的优先；&lt;/li&gt;
+&lt;li&gt;熟悉至少一种程序设计语言，有 Shell、Python 等脚本编程语言经验者优先；&lt;/li&gt;
+&lt;li&gt;对计算机硬件设备、网络设备有一定了解，熟悉 TCP/IP 以及具有丰富的网络知识；&lt;/li&gt;
+&lt;li&gt;熟悉 MongoDB 数据库的日常使用；&lt;/li&gt;
+&lt;li&gt;掌握 MongoDB 的管理及构建，包括但不限于集群构建、性能调优、备份恢复；&lt;/li&gt;
+&lt;li&gt;具备良好的沟通表达能力和服务意识，较强的团队合作意识，快速处理突发事件的能力；&lt;/li&gt;
+&lt;li&gt;有大型 MongoDB 商用部署实施及运营经验者优先，有 OCP 认证者优先。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;岗位三：运维开发工程师（数据库平台）&lt;a href="http://hr.game.163.com/position/introduction.html?code=T1300"&gt;点我投递简历&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;职位描述：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;负责内部数据库相关产品的管理平台、自动化流程开发工作；&lt;/li&gt;
+&lt;li&gt;与产品、PM、运维同学协作，积极高效推动产品开发；&lt;/li&gt;
+&lt;li&gt;与用户及其他部门进行沟通协作；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;职位要求：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;1 年或以上前后端开发工作经验；&lt;/li&gt;
+&lt;li&gt;对开发有浓厚兴趣，HTML/CSS/JS 基础扎实，熟悉Angulajs、Reactjs、Vue.js等MVVM框架中的一种；&lt;/li&gt;
+&lt;li&gt;有至少一种 server 端开发经验，熟悉 Python、PHP 语言开发者优先；&lt;/li&gt;
+&lt;li&gt;至少一种熟悉Web开发框架（如Django/Flask/Tornado）；&lt;/li&gt;
+&lt;li&gt;对 HTTP 协议、网页性能优化有一定的理解；&lt;/li&gt;
+&lt;li&gt;熟悉 MySQL、MongoDB、Redis 等数据库应用开发优先；&lt;/li&gt;
+&lt;li&gt;能够编写高扩展、易维护的代码，熟练且规范使用代码管理工具；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;岗位四：高级运维工程师（DNS方向） &lt;a href="http://hr.game.163.com/position/introduction.html?code=T1249"&gt;点我投递简历&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;职位描述：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;负责 DNS 及配套系统部署、维护及运维环境、服务优化；&lt;/li&gt;
+&lt;li&gt;日常系统运维、服务请求、故障处理等技术支持；&lt;/li&gt;
+&lt;li&gt;网络、系统等维护配套系统部署、维护；&lt;/li&gt;
+&lt;li&gt;和项目开发团队及其他部门进行沟通协作；&lt;/li&gt;
+&lt;li&gt;负责新技术的调研和测试。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;职位要求：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;熟悉 Linux 系统操作；&lt;/li&gt;
+&lt;li&gt;熟悉 shell 脚本语言编程，会 Python 者优先；&lt;/li&gt;
+&lt;li&gt;了解 TCP/IP 网络，有一定的故障排查和处理能力；&lt;/li&gt;
+&lt;li&gt;熟悉 DNS 协议、BIND，有相关运维经验，并能够快速实施部署、配置和排障；&lt;/li&gt;
+&lt;/ol&gt;</content><category term="misc"/><category term="netease"/><category term="dba"/><category term="mysql"/><category term="mongodb"/></entry><entry><title>pip 升级 pip 失败</title><link href="https://www.chenxiaosheng.com/posts/2016-05-19/pip_upgrade_pip_failure.html" rel="alternate"/><published>2016-05-19T12:11:00+08:00</published><updated>2016-05-19T12:11:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2016-05-19:/posts/2016-05-19/pip_upgrade_pip_failure.html</id><summary type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;# pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+You are using pip version 8.1.1, however version 8.1.2 is available …&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;今天在使用 python pip 安装一个 python 包的时候，一直提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;# pip install --upgrade pip
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages
+You are using pip version 8.1.1, however version 8.1.2 is available.
+You should consider upgrading via the &amp;#39;pip install --upgrade pip&amp;#39; command.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;尝试按说明执行 &lt;code&gt;pip install --upgrade pip&lt;/code&gt; ，没有任何报错，但一直升级不成功，百思不得解，
+在查看 &lt;code&gt;man pip&lt;/code&gt; 的时候，找到如下选项：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;-v, --verbose
+    Give more output. Option is additive, and can be used up to 3 times.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;尝试执行 &lt;code&gt;pip install --upgrade pip -vvv&lt;/code&gt; 终于有更多提示：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;1 location(s) to search for versions of pip:
+* http://example.url/simple/pip/
+Getting page http://example.url/simple/pip/
+Starting new HTTP connection (1): example.url
+&amp;quot;GET /simple/pip/ HTTP/1.1&amp;quot; 403 247
+Could not fetch URL http://example.url/simple/pip/: 403 Client Error: Forbidden for url: http://example.url/simple/pip/ - skipping
+Installed version (8.1.2) is most up-to-date (past versions: none)
+Requirement already up-to-date: pip in /usr/local/lib/python2.7/dist-packages/pip-8.1.2-py2.7.egg
+Cleaning up...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这时才发现，原来在我的 &lt;code&gt;~/.pip/pip.conf&lt;/code&gt; 配置文件里，&lt;code&gt;index-url&lt;/code&gt; 使用了一个已经废弃的地址，删除文件后重新升级，一切恢复正常。&lt;/p&gt;
+&lt;p&gt;这么重要的 debug 信息，pip 默认竟然不输出，继续百思不得其解。:-)&lt;/p&gt;</content><category term="misc"/><category term="python"/><category term="pip"/></entry><entry><title>Mac OSX Yosemite 10.10 WIFI 掉线修复</title><link href="https://www.chenxiaosheng.com/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html" rel="alternate"/><published>2014-11-17T14:35:00+08:00</published><updated>2014-11-17T14:35:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2014-11-17:/posts/2014-11-17/mac_osx_yosemite_fix_wifi_problems.html</id><summary type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
+&lt;p&gt;而且此掉线比较 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;原先用的是 Mac Air 11，通过Time Machine迁移至 Mac Retina 13，最后升级成
+Yosemite 10.10 的，系统已经用了一段时间的，最近才忽然出出WIFI掉线的问题。&lt;/p&gt;
+&lt;p&gt;而且此掉线比较奇怪，WIFI Connection正常，TCP/UDP/ICMP包均不正常，
+并且我试过在ping/safari/ssh等均异常的情况下，我某正在下载内容的应用（genymotion），
+却坚持到了最后，并成功下载完了近200M的内容，所以基本排除了无线路由的问题。&lt;/p&gt;
+&lt;p&gt;重启电脑无效，网上搜到这么一编文章：&lt;a href="http://www.oschina.net/news/56361/os-x-yosemite-wifi-fault"&gt;别忙升级，苹果 Yosemite 频现 WiFi 断线综合症&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;虽然前面两种方法无效，但第三种方法还是给了我启示的，凭直接猜测应该是：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;/Library/Preferences/SystemConfiguration
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;这个目录，进行这个目录，果然看到一堆与wifi关键字的文件：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;$ ls
+NetworkInterfaces.plist             com.apple.smb.server.plist
+com.apple.airport.preferences.plist com.apple.wifi.message-tracer.plist
+com.apple.captive.probe.plist       preferences.plist
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;把这些文件删掉（我是先备份了一下的，建议你也这样做），重启Mac。
+注意本次重启，是不会自动连上之前使用的wifi的，需要自己去点击连接一下，然后问题就解决了。&lt;/p&gt;
+&lt;p&gt;后来在网上看到 &lt;a href="http://osxdaily.com/2014/10/25/fix-wi-fi-problems-os-x-yosemite/"&gt;Fix Wi-Fi Problems in OS X Yosemite&lt;/a&gt;
+这编文章，其实只要删除：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;com.apple.airport.preferences.plist
+com.apple.network.identification.plist
+com.apple.wifi.message-tracer.plist 
+NetworkInterfaces.plist 
+preferences.plist
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;这些文件就可以了，解释也很到位，比oschina那个靠谱多了。:-)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;2014-11-18 昨天折腾完，今天收到Apple Store的更新提醒，10.10.1 fix了wifi这个问题了
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"/><category term="mac"/><category term="osx"/><category term="yosemite"/><category term="wifi"/></entry><entry><title>Linux系统上通知网关更新arp</title><link href="https://www.chenxiaosheng.com/posts/2014-03-19/linux-arp-flush.html" rel="alternate"/><published>2014-03-19T16:02:00+08:00</published><updated>2014-03-19T16:02:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2014-03-19:/posts/2014-03-19/linux-arp-flush.html</id><summary type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;经常会有在线更换Linux服务器IP的操作，该操作带来的一个问题是: 我们已经执行了修改IP的操作，但由于网络上（网关）的ARP缓存暂未更新，导致在某一段时间内，该服务器会有网络不通的情况存在。&lt;/p&gt;
+&lt;p&gt;因此，我们需要在变更IP的同时，通知网关刷新ARP缓存。&lt;/p&gt;
+&lt;p&gt;首先清除本地ARP缓存:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;/bin/ip neigh flush dev eth0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;其次向网关发送本机的ip/mac地址&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;/usr/sbin/arping -v -c 2 -S 1.1.1.144 -s 00:17:a4:8d:0e:98 -p 1.1.1.1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;1.1.1.144 为本机IP&lt;/p&gt;
+&lt;p&gt;00:17:a4:8d:0e:98 为本机MAC地址&lt;/p&gt;
+&lt;p&gt;1.1.1.1 为网关&lt;/p&gt;</content><category term="misc"/><category term="linux"/><category term="arp"/></entry><entry><title>Mac OSX iTerm2 终端UTF-8和GBK编码自由切换</title><link href="https://www.chenxiaosheng.com/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html" rel="alternate"/><published>2013-10-29T16:43:00+08:00</published><updated>2013-10-29T16:43:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2013-10-29:/posts/2013-10-29/mac_osx_iterm2_utf8_gbk_switch.html</id><summary type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+&lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;老树使用的是Mac OSX系统，平时终端都是使用iTerm2替代默认的Terminal进行使用。&lt;/p&gt;
+&lt;p&gt;考虑到各种兼容性，个人一直使用的是UTF-8编码，但由于老树管理着大量服务器，并且可能使用的是GBK或者其它编码，经常由于终端环境编码的不同，导致登录服务器出现乱码，或者需要处理GBK文件时，要使用iconv进行多次编码转换，相当麻烦。&lt;/p&gt;
+&lt;p&gt;好在iTerm2使用了比较友好的Profile配置及切换方式，首先我的默认配置（Default Profile）使用了UTF-8编码：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/iterm2_default_profile.png" /&gt;&lt;/p&gt;
+&lt;p&gt;我另外建立了一个Profile，叫GBK：&lt;/p&gt;
+&lt;p&gt;&lt;img src="/static/iterm2_gbk_profile.png" /&gt;&lt;/p&gt;
+&lt;p&gt;并编写了一个非常简单的切换脚本：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+&lt;span class="c1"&gt;# 使用GBK Profile&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-e&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\033]50;SetProfile=GBK\a&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# 环境编码切换为GBK&lt;/span&gt;
+&lt;span class="nb"&gt;export&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;LANG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
+&lt;span class="nb"&gt;export&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;LC_ALL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.GBK
+&lt;span class="c1"&gt;# 更改当前 iTerm2 tab title&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-ne&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\033]0;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;$@&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\007&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;$@&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-ne&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\033]0;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;PWD&lt;/span&gt;&lt;span class="p"&gt;/#&lt;/span&gt;&lt;span class="nv"&gt;$HOME&lt;/span&gt;&lt;span class="p"&gt;/~&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\007&amp;quot;&lt;/span&gt;
+&lt;span class="c1"&gt;# GBK任务完成后，自动切换回默认编码（UTF-8）&lt;/span&gt;
+&lt;span class="nb"&gt;echo&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;-e&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;\033]50;SetProfile=Default\a&amp;quot;&lt;/span&gt;
+&lt;span class="nb"&gt;export&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;LANG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.UTF-8
+&lt;span class="nb"&gt;export&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;LC_ALL&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;zh_CN.UTF-8
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;将以上内容保存为一个叫grun的文件，并赋予可执行权限，同时加到系统可执行目录（PATH）&lt;/p&gt;
+&lt;p&gt;当我需要登录一台GBK编码的服务器时，只需要&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;grun&lt;span class="w"&gt; &lt;/span&gt;ssh&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;hostname&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;即可&lt;/p&gt;</content><category term="misc"/><category term="mac"/><category term="osx"/><category term="iterm2"/></entry><entry><title>pelican增加自定义jinja template filters</title><link href="https://www.chenxiaosheng.com/posts/2013-09-11/pelican-custom-jinja-filters.html" rel="alternate"/><published>2013-09-11T19:46:00+08:00</published><updated>2013-09-11T19:46:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2013-09-11:/posts/2013-09-11/pelican-custom-jinja-filters.html</id><summary type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
+&lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
+&lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;pelican官方文档没有显式的指明应该如何自定义jinja template filters.&lt;/p&gt;
+&lt;p&gt;在制作标签云的时候，不想写复杂的javascript，更不想又import一份javascript进来，所以决定自己搞一个比较简单的标签云&lt;/p&gt;
+&lt;p&gt;pelican默认的tag排序比较简单，为了能有比较“云”的感觉，决定对tag加个随机排序&lt;/p&gt;
+&lt;p&gt;查了Jinja的文档，没有随机排序的filter。由于我使用了&lt;code&gt;virtualenv&lt;/code&gt;，所以最简单粗暴的解决方案是直接修改了Jinja的源码，添加了随机排序的功能&lt;/p&gt;
+&lt;p&gt;不过对于稍微有些“洁癖”的好，这样改后，心理上非常难受，决定到pelican社区，看看是否有幸添加个patch&lt;/p&gt;
+&lt;p&gt;当然，更幸运的是在&lt;code&gt;github&lt;/code&gt;找到了此commit:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;https://github.com/getpelican/pelican/pull/96
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;原来有个&lt;code&gt;JINJA_FILTERS&lt;/code&gt;的设置，那一切就好办了, 增加自定义模块&lt;code&gt;jinja_filters.py&lt;/code&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;random&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;shuffle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;):&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; Jinja template filter for shuffling list/tuple &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="nb"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;list&lt;/span&gt;
+            &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="nb"&gt;isinstance&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;tuple&lt;/span&gt; &lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+    &lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shuffle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;在&lt;code&gt;pelican&lt;/code&gt;配置文件里填加:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;jinja_filters&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;shuffle&lt;/span&gt;
+
+&lt;span class="n"&gt;JINJA_FILTERS&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;shuffle&amp;#39;&lt;/span&gt; &lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;shuffle&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;尝试重新编译生成html文件，顺利完成。&lt;/p&gt;</content><category term="misc"/><category term="python"/><category term="pelican"/><category term="jinja"/></entry><entry><title>配置Bind使用MySQL dlz模式</title><link href="https://www.chenxiaosheng.com/posts/2013-09-09/install-bind-mysql-dlz.html" rel="alternate"/><published>2013-09-09T16:18:00+08:00</published><updated>2013-09-09T16:18:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/install-bind-mysql-dlz.html</id><summary type="html">&lt;p&gt;** 安装MySQL/Bind with dlz **&lt;/p&gt;
+&lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
+&lt;p&gt;** 创建 MySQL 数据库 **&lt;/p&gt;
+&lt;p&gt;根据自己的需求创建即可，如使用如下命令创 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;** 安装MySQL/Bind with dlz **&lt;/p&gt;
+&lt;p&gt;略过，bind dlz安装，只需在编译的时候增加 &lt;code&gt;--with-dlz-mysql&lt;/code&gt; 选项即可。&lt;/p&gt;
+&lt;p&gt;** 创建 MySQL 数据库 **&lt;/p&gt;
+&lt;p&gt;根据自己的需求创建即可，如使用如下命令创建一个名为 &lt;code&gt;dns&lt;/code&gt; 的数据库：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;CREATE DATABASE dns DEFAULT CHARSET UTF8;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;使用 &lt;code&gt;use dns&lt;/code&gt; 切换进 &lt;code&gt;dns&lt;/code&gt; 数据库后，使用如下命令创建一张 &lt;code&gt;dns_records&lt;/code&gt; 表：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;TABLE&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n n-Quoted"&gt;`dns_records`&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+&lt;span class="n n-Quoted"&gt;`zone`&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="n n-Quoted"&gt;`host`&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="n n-Quoted"&gt;`type`&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="n n-Quoted"&gt;`data`&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;varchar&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="n n-Quoted"&gt;`ttl`&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;DEFAULT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;600&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="n n-Quoted"&gt;`id`&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;NOT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="no"&gt;NULL&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;AUTO_INCREMENT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="k"&gt;PRIMARY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;KEY&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n n-Quoted"&gt;`id`&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;ENGINE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;InnoDB&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;DEFAULT&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;CHARSET&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;utf8&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;这里以域 &lt;code&gt;example.com&lt;/code&gt; 为例，说明如上字段意义，假设我需要有一条 &lt;code&gt;www.example.com&lt;/code&gt; 的记录指向 &lt;code&gt;1.1.1.1&lt;/code&gt; 这个IP，应该增加哪些内容：&lt;/p&gt;
+&lt;p&gt;zone:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;域，这里指 example.com
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;host:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;主机名（名字），这里为 www
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;type:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;记录类型，这里为A
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;data:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;域名资源数据，这里为IP地址 1.1.1.1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;ttl:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;域名TTL，为任意整数（建议不要低于120，即2分钟）
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;将该数据库授权给某用户（后续bind-dlz配置需要用到）：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="k"&gt;grant&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;select&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;on&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;dns&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;to&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;dns&lt;/span&gt;&lt;span class="nv"&gt;@localhost&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;identified&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;by&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;dns&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;用户名为 &lt;code&gt;dns&lt;/code&gt; ，密码也为 &lt;code&gt;dns&lt;/code&gt; ，只允许本地主机 &lt;code&gt;localhost&lt;/code&gt; 访问，并只给予了 &lt;code&gt;select&lt;/code&gt; 权限。&lt;/p&gt;
+&lt;p&gt;** Bind-dlz配置 **&lt;/p&gt;
+&lt;p&gt;这里只涉及dlz的配置，其它named.conf的配置不涉及&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nx"&gt;dlz&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;your custom description&amp;quot;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nx"&gt;database&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;mysql&lt;/span&gt;
+&lt;span class="s"&gt;        {host=localhost dbname=dns user=dns pass=dns}&lt;/span&gt;
+&lt;span class="s"&gt;        {select zone from dns_records where zone = &amp;#39;$zone$&amp;#39;}&lt;/span&gt;
+&lt;span class="s"&gt;        {select ttl, type, data from dns_records where host = &amp;#39;$record$&amp;#39; and zone=&amp;#39;$zone$&amp;#39;}&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;your custom description:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;管理员自行添加的描述
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;配置完成。&lt;/p&gt;</content><category term="misc"/><category term="bind"/></entry><entry><title>Django multiple select option with title</title><link href="https://www.chenxiaosheng.com/posts/2013-09-09/django-multiple-select-option-with-title.html" rel="alternate"/><published>2013-09-09T15:02:00+08:00</published><updated>2013-09-09T15:02:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2013-09-09:/posts/2013-09-09/django-multiple-select-option-with-title.html</id><summary type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.encoding&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;conditional_escape&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SelectMultipleWithTitle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SelectMultiple&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; multiple select optihon with title &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;render_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;selected_html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39; selected=&amp;quot;selected&amp;quot;&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&amp;lt;option value=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s …&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;forms&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.encoding&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.utils.html&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;conditional_escape&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SelectMultipleWithTitle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;forms&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SelectMultiple&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot; multiple select optihon with title &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;render_option&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;selected_html&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;selected_choices&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39; selected=&amp;quot;selected&amp;quot;&amp;#39;&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="sa"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&amp;lt;option value=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt; title=&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;quot;&amp;gt;&lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;lt;/option&amp;gt;&amp;#39;&lt;/span&gt; &lt;span class="o"&gt;%&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+            &lt;span class="n"&gt;escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_value&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;selected_html&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+            &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt;
+            &lt;span class="n"&gt;conditional_escape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;force_unicode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;option_label&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content><category term="misc"/><category term="python"/><category term="django"/></entry><entry><title>install Facebook scribe on Debian Squeeze</title><link href="https://www.chenxiaosheng.com/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html" rel="alternate"/><published>2013-09-08T13:03:00+08:00</published><updated>2013-09-08T13:03:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/install-facebook-scribe-on-debian-squeeze.html</id><summary type="html">&lt;p&gt;系统: &lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Debian Squeeze 6.0 amd64&lt;/p&gt;
+&lt;p&gt;thrift: 0.8.0&lt;/p&gt;
+&lt;p&gt;hadoop: 0.20.2 cdh3 hadoop-0.20_0.20.2+923.142&lt;/p&gt;
+&lt;p&gt;scribe: git current version&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;首先安装各种库，包括但不局限于:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;python-dev maven2 ant sun-java6-jre sun-java6-jdk bison flex gcc make autoconf …&lt;/p&gt;&lt;/blockquote&gt;</summary><content type="html">&lt;p&gt;系统: &lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Debian Squeeze 6.0 amd64&lt;/p&gt;
+&lt;p&gt;thrift: 0.8.0&lt;/p&gt;
+&lt;p&gt;hadoop: 0.20.2 cdh3 hadoop-0.20_0.20.2+923.142&lt;/p&gt;
+&lt;p&gt;scribe: git current version&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;首先安装各种库，包括但不局限于:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;python-dev maven2 ant sun-java6-jre sun-java6-jdk bison flex gcc make autoconf libevent-dev libboost-all-dev git-core&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;之后:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;sudo update-alternatives --set java /usr/lib/jvm/java-6-sun/jre/bin/java #确保使用的不是openjdk&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;安装thrift:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;tar -zxvf thrift-0.8.0.tar.gz&lt;/p&gt;
+&lt;p&gt;cd thrift-0.8.0&lt;/p&gt;
+&lt;p&gt;./configure --prefix=/usr/local/thrift-0.8.0&lt;/p&gt;
+&lt;p&gt;make&lt;/p&gt;
+&lt;p&gt;sudo make install&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;安装fb303:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;cd thrift-0.8.0/contrib/fb303&lt;/p&gt;
+&lt;p&gt;sh boostrap.sh&lt;/p&gt;
+&lt;p&gt;./configure --prefix=/usr/local/fb303-0.8.0 --with-thriftpath=/usr/local/thrift-0.8.0 CPPFLAGS="-DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H"&lt;/p&gt;
+&lt;p&gt;make&lt;/p&gt;
+&lt;p&gt;sudo make install&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;安装hadoop:&lt;/p&gt;
+&lt;p&gt;使用apache官方下载的版本编译各种不成功，其中一个错误（编译scribe时出现）:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;HdfsFile.cpp:255: error: ‘hdfsConnectNewInstance’ was not declared in this scope&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;ConnectNewInstance是在hadoop 0.21之后的版本才出现的，由于我这边hadoop的服务器是0.20.2，所以只能使用cloudarea版本&lt;/p&gt;
+&lt;p&gt;由于我在在编译时，cloudarea页面无法下载对应版本hadoop(或者跳转到apache页面)&lt;/p&gt;
+&lt;p&gt;只好使用如下方式进行下载，首先，修改/etc/apt/source.list，增加&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;deb http://archive.cloudera.com/debian squeeze-cdh3u2 contrib&lt;/p&gt;
+&lt;p&gt;deb-src http://archive.cloudera.com/debian squeeze-cdh3u2 contrib&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;然后使用apt-get source hadoop-0.20进行下载&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;tar -zxvf hadoop-0.20.2.tar.gz&lt;/p&gt;
+&lt;p&gt;mv hadoop-0.20.2 /usr/local&lt;/p&gt;
+&lt;p&gt;cd /usr/local/hadoop-0.20.2&lt;/p&gt;
+&lt;p&gt;sudo ant compile-c++-libhdfs -Dislibhdfs=true #由于cdh3/apache提供的hadoop包内的libhdfs库不一定能使用，重新编译c++的libhdfs库&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;安装scribe:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;git clone https://github.com/facebook/scribe.git&lt;/p&gt;
+&lt;p&gt;cd scribe&lt;/p&gt;
+&lt;p&gt;sh bootstrap.sh&lt;/p&gt;
+&lt;p&gt;./configure --prefix=/usr/local/scribe-2.2 --with-fb303path=/usr/local/fb303-0.8.0 --with-thriftpath=/usr/local/thrift-0.8.0 --with-hadooppath=/usr/local/hadoop-0.20.2 --enable-hdfs CPPFLAGS="-DHAVE_NETDB_H=1 -fpermissive -DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -I/usr/local/hadoop-0.20.2/src/c++/libhdfs -I/usr/lib/jvm/java-6-sun-1.6.0.26/include -I/usr/lib/jvm/java-6-sun-1.6.0.26/include/linux" LDFLAGS="-L/usr/lib/jvm/java-6-sun-1.6.0.26/jre/lib/amd64 -L/usr/lib/jvm/java-6-sun-1.6.0.26/jre/lib/amd64/server -L/usr/local/hadoop-0.20.2/build/c++/Linux-amd64-64/lib"&lt;/p&gt;
+&lt;p&gt;make&lt;/p&gt;
+&lt;p&gt;sudo make install&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;其它配置:&lt;/p&gt;
+&lt;p&gt;由于我这里各软件包都是自定义安装路径，需要配置一下ld加载路径，编辑(增加) /etc/ld.so.conf.d/scribe.conf&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;/usr/local/thrift-0.8.0/lib/&lt;/p&gt;
+&lt;p&gt;/usr/local/hadoop-0.20.2/build/c++/Linux-amd64-64/lib/&lt;/p&gt;
+&lt;p&gt;/usr/lib/jvm/java-6-sun-1.6.0.26/jre/lib/amd64/server/&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;保存退出后&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;sudo ldconfig&lt;/p&gt;
+&lt;/blockquote&gt;</content><category term="misc"/><category term="debian"/><category term="scribe"/></entry><entry><title>Windows OpenVPN GUI记住用户名和密码</title><link href="https://www.chenxiaosheng.com/posts/2013-09-08/windows-openvpn-remember-password.html" rel="alternate"/><published>2013-09-08T12:51:00+08:00</published><updated>2013-09-08T12:51:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/windows-openvpn-remember-password.html</id><summary type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。 如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦&lt;/p&gt;</summary><content type="html">&lt;p&gt;日常工作中经常使用VPN，由于Server端要求进行用户名和密码校验，在第一次链接的时候，OpenVPN Client会弹出输入用户名和密码的窗口。&lt;/p&gt;
+&lt;p&gt;如果网络比较稳定的情况下，这个还没什么问题，网络不稳定的时候，每次弹开，都会弹出重新验证的窗口，加上我自己的密码比较长，不胜其烦&lt;/p&gt;
+&lt;p&gt;我使用的版本（2.3.1），实际上已经支持保存密码的功能（旧版本可能需要重新编译），在ovpn配置文件里增加:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;auth-user-pass pass.txt&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;之后在ovpn配置文件所在目录建立一个pass.txt的文件，第一行为用户名，第二行为密码即可。&lt;/p&gt;
+&lt;p&gt;PS：这样对自己电脑的安全性要有足够的保证，否则密码泄露就得不偿失了。&lt;/p&gt;</content><category term="misc"/><category term="windows"/><category term="openvpn"/></entry><entry><title>Debian系统添加全局根证书（CNNIC）</title><link href="https://www.chenxiaosheng.com/posts/2013-09-08/debian-add-cnnic-ca.html" rel="alternate"/><published>2013-09-08T12:25:00+08:00</published><updated>2013-09-08T12:25:00+08:00</updated><author><name>老树</name></author><id>tag:www.chenxiaosheng.com,2013-09-08:/posts/2013-09-08/debian-add-cnnic-ca.html</id><summary type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。本篇文章介绍了如何将CNNIC CA添加至Debian操作系统全局根证书。&lt;/p&gt;</summary><content type="html">&lt;p&gt;鉴于CNNIC的证书默认被不信任，导致了应用在访问某些使用cnnic证书的ssl站点时，请求失败。&lt;/p&gt;
+&lt;p&gt;虽然我也不喜欢cnnic，但没办法，这是反抗不了的事情。&lt;/p&gt;
+&lt;p&gt;过程如下（需要root权限）：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;apt-get install ca-certificates #一般情况下应该是已经有安装的了&lt;/p&gt;
+&lt;p&gt;mkdir -p /usr/share/ca-certificates/local #建立local目录是为了方便区分这是自己填加的证书，可以自定义，但一定要在/usr/share/ca-certificates目录下&lt;/p&gt;
+&lt;p&gt;将cnnic的证书复制至/usr/share/ca-certificates/local目录，请注意，证书的后缀必须修改为.crt&lt;/p&gt;
+&lt;p&gt;dpkg-reconfigure ca-certificates #选中刚才添加的local/cnnic.crt证中，确定，即可&lt;/p&gt;
+&lt;/blockquote&gt;</content><category term="misc"/><category term="debian"/></entry></feed>
